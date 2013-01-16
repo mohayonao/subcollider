@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>subcollider.js</title>
+    <link rel="stylesheet" media="all" href="./misc/docco.css" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <script src="./subcollider.dev.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1><img src="./misc/logo.png" title="subcollider.js" /></h1>
+      <div class="desc">
+        <p>
+          SubCollider.js is a JavaScript library that provides like SuperCollider functions to the <strong>sc</strong> namespace or extends Number/Array prototype. It is the recommended base library for <a href="http://mohayonao.github.com/timbre.js/">timbre.js</a>.
+        </p>
+        <p>
+          You can try subcollier.js and see how it using the web console, right now.
+        </p>
+      </div>
+      <div class="download">
+        <h2>Downloads (Right-click and use "Save As")</h2>
+        <ul>
+          <li><a href="./subcollider.js">subcollider.js</a> Production Version (Minified)</li>
+          <li><a href="./subcollider.dev.js">subcollider.dev.js</a> Development Version (Uncompressed)</li>
+        </ul>
+        <h2>This project is hosted on <a href="https://github.com/mohayonao/subcollider.js">GitHub</a></h2>
+      </div>
+    </header>
+    <div id="container" class="docco">
+      <div id="background"></div>
+      <table cellpadding="0" cellspacing="0">
+        <% for (var i=0, l=sections.length; i<l; i++) { %>
+          <% var section = sections[i]; %>
+          <tr id="section-<%= i + 1 %>">
+            <td class="docs">
+              <%= section.docsHtml %>
+            </td>
+            <td class="code">
+              <%= section.codeHtml %>
+            </td>
+          </tr>
+        <% } %>
+      </table>
+    </div>
+  </body>
+</html>

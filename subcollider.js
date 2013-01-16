@@ -1,0 +1,1 @@
+(function(){"use strict";var o={},n=o;"undefined"!=typeof module&&module.exports?module.exports=n:"undefined"!=typeof window&&(n.noConflict=function(){var o=window.subcollider,d=window.sc;return function(i){return window.sc===n&&(window.sc=d),i&&window.subcollider===n&&(window.subcollider=o),n}}(),window.subcollider=window.sc=n)})();
