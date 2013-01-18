@@ -124,10 +124,18 @@ describe("sc", function() {
             assert.deepEqual(a, [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]);
         });
         it("sc.series()", function() {
+            var a = sc.series(5);
+            assert.deepEqual(a, [ 0, 1, 2, 3, 4 ]);
+        });
+        it("sc.series(...)", function() {
             var a = sc.series(5, -6, 3);
             assert.deepEqual(a, [ -6, -3, 0, 3, 6 ]);
         });
         it("sc.geom()", function() {
+            var a = sc.geom(5);
+            assert.deepEqual(a, [ 1, 2, 4, 8, 16 ]);
+        });
+        it("sc.geom(...)", function() {
             var a = sc.geom(5, -11, 3);
             assert.deepEqual(a, [ -11, -33, -99, -297, -891 ]);
         });

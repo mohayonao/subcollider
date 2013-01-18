@@ -261,7 +261,7 @@
     function series(size, start, step) {
         size = Math.max(0, size|0);
         start = (typeof start === "number") ? start : 0;
-        step  = (typeof step  === "number") ? step  : 2;
+        step  = (typeof step  === "number") ? step  : 1;
         
         var a = new Array(size);
         for (var i = 0, j = start; i < size; ++i, j += step) {
