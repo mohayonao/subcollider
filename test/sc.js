@@ -112,6 +112,9 @@ describe("sc", function() {
         [ 3, 2, 1, 2, 3, 2, 1, 2, 3, 2, 1 ],
         [ 1, 3 ]
     );
+    it("mulAdd", function() {
+        assert.equal(sc.mulAdd(10, 2, 3), 23);
+    });
     describe("Array", function() {
         it("sc.fill()", function() {
             var a = sc.fill(10, 1);

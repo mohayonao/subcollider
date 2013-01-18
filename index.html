@@ -273,7 +273,20 @@ sc.midicps([69]); // [440]
         <span class="nx">quant</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">abs</span><span class="p">(</span><span class="nx">quant</span><span class="p">);</span>
         <span class="k">return</span> <span class="nx">quant</span> <span class="o">===</span> <span class="mi">0</span> <span class="o">?</span> <span class="k">this</span> <span class="o">:</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="k">this</span> <span class="err">/ quant) * quant;</span>
     <span class="p">}</span>
-    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;trunc&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">$num_trunc</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <h2>asInteger ()</h2>
+    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;trunc&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">$num_trunc</span><span class="p">);</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <h2>mulAdd (quant:Number)</h2>
+
+<p>Multiply and add</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">$num_mulAdd</span><span class="p">(</span><span class="nx">mul</span><span class="p">,</span> <span class="nx">add</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span> <span class="o">*</span> <span class="nx">mul</span> <span class="o">+</span> <span class="nx">add</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="kd">function</span> <span class="nx">$ary_mulAdd</span><span class="p">(</span><span class="nx">mul</span><span class="p">,</span> <span class="nx">add</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Array</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="nx">a</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">--</span><span class="p">;</span> <span class="p">)</span>
+            <span class="nx">a</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="k">this</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">*</span> <span class="nx">mul</span> <span class="o">+</span> <span class="nx">add</span><span class="p">;</span>
+        <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;mulAdd&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">$num_mulAdd</span><span class="p">,</span> <span class="nx">$ary_mulAdd</span><span class="p">);</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <h2>asInteger ()</h2>
 
 <p>Convert to Integer</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">$num_asInteger</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="o">|</span><span class="mi">0</span><span class="p">;</span>
@@ -286,7 +299,7 @@ sc.midicps([69]); // [440]
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;asInteger&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">$num_asInteger</span><span class="p">,</span> <span class="nx">$ary_asInteger</span><span class="p">);</span>
     
-    </pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <h1>Array Functions</h1>             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <h2>sc.fill (size:uint, item=0)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <h1>Array Functions</h1>             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <h2>sc.fill (size:uint, item=0)</h2>
 
 <p>Creates an array of the given size, the elements of which are determined by evaluation the given function.</p>
 
@@ -310,7 +323,7 @@ sc.midicps([69]); // [440]
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">fill</span> <span class="o">=</span> <span class="nx">fill</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <h2>sc.series (size:uint, start=0, step=1)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <h2>sc.series (size:uint, start=0, step=1)</h2>
 
 <p>Fill with ramp of values</p>
 
@@ -334,7 +347,7 @@ sc.series(5, -6, 3); // [ -6, -3, 0, 3, 6 ]
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">series</span> <span class="o">=</span> <span class="nx">series</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <h2>sc.geom (size:uint, start=1, grow=2)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <h2>sc.geom (size:uint, start=1, grow=2)</h2>
 
 <p>Fill with geometric series</p>
 
@@ -358,7 +371,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">geom</span> <span class="o">=</span> <span class="nx">geom</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <h2>sc.rand (size:uint, minVal=0, maxVal=1, seed=None)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <h2>sc.rand (size:uint, minVal=0, maxVal=1, seed=None)</h2>
 
 <p>Fill with random values in the range minVal to maxVal</p>
 
@@ -378,7 +391,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">rand</span> <span class="o">=</span> <span class="nx">rand</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <h2>sc.rand2 (size:uint, val=1, seed=None)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <h2>sc.rand2 (size:uint, val=1, seed=None)</h2>
 
 <p>Fill with random values in the range -val to +val</p>
 
@@ -389,7 +402,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="nx">rand</span><span class="p">(</span><span class="nx">size</span><span class="p">,</span> <span class="o">-</span><span class="nx">val</span><span class="p">,</span> <span class="o">+</span><span class="nx">val</span><span class="p">,</span> <span class="nx">seed</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">rand2</span> <span class="o">=</span> <span class="nx">rand2</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <h2>at (index:int or Array)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <h2>at (index:int or Array)</h2>
 
 <p>Return the item at index. The index can also be an Array of indices to extract specified elements.</p>
 
@@ -408,7 +421,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;at&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_at</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <h2>clipAt (index:int or Array)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <h2>clipAt (index:int or Array)</h2>
 
 <p>Same as <code>at</code>, but values for index greater than the size of the array will be clipped to the last index</p>
 
@@ -434,7 +447,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;clipAt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_clipAt</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <h2>wrapAt (index:int or Array)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <h2>wrapAt (index:int or Array)</h2>
 
 <p>Same as <code>at</code>, but values for index greater than the size of the array will be wrapped around to 0</p>
 
@@ -460,7 +473,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;wrapAt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_wrapAt</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <h2>foldAt (index:int or Array)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-27">             <td class="docs">               <h2>foldAt (index:int or Array)</h2>
 
 <p>Same as <code>at</code>, but values for index greater than the size of the array will be folded back.</p>
 
@@ -485,7 +498,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
             <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;foldAt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_foldAt</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-27">             <td class="docs">               <h2>first ()</h2>
+    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;foldAt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_foldAt</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <h2>first ()</h2>
 
 <p>Return the first element of the array</p>
 
@@ -501,7 +514,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_first</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <h2>last ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <h2>last ()</h2>
 
 <p>Return the last element of the array</p>
 
@@ -517,7 +530,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;last&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_last</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <h2>add (item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-30">             <td class="docs">               <h2>add (item)</h2>
 
 <p>Adds an item to the Array</p>
 
@@ -528,7 +541,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_add</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-30">             <td class="docs">               <h2>addAll (aCollection:Array)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-31">             <td class="docs">               <h2>addAll (aCollection:Array)</h2>
 
 <p>Adds all the elements to the array</p>
 
@@ -540,7 +553,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;addAll&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_addAll</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-31">             <td class="docs">               <h2>insert (index:int, item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-32">             <td class="docs">               <h2>insert (index:int, item)</h2>
 
 <p>Inserts the item into the contents of the array</p>
 
@@ -557,7 +570,7 @@ sc.geom(5, -11, 3); // [ -11, -33, -99, -297, -891 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;insert&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_insert</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-32">             <td class="docs">               <h2>removeAt (index:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-33">             <td class="docs">               <h2>removeAt (index:int)</h2>
 
 <p>Remove and return the element at index</p>
 
@@ -575,7 +588,7 @@ a.removeAt(3); // 4, a is [ 1, 2, 3, 5 ]
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;removeAt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_removeAt</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-33">             <td class="docs">               <h2>takeAt (index:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-34">             <td class="docs">               <h2>takeAt (index:int)</h2>
 
 <p>Similar to <code>removeAt</code>, but does not maintain the order of the items following the one that was removed. Instead, the last item is placed into the position of the removed item and the array's size decreases by one.</p>
 
@@ -599,7 +612,7 @@ a.takeAt(2); // 3, a is [ 1, 2, 5, 4 ]
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;takeAt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_takeAt</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-34">             <td class="docs">               <h2>remove (item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <h2>remove (item)</h2>
 
 <p>Remove item from the array</p>
 
@@ -618,7 +631,7 @@ a.remove(1); // 1, a is [ 2, 3, 4 ]
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;remove&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_remove</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <h2>take (item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-36">             <td class="docs">               <h2>take (item)</h2>
 
 <p>Remove and return item from the array. The last item in the collection will move to occupy the vacated slot (and the collection size decreases by one).</p>
 
@@ -637,7 +650,7 @@ a.take(1); // 1, a is [ 4, 2, 3 ]
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;take&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_take</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-36">             <td class="docs">               <h2>put (index:int or Array, item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <h2>put (index:int or Array, item)</h2>
 
 <p>Put item at index, replacing what is there</p>
 
@@ -663,7 +676,7 @@ a.take(1); // 1, a is [ 4, 2, 3 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;put&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_put</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <h2>clipPut (index:int or Array, item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <h2>clipPut (index:int or Array, item)</h2>
 
 <p>Same as <code>put</code>, but values for index greater than the size of the array will be clipped to the last index</p>
 
@@ -680,7 +693,7 @@ a.take(1); // 1, a is [ 4, 2, 3 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;clipPut&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_clipPut</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <h2>wrapPut (index:int or Array, item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-39">             <td class="docs">               <h2>wrapPut (index:int or Array, item)</h2>
 
 <p>Same as <code>put</code>, but values for index greater than the size of the array will be wrapped around to 0</p>
 
@@ -697,7 +710,7 @@ a.take(1); // 1, a is [ 4, 2, 3 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;wrapPut&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_wrapPut</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-39">             <td class="docs">               <h2>foldPut (index:int or Array, item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <h2>foldPut (index:int or Array, item)</h2>
 
 <p>Same as <code>put</code>, but values for index greater than the size of the array will be folded back</p>
 
@@ -714,7 +727,7 @@ a.take(1); // 1, a is [ 4, 2, 3 ]
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;foldPut&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_foldPut</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <h2>putFirst (obj)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <h2>putFirst (obj)</h2>
 
 <p>Place item at the first index in the array.
 Note that if the array is empty (and therefore has no indexed slots) the item will not be added.</p>
@@ -732,7 +745,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;putFirst&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_putFirst</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <h2>putLast (obj)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <h2>putLast (obj)</h2>
 
 <p>Place item at the last index in the array.
 Note that if the array is empty (and therefore has no indexed slots) the item will not be added.</p>
@@ -750,7 +763,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;putLast&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_putLast</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <h2>swap (i:int, j:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <h2>swap (i:int, j:int)</h2>
 
 <p>Swap the values at indices i and j</p>
 
@@ -768,7 +781,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;swap&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_swap</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <h2>clipSwap (i:int, j:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-44">             <td class="docs">               <h2>clipSwap (i:int, j:int)</h2>
 
 <p>Same as 'swap', but values for index greater than the size of the array will be clipped to the last index</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">$ary_clipSwap</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">j</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">i</span> <span class="o">=</span> <span class="nx">$num_clip</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">i</span><span class="o">|</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
@@ -777,7 +790,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;clipSwap&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_clipSwap</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-44">             <td class="docs">               <h2>wrapSwap (i:int, j:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <h2>wrapSwap (i:int, j:int)</h2>
 
 <p>Same as 'swap', but values for index greater than the size of the array will be wrapped around to 0</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">$ary_wrapSwap</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">j</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">i</span> <span class="o">=</span> <span class="nx">$num_wrap</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">i</span><span class="o">|</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
@@ -786,7 +799,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;wrapSwap&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_wrapSwap</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <h2>foldSwap (i:int, j:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <h2>foldSwap (i:int, j:int)</h2>
 
 <p>Same as 'swap', but values for index greater than the size of the array will be folded back.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">$ary_foldSwap</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">j</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">i</span> <span class="o">=</span> <span class="nx">$num_fold</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">i</span><span class="o">|</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
@@ -795,7 +808,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;foldSwap&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_foldSwap</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <h2>includes (item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-47">             <td class="docs">               <h2>includes (item)</h2>
 
 <p>Return a boolean indicating whether the Array contains anything matching item.</p>
 
@@ -805,7 +818,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span> <span class="o">!==</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;includes&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_includes</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-47">             <td class="docs">               <h2>indexOfGreaterThan (val)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-48">             <td class="docs">               <h2>indexOfGreaterThan (val)</h2>
 
 <p>Return the first index containing an item which is greater than item</p>
 
@@ -823,7 +836,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;indexOfGreaterThan&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_indexOfGreaterThan</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-48">             <td class="docs">               <h2>indexIn (val)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-49">             <td class="docs">               <h2>indexIn (val)</h2>
 
 <p>Returns the closest index of the value in the array (array must be sorted)</p>
 
@@ -842,7 +855,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="p">((</span><span class="nx">val</span> <span class="o">-</span> <span class="k">this</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">&lt;</span> <span class="p">(</span><span class="k">this</span><span class="p">[</span><span class="nx">j</span><span class="p">]</span> <span class="o">-</span> <span class="nx">val</span><span class="p">))</span> <span class="o">?</span> <span class="nx">i</span> <span class="o">:</span> <span class="nx">j</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;indexIn&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_indexIn</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-49">             <td class="docs">               <h2>indexInBetween (val)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-50">             <td class="docs">               <h2>indexInBetween (val)</h2>
 
 <p>Returns a linearly interpolated float index for the value (array must be sorted)</p>
 
@@ -862,7 +875,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="p">((</span><span class="nx">val</span> <span class="o">-</span> <span class="nx">a</span><span class="p">)</span> <span class="o">/</span> <span class="nx">div</span><span class="p">)</span> <span class="o">+</span> <span class="nx">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;indexInBetween&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_indexInBetween</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-50">             <td class="docs">               <h2>find (sublist:Array, offset:int=0)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-51">             <td class="docs">               <h2>find (sublist:Array, offset:int=0)</h2>
 
 <p>If the sublist exists in the receiver (in the specified order), at an offset greater than or equal to the initial offset, then return the starting index.</p>
 
@@ -890,7 +903,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;find&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_find</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-51">             <td class="docs">               <h2>findAll (sublist:Array, offset:int=0)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-52">             <td class="docs">               <h2>findAll (sublist:Array, offset:int=0)</h2>
 
 <p>Similar to <code>find</code> but returns an array of all the indices at which the sequence is found.</p>
 
@@ -919,7 +932,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;findAll&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_findAll</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-52">             <td class="docs">               <h2>indicesOfEqual (item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-53">             <td class="docs">               <h2>indicesOfEqual (item)</h2>
 
 <p>Return an array of indices of things in the array that equal the item</p>
 
@@ -938,7 +951,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;indicesOfEqual&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_indicesOfEqual</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-53">             <td class="docs">               <h2>copyRange (start:int, end:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-54">             <td class="docs">               <h2>copyRange (start:int, end:int)</h2>
 
 <p>Return a new Array which is a copy of the indexed slots of the receiver from 'start' to 'end'.</p>
 
@@ -950,7 +963,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="nx">start</span><span class="p">,</span> <span class="nx">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;copyRange&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_copyRange</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-54">             <td class="docs">               <h2>copyToEnd (start:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-55">             <td class="docs">               <h2>copyToEnd (start:int)</h2>
 
 <p>Return a new Array which is a copy of the indexed slots of the receiver from 'start' to the end of the array.</p>
 
@@ -961,7 +974,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="nx">start</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;copyToEnd&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_copyToEnd</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-55">             <td class="docs">               <h2>copyFromStart (end:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-56">             <td class="docs">               <h2>copyFromStart (end:int)</h2>
 
 <p>Return a new Array which is a copy of the indexed slots of the receiver from the start of the array to 'end'.</p>
 
@@ -972,7 +985,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;copyFromStart&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_copyFromStart</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-56">             <td class="docs">               <h2>keep (n:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-57">             <td class="docs">               <h2>keep (n:int)</h2>
 
 <p>Keep the first n items of the array. If n is negative, keep the last -n items.</p>
 
@@ -993,7 +1006,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;keep&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_keep</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-57">             <td class="docs">               <h2>drop (n:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-58">             <td class="docs">               <h2>drop (n:int)</h2>
 
 <p>Drop the first n items of the array. If n is negative, drop the last -n items.</p>
 
@@ -1014,7 +1027,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;drop&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_drop</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-58">             <td class="docs">               <h2>scramble ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-59">             <td class="docs">               <h2>scramble ()</h2>
 
 <p>Returns a new Array whose elements have been scrambled. The receiver is unchanged.</p>
 
@@ -1030,7 +1043,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;scramble&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_scramble</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-59">             <td class="docs">               <h2>mirror ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-60">             <td class="docs">               <h2>mirror ()</h2>
 
 <p>Return a new Array which is the receiver made into a palindrome. The receiver is unchanged.</p>
 
@@ -1055,7 +1068,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
-    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;mirror&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_mirror</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-60">             <td class="docs">               <h2>mirror1 ()</h2>
+    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;mirror&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_mirror</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-61">             <td class="docs">               <h2>mirror1 ()</h2>
 
 <p>Return a new Array which is the receiver made into a palindrome with the last element removed. This is useful if the list will be repeated cyclically, the first element will not get played twice. The receiver is unchanged.</p>
 
@@ -1081,7 +1094,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;mirror1&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_mirror1</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-61">             <td class="docs">               <h2>mirror2 ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-62">             <td class="docs">               <h2>mirror2 ()</h2>
 
 <p>Return a new Array which is the receiver concatenated with a reversal of itself. The center element is duplicated. The receiver is unchanged.</p>
 
@@ -1107,7 +1120,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;mirror2&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_mirror2</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-62">             <td class="docs">               <h2>stutter (n:int=2)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-63">             <td class="docs">               <h2>stutter (n:int=2)</h2>
 
 <p>Return a new Array whose elements are repeated n times. The receiver is unchanged.</p>
 
@@ -1129,7 +1142,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;stutter&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_stutter</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-63">             <td class="docs">               <h2>rotate (n:int=1)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-64">             <td class="docs">               <h2>rotate (n:int=1)</h2>
 
 <p>Return a new Array whose elements are in rotated order. The receiver is unchanged.</p>
 
@@ -1154,7 +1167,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;rotate&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_rotate</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-64">             <td class="docs">               <h2>sputter (probability=0.25, maxlen:int=100)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-65">             <td class="docs">               <h2>sputter (probability=0.25, maxlen:int=100)</h2>
 
 <p>Return a new Array of length maxlen with the items partly repeated (random choice of given probability).</p>
 
@@ -1170,7 +1183,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
-    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;sputter&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_sputter</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-65">             <td class="docs">               <h2>lace (size:int)</h2>
+    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;sputter&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_sputter</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-66">             <td class="docs">               <h2>lace (size:int)</h2>
 
 <p>Returns a new Array whose elements are interlaced sequences of the elements of the receiver's subcollections, up to size length. The receiver is unchanged.</p>
 
@@ -1192,7 +1205,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;lace&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_lace</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-66">             <td class="docs">               <h2>extend (size:int, item)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-67">             <td class="docs">               <h2>extend (size:int, item)</h2>
 
 <p>Extends the receiver to match size by adding a number of items. If size is less than receiver size then truncate.</p>
 
@@ -1212,7 +1225,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;extend&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_extend</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-67">             <td class="docs">               <h2>clipExtend (size:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-68">             <td class="docs">               <h2>clipExtend (size:int)</h2>
 
 <p>Same as wrapExtend but the sequences "clip" (return their last element) rather than wrapping.</p>
 
@@ -1239,7 +1252,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;clipExtend&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_clipExtend</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-68">             <td class="docs">               <h2>wrapExtend (size:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-69">             <td class="docs">               <h2>wrapExtend (size:int)</h2>
 
 <p>Returns a new Array whose elements are repeated sequences of the receiver, up to size length. The receiver is unchanged.</p>
 
@@ -1259,7 +1272,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;wrapExtend&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_wrapExtend</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-69">             <td class="docs">               <h2>foldExtend (size:int)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-70">             <td class="docs">               <h2>foldExtend (size:int)</h2>
 
 <p>Same as wrapExtend but the sequences fold back on the list elements.</p>
 
@@ -1278,7 +1291,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">}</span>
-    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;foldExtend&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_foldExtend</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-70">             <td class="docs">               <h2>choose ()</h2>
+    <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;foldExtend&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_foldExtend</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-71">             <td class="docs">               <h2>choose ()</h2>
 
 <p>Choose an element from the array at random</p>
 
@@ -1293,7 +1306,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">[(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span> <span class="o">*</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span><span class="o">|</span><span class="mi">0</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;choose&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_choose</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-71">             <td class="docs">               <h2>wchoose (weights)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-72">             <td class="docs">               <h2>wchoose (weights)</h2>
 
 <p>Choose an element from the array at random using a list of probabilities or weights. The weights must sum to 1.0</p>
 
@@ -1315,7 +1328,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">[</span><span class="nx">weights</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;wchoose&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_wchoose</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-72">             <td class="docs">               <h2>performDegreeToKey (scaleDegree, stepsPerOctave=12, accidental=0)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-73">             <td class="docs">               <h2>performDegreeToKey (scaleDegree, stepsPerOctave=12, accidental=0)</h2>
 
 <blockquote>
   <p>/SC-Source/SCClassLibrary/Common/Collections/SequenceableCollection.sc</p>
@@ -1328,7 +1341,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
             <span class="nx">baseKey</span> <span class="o">+</span> <span class="p">(</span><span class="nx">accidental</span> <span class="o">*</span> <span class="p">(</span><span class="nx">stepsPerOctave</span> <span class="o">/</span> <span class="mi">12</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;performDegreeToKey&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_performDegreeToKey</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-73">             <td class="docs">               <h2>performKeyToDegree (degree, stepsPerOctave=12)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-74">             <td class="docs">               <h2>performKeyToDegree (degree, stepsPerOctave=12)</h2>
 
 <blockquote>
   <p>/SC-Source/SCClassLibrary/Common/Collections/SequenceableCollection.sc</p>
@@ -1339,7 +1352,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">$ary_indexInBetween</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span> <span class="o">+</span> <span class="nx">n</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;performKeyToDegree&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_performKeyToDegree</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-74">             <td class="docs">               <h2>performNearestInList (degree)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-75">             <td class="docs">               <h2>performNearestInList (degree)</h2>
 
 <blockquote>
   <p>/SC-Source/SCClassLibrary/Common/Collections/SequenceableCollection.sc</p>
@@ -1347,7 +1360,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">[</span><span class="nx">$ary_indexIn</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">degree</span><span class="p">)];</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;performNearestInList&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_performNearestInList</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-75">             <td class="docs">               <h2>performNearestInScale (degree, stepsPerOctave=12)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-76">             <td class="docs">               <h2>performNearestInScale (degree, stepsPerOctave=12)</h2>
 
 <blockquote>
   <p>/SC-Source/SCClassLibrary/Common/Collections/SequenceableCollection.sc</p>
@@ -1358,7 +1371,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">$ary_performNearestInList</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span> <span class="o">+</span> <span class="nx">root</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;performNearestInScale&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_performNearestInScale</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-76">             <td class="docs">               <h2>size ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-77">             <td class="docs">               <h2>size ()</h2>
 
 <p>Return the number of elements the Array</p>
 
@@ -1368,7 +1381,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_size</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-77">             <td class="docs">               <h2>isEmpty ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-78">             <td class="docs">               <h2>isEmpty ()</h2>
 
 <p>Answer whether the array contains no objects</p>
 
@@ -1378,7 +1391,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">===</span> <span class="mi">0</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;isEmpty&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_isEmpty</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-78">             <td class="docs">               <h2>equals (argArray:Array)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-79">             <td class="docs">               <h2>equals (argArray:Array)</h2>
 
 <p>Answer whether the array equals anotherArray</p>
 
@@ -1400,7 +1413,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">register</span><span class="p">(</span><span class="s2">&quot;equals&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">NOP</span><span class="p">,</span> <span class="nx">$ary_equals</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-79">             <td class="docs">               <h1>Pattern</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pattern</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-80">             <td class="docs">               <h1>Pattern</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pattern</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">Pattern</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">next</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
@@ -1412,7 +1425,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
     <span class="nx">Pattern</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">reset</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-80">             <td class="docs">               <h2>Pser : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pser</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">offset</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-81">             <td class="docs">               <h2>Pser : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pser</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">offset</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">Pattern</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
         <span class="nx">repeats</span> <span class="o">=</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">repeats</span> <span class="o">===</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">repeats</span> <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
         <span class="nx">offset</span>  <span class="o">=</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">offset</span>  <span class="o">===</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">offset</span>  <span class="o">:</span> <span class="mi">0</span><span class="p">;</span>
@@ -1444,14 +1457,14 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
     <span class="p">};</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Pser</span> <span class="o">=</span> <span class="nx">Pser</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-81">             <td class="docs">               <h2>Pseq : Pser</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pseq</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">offset</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-82">             <td class="docs">               <h2>Pseq : Pser</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pseq</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">offset</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">Pser</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">offset</span><span class="p">);</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">repeats</span> <span class="o">*=</span> <span class="nx">list</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="nx">extend</span><span class="p">(</span><span class="nx">Pseq</span><span class="p">,</span> <span class="nx">Pser</span><span class="p">);</span>
     
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Pseq</span> <span class="o">=</span> <span class="nx">Pseq</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-82">             <td class="docs">               <h2>Pshuf : Pser</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pshuf</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">seed</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-83">             <td class="docs">               <h2>Pshuf : Pser</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pshuf</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">seed</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">Pser</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
         <span class="kd">var</span> <span class="nx">rand</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">RGen</span><span class="p">(</span><span class="nx">seed</span><span class="p">);</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">list</span><span class="p">.</span><span class="nx">sort</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
@@ -1460,7 +1473,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
     <span class="p">}</span>
     <span class="nx">extend</span><span class="p">(</span><span class="nx">Pshuf</span><span class="p">,</span> <span class="nx">Pser</span><span class="p">);</span>
     
-    <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Pshuf</span> <span class="o">=</span> <span class="nx">Pshuf</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-83">             <td class="docs">               <h2>Prand : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Prand</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">seed</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Pshuf</span> <span class="o">=</span> <span class="nx">Pshuf</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-84">             <td class="docs">               <h2>Prand : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Prand</span><span class="p">(</span><span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="nx">seed</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">Pser</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">list</span><span class="p">,</span> <span class="nx">repeats</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
         <span class="kd">var</span> <span class="nx">rand</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">RGen</span><span class="p">(</span><span class="nx">seed</span><span class="p">);</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">_rand</span> <span class="o">=</span> <span class="nx">rand</span><span class="p">.</span><span class="nx">next</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">rand</span><span class="p">);</span>
@@ -1488,7 +1501,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
     <span class="p">};</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Prand</span> <span class="o">=</span> <span class="nx">Prand</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-84">             <td class="docs">               <h2>Pseries : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pseries</span><span class="p">(</span><span class="nx">start</span><span class="p">,</span> <span class="nx">step</span><span class="p">,</span> <span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-85">             <td class="docs">               <h2>Pseries : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pseries</span><span class="p">(</span><span class="nx">start</span><span class="p">,</span> <span class="nx">step</span><span class="p">,</span> <span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">Pattern</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
         <span class="nx">start</span>  <span class="o">=</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">start</span>  <span class="o">===</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">start</span>  <span class="o">:</span> <span class="mi">0</span><span class="p">;</span>
         <span class="nx">length</span> <span class="o">=</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">length</span> <span class="o">===</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">length</span> <span class="o">:</span> <span class="kc">Infinity</span><span class="p">;</span>
@@ -1512,7 +1525,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
         <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
     <span class="p">};</span>
-    <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Pseries</span> <span class="o">=</span> <span class="nx">Pseries</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-85">             <td class="docs">               <h2>Pgeom : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pgeom</span><span class="p">(</span><span class="nx">start</span><span class="p">,</span> <span class="nx">grow</span><span class="p">,</span> <span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Pseries</span> <span class="o">=</span> <span class="nx">Pseries</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-86">             <td class="docs">               <h2>Pgeom : Pattern</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Pgeom</span><span class="p">(</span><span class="nx">start</span><span class="p">,</span> <span class="nx">grow</span><span class="p">,</span> <span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">Pattern</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
         <span class="nx">start</span>  <span class="o">=</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">start</span>  <span class="o">===</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">start</span>  <span class="o">:</span> <span class="mi">0</span><span class="p">;</span>
         <span class="nx">length</span> <span class="o">=</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">length</span> <span class="o">===</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">length</span> <span class="o">:</span> <span class="kc">Infinity</span><span class="p">;</span>
@@ -1538,13 +1551,13 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
     <span class="p">};</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Pgeom</span> <span class="o">=</span> <span class="nx">Pgeom</span><span class="p">;</span>
     
-    </pre></div>             </td>           </tr>                               <tr id="section-86">             <td class="docs">               <h1>Scale</h1>
+    </pre></div>             </td>           </tr>                               <tr id="section-87">             <td class="docs">               <h1>Scale</h1>
 
 <p>Scale supports arbitary octave divisions and ratios, and(in conjunction with Tuning) can generate pitch information in various aways.</p>
 
 <blockquote>
   <p>/SC-Source/SCClassLibrary/Common/Collections/Scale.sc</p>
-</blockquote>             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-87">             <td class="docs">               <h2>Constructor</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Scale</span><span class="p">(</span><span class="nx">degrees</span><span class="p">,</span> <span class="nx">pitchesPerOctave</span><span class="p">,</span> <span class="nx">tuning</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</blockquote>             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-88">             <td class="docs">               <h2>Constructor</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Scale</span><span class="p">(</span><span class="nx">degrees</span><span class="p">,</span> <span class="nx">pitchesPerOctave</span><span class="p">,</span> <span class="nx">tuning</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">Array</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">degrees</span><span class="p">))</span> <span class="p">{</span>
             <span class="nx">degrees</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">11</span><span class="p">];</span> <span class="c1">// ionian</span>
         <span class="p">}</span>
@@ -1571,7 +1584,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">this</span><span class="p">.</span><span class="nx">tuning</span><span class="p">(</span><span class="nx">tuning</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Scale</span> <span class="o">=</span> <span class="nx">Scale</span><span class="p">;</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-88">             <td class="docs">               <h2>tuning (inTuning:Tuning)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-89">             <td class="docs">               <h2>tuning (inTuning:Tuning)</h2>
 
 <p>Sets or gets the tuning of the Scale.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">tuning</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">inTuning</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="nx">inTuning</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
@@ -1593,65 +1606,65 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         
         <span class="k">return</span> <span class="nx">inTuning</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-89">             <td class="docs">               <h2>semitones ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-90">             <td class="docs">               <h2>semitones ()</h2>
 
 <p>Returns a tuned array of semitone values</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">semitones</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">wrapAt</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">));</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-90">             <td class="docs">               <h2>cents ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-91">             <td class="docs">               <h2>cents ()</h2>
 
 <p>Returns a turned array of cent values</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">cents</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">semitones</span><span class="p">().</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">return</span> <span class="nx">x</span> <span class="o">*</span> <span class="mi">100</span><span class="p">;</span>
         <span class="p">});</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-91">             <td class="docs">               <h2>ratios ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-92">             <td class="docs">               <h2>ratios ()</h2>
 
 <p>Return a turned array of ratios</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">ratios</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ratios</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-92">             <td class="docs">               <h2>size ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-93">             <td class="docs">               <h2>size ()</h2>
 
 <p>Returns the length of the scale</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">size</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-93">             <td class="docs">               <h2>pitchesPerOctave ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-94">             <td class="docs">               <h2>pitchesPerOctave ()</h2>
 
 <p>Returns the size of the pitch class set from which the tuning is drawn</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">pitchesPerOctave</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_pitchesPerOctave</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-94">             <td class="docs">               <h2>stepsPerOctave ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-95">             <td class="docs">               <h2>stepsPerOctave ()</h2>
 
 <p>Usually 12, but may be different if the current tuning has a stretched or compressed octave. Needed for degreeToKey</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">stepsPerOctave</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">octaveRatio</span><span class="p">())</span> <span class="o">*</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">LOG2E</span> <span class="o">*</span> <span class="mi">12</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-95">             <td class="docs">               <h2>at (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-96">             <td class="docs">               <h2>at (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">at</span><span class="p">(</span><span class="nx">$ary_wrapAt</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">,</span> <span class="nx">index</span><span class="p">));</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-96">             <td class="docs">               <h2>wrapAt (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">wrapAt</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-97">             <td class="docs">               <h2>wrapAt (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">wrapAt</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">wrapAt</span><span class="p">(</span><span class="nx">$ary_wrapAt</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">,</span> <span class="nx">index</span><span class="p">));</span>
-    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-97">             <td class="docs">               <h2>degreeToFreq (degree, rootFreq, octave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">degreeToFreq</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">rootFreq</span><span class="p">,</span> <span class="nx">octave</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-98">             <td class="docs">               <h2>degreeToFreq (degree, rootFreq, octave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">degreeToFreq</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">rootFreq</span><span class="p">,</span> <span class="nx">octave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">degreeToRatio</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">octave</span><span class="p">)</span> <span class="o">*</span> <span class="nx">rootFreq</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-98">             <td class="docs">               <h2>degreeToRatio (degree, octave=0)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">degreeToRatio</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">octave</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-99">             <td class="docs">               <h2>degreeToRatio (degree, octave=0)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">degreeToRatio</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">octave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">octave</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="nx">octave</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
         <span class="nx">octave</span> <span class="o">+=</span> <span class="p">(</span><span class="nx">degree</span> <span class="o">/</span> <span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span><span class="o">|</span><span class="mi">0</span><span class="p">;</span>
         <span class="k">return</span> <span class="nx">$ary_wrapAt</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">ratios</span><span class="p">(),</span> <span class="nx">degree</span><span class="p">)</span> <span class="o">*</span>
             <span class="nb">Math</span><span class="p">.</span><span class="nx">pow</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">octaveRatio</span><span class="p">(),</span> <span class="nx">octave</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-99">             <td class="docs">               <h2>checkTuningForMismatch (aTuning)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">checkTuningForMismatch</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">aTuning</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-100">             <td class="docs">               <h2>checkTuningForMismatch (aTuning)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">checkTuningForMismatch</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">aTuning</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_pitchesPerOctave</span> <span class="o">===</span> <span class="nx">aTuning</span><span class="p">.</span><span class="nx">size</span><span class="p">();</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-100">             <td class="docs">               <h2>degrees ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">degrees</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-101">             <td class="docs">               <h2>degrees ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">degrees</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-101">             <td class="docs">               <h2>guessPPO ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">guessPPO</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-102">             <td class="docs">               <h2>guessPPO ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">guessPPO</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">Scale</span><span class="p">.</span><span class="nx">guessPPO</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-102">             <td class="docs">               <h2>octaveRatio ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">octaveRatio</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-103">             <td class="docs">               <h2>octaveRatio ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">octaveRatio</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">octaveRatio</span><span class="p">();</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-103">             <td class="docs">               <h2>performDegreeToKey (scaleDegree, stepsPerOctave, accidental=0)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performDegreeToKey</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">scaleDegree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">,</span> <span class="nx">accidental</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-104">             <td class="docs">               <h2>performDegreeToKey (scaleDegree, stepsPerOctave, accidental=0)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performDegreeToKey</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">scaleDegree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">,</span> <span class="nx">accidental</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">stepsPerOctave</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="nx">stepsPerOctave</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">stepsPerOctave</span><span class="p">();</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">accidental</span>     <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="nx">accidental</span>     <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
         <span class="kd">var</span> <span class="nx">basekey</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">wrapAt</span><span class="p">(</span><span class="nx">scaleDegree</span><span class="p">);</span>
@@ -1662,28 +1675,28 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
             <span class="k">return</span> <span class="nx">basekey</span> <span class="o">+</span> <span class="p">(</span><span class="nx">accidental</span> <span class="o">*</span> <span class="p">(</span><span class="nx">stepsPerOctave</span> <span class="o">/</span> <span class="mi">12</span><span class="p">));</span>
         <span class="p">}</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-104">             <td class="docs">               <h2>performKeyToDegree (degree, stepsPerOctave=12)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performKeyToDegree</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-105">             <td class="docs">               <h2>performKeyToDegree (degree, stepsPerOctave=12)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performKeyToDegree</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">stepsPerOctave</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="nx">stepsPerOctave</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
         <span class="k">return</span> <span class="nx">$ary_performKeyToDegree</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">,</span> <span class="nx">degree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-105">             <td class="docs">               <h2>performNearestInList (degree)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performNearestInList</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-106">             <td class="docs">               <h2>performNearestInList (degree)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performNearestInList</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">$ary_performNearestInList</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">,</span> <span class="nx">degree</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-106">             <td class="docs">               <h2>performNearestInScale (degree, stepsPerOctave=12)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performNearestInScale</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-107">             <td class="docs">               <h2>performNearestInScale (degree, stepsPerOctave=12)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">performNearestInScale</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">stepsPerOctave</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="nx">stepsPerOctave</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
         <span class="k">return</span> <span class="nx">$ary_performNearestInScale</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">,</span> <span class="nx">degree</span><span class="p">,</span> <span class="nx">stepsPerOctave</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-107">             <td class="docs">               <h2>equals (argScale)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">equals</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">argScale</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-108">             <td class="docs">               <h2>equals (argScale)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">equals</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">argScale</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">$ary_equals</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">degrees</span><span class="p">(),</span> <span class="nx">argScale</span><span class="p">.</span><span class="nx">degrees</span><span class="p">())</span> <span class="o">&amp;&amp;</span>
             <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">equals</span><span class="p">(</span><span class="nx">argScale</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-108">             <td class="docs">               <h2>deepCopy ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">deepCopy</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-109">             <td class="docs">               <h2>deepCopy ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">deepCopy</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">new</span> <span class="nx">Scale</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_degrees</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
                          <span class="k">this</span><span class="p">.</span><span class="nx">_pitchesPerOctave</span><span class="p">,</span>
                          <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">deepCopy</span><span class="p">(),</span>
                          <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-109">             <td class="docs">               <h2>Scale.choose (size=7, pitchesPerOctave=12)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-110">             <td class="docs">               <h2>Scale.choose (size=7, pitchesPerOctave=12)</h2>
 
 <p>Creates a random scale from the library, constrained by size and pitchesPerOctave if desired</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">choose</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">size</span><span class="p">,</span> <span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">size</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="nx">size</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
@@ -1694,7 +1707,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
                 <span class="nx">x</span><span class="p">.</span><span class="nx">_pitchesPerOctave</span> <span class="o">===</span> <span class="nx">pitchesPerOctave</span><span class="p">;</span>
         <span class="p">});</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-110">             <td class="docs">               <h2>Scale.guessPPO (degrees:Array)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">guessPPO</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degrees</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-111">             <td class="docs">               <h2>Scale.guessPPO (degrees:Array)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Scale</span><span class="p">.</span><span class="nx">guessPPO</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">degrees</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">Array</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">degrees</span><span class="p">))</span> <span class="p">{</span>
             <span class="k">return</span> <span class="mi">128</span><span class="p">;</span>
         <span class="p">}</span>
@@ -1712,9 +1725,9 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
         <span class="k">return</span> <span class="mi">128</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-111">             <td class="docs">               <h1>ScaleInfo</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">ScaleInfo</span> <span class="o">=</span> <span class="nx">subcollider</span><span class="p">.</span><span class="nx">ScaleInfo</span> <span class="o">=</span> <span class="p">{};</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-112">             <td class="docs">               <h1>ScaleInfo</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">ScaleInfo</span> <span class="o">=</span> <span class="nx">subcollider</span><span class="p">.</span><span class="nx">ScaleInfo</span> <span class="o">=</span> <span class="p">{};</span>
     <span class="kd">var</span> <span class="nx">scales</span>    <span class="o">=</span> <span class="p">{};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-112">             <td class="docs">               <h2>ScaleInfo.choose (selectFunc)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">choose</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">selectFunc</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-113">             <td class="docs">               <h2>ScaleInfo.choose (selectFunc)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">choose</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">selectFunc</span><span class="p">)</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">candidates</span> <span class="o">=</span> <span class="p">[];</span>
         <span class="kd">var</span> <span class="nx">keys</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">scales</span><span class="p">);</span>
         <span class="kd">var</span> <span class="nx">s</span><span class="p">;</span>
@@ -1729,16 +1742,16 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
             <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nx">deepCopy</span><span class="p">();</span>
         <span class="p">}</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-113">             <td class="docs">               <h2>ScaleInfo.at (key)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-114">             <td class="docs">               <h2>ScaleInfo.at (key)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">s</span> <span class="o">=</span> <span class="nx">scales</span><span class="p">[</span><span class="nx">key</span><span class="p">];</span>
         <span class="k">if</span> <span class="p">(</span><span class="nx">s</span><span class="p">)</span> <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nx">deepCopy</span><span class="p">();</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-114">             <td class="docs">               <h2>ScaleInfo.names ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">names</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-115">             <td class="docs">               <h2>ScaleInfo.names ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">names</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">keys</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">scales</span><span class="p">);</span>
         <span class="nx">keys</span><span class="p">.</span><span class="nx">sort</span><span class="p">();</span>
         <span class="k">return</span> <span class="nx">keys</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-115">             <td class="docs">               <h2>ScaleInfo.register (key, scale)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">register</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">scale</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-116">             <td class="docs">               <h2>ScaleInfo.register (key, scale)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">register</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">scale</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">key</span> <span class="o">===</span> <span class="s2">&quot;string&quot;</span> <span class="o">&amp;&amp;</span> <span class="nx">scale</span> <span class="k">instanceof</span> <span class="nx">Scale</span><span class="p">)</span> <span class="p">{</span>
             <span class="nx">scales</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">scale</span><span class="p">;</span>
             
@@ -1757,13 +1770,13 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="p">}</span>
     <span class="p">};</span>
     
-    </pre></div>             </td>           </tr>                               <tr id="section-116">             <td class="docs">               <h1>Tuning</h1>
+    </pre></div>             </td>           </tr>                               <tr id="section-117">             <td class="docs">               <h1>Tuning</h1>
 
 <p>Represents a musical tuning (e.g. equal temperament, just intonation, etc...). Used in conjunction with <em>SC.Scale</em> to generate pitch information.</p>
 
 <blockquote>
   <p>/SC-Source/SCClassLibrary/Common/Collections/Scale.sc</p>
-</blockquote>             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-117">             <td class="docs">               <h2>Constructor</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Tuning</span><span class="p">(</span><span class="nx">tuning</span><span class="p">,</span> <span class="nx">octaveRatio</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</blockquote>             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-118">             <td class="docs">               <h2>Constructor</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">Tuning</span><span class="p">(</span><span class="nx">tuning</span><span class="p">,</span> <span class="nx">octaveRatio</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">Array</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">tuning</span><span class="p">))</span> <span class="p">{</span>
             <span class="nx">tuning</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">];</span>
         <span class="p">}</span>
@@ -1779,51 +1792,51 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
     <span class="p">}</span>
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">Tuning</span> <span class="o">=</span> <span class="nx">Tuning</span><span class="p">;</span>
     
-    </pre></div>             </td>           </tr>                               <tr id="section-118">             <td class="docs">               <h2>semitones ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-119">             <td class="docs">               <h2>semitones ()</h2>
 
 <p>Returns an array of semitone values for the pitch set</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">semitones</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-119">             <td class="docs">               <h2>cents ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-120">             <td class="docs">               <h2>cents ()</h2>
 
 <p>Returns a array of cent values for the pitch set</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">cents</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">return</span> <span class="nx">x</span> <span class="o">*</span> <span class="mi">100</span><span class="p">;</span>
         <span class="p">});</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-120">             <td class="docs">               <h2>ratios ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-121">             <td class="docs">               <h2>ratios ()</h2>
 
 <p>Returns a tuned array of ratios for the pitch set</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">ratios</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">$ary_midiratio</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-121">             <td class="docs">               <h2>at (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-122">             <td class="docs">               <h2>at (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">[</span><span class="nx">index</span><span class="p">];</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-122">             <td class="docs">               <h2>wrapAt (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">wrapAt</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-123">             <td class="docs">               <h2>wrapAt (index:int)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">wrapAt</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">$ary_wrapAt</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">,</span> <span class="nx">index</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-123">             <td class="docs">               <h2>octaveRatio ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">octaveRatio</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-124">             <td class="docs">               <h2>octaveRatio ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">octaveRatio</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_octaveRatio</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-124">             <td class="docs">               <h2>size ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">size</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-125">             <td class="docs">               <h2>size ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">size</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-125">             <td class="docs">               <h2>stepsPerOctave ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">stepsPerOctave</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-126">             <td class="docs">               <h2>stepsPerOctave ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">stepsPerOctave</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_octaveRatio</span><span class="p">)</span> <span class="o">*</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">LOG2E</span> <span class="o">*</span> <span class="mi">12</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-126">             <td class="docs">               <h2>tuning ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">tuning</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-127">             <td class="docs">               <h2>tuning ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">tuning</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-127">             <td class="docs">               <h2>equals (argTuning)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">equals</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">argTuning</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-128">             <td class="docs">               <h2>equals (argTuning)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">equals</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">argTuning</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_octaveRatio</span> <span class="o">===</span> <span class="nx">argTuning</span><span class="p">.</span><span class="nx">_octaveRatio</span> <span class="o">&amp;&amp;</span>
             <span class="nx">$ary_equals</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">,</span> <span class="nx">argTuning</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-128">             <td class="docs">               <h2>deepCopy ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">deepCopy</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-129">             <td class="docs">               <h2>deepCopy ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">deepCopy</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="k">return</span> <span class="k">new</span> <span class="nx">Tuning</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_tuning</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
                           <span class="k">this</span><span class="p">.</span><span class="nx">_octaveRatio</span><span class="p">,</span>
                           <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-129">             <td class="docs">               <h2>Tuning.et (pitchesPerOctave:12)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-130">             <td class="docs">               <h2>Tuning.et (pitchesPerOctave:12)</h2>
 
 <p>Creates an equal-tempered scale based on pitchesPerOctave</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">et</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">pitchesPerOctave</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -1833,7 +1846,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
                           <span class="mi">2</span><span class="p">,</span>
                           <span class="nx">Tuning</span><span class="p">.</span><span class="nx">etName</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">));</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-130">             <td class="docs">               <h2>Tuning.choose (size:12)</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-131">             <td class="docs">               <h2>Tuning.choose (size:12)</h2>
 
 <p>Creates a random tuning from the library, constrained by size (which defaults to 12)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">choose</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">size</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">size</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -1842,21 +1855,21 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
         <span class="k">return</span> <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span>
             <span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">x</span><span class="p">.</span><span class="nx">size</span><span class="p">()</span> <span class="o">===</span> <span class="nx">size</span><span class="p">;</span> <span class="p">}</span>
         <span class="p">);</span>
-    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-131">             <td class="docs">               <h2>Tuning.default (pitchesPerOctave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-132">             <td class="docs">               <h2>Tuning.default (pitchesPerOctave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">Tuning</span><span class="p">.</span><span class="nx">et</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">);</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-132">             <td class="docs">               <h2>Tuning.calcET (pitchesPerOctave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">calcET</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-133">             <td class="docs">               <h2>Tuning.calcET (pitchesPerOctave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">calcET</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Array</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">);</span>
         <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="nx">a</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">--</span><span class="p">;</span> <span class="p">)</span> <span class="p">{</span>
             <span class="nx">a</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">i</span> <span class="o">*</span> <span class="p">(</span><span class="mi">12</span> <span class="o">/</span> <span class="nx">pitchesPerOctave</span><span class="p">);</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-133">             <td class="docs">               <h2>Tuning.etName (pitchesPerOctave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">etName</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-134">             <td class="docs">               <h2>Tuning.etName (pitchesPerOctave)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Tuning</span><span class="p">.</span><span class="nx">etName</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pitchesPerOctave</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="s2">&quot;ET&quot;</span> <span class="o">+</span> <span class="nx">pitchesPerOctave</span><span class="p">;</span>
-    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-134">             <td class="docs">               <h1>TuningInfo</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">TuningInfo</span> <span class="o">=</span> <span class="nx">subcollider</span><span class="p">.</span><span class="nx">TuningInfo</span> <span class="o">=</span> <span class="p">{};</span>
+    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-135">             <td class="docs">               <h1>TuningInfo</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">TuningInfo</span> <span class="o">=</span> <span class="nx">subcollider</span><span class="p">.</span><span class="nx">TuningInfo</span> <span class="o">=</span> <span class="p">{};</span>
     <span class="kd">var</span> <span class="nx">tunings</span>    <span class="o">=</span> <span class="p">{};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-135">             <td class="docs">               <h2>TuningInfo.choose (selectFunc)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">choose</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">selectFunc</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-136">             <td class="docs">               <h2>TuningInfo.choose (selectFunc)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">choose</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">selectFunc</span><span class="p">)</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">candidates</span> <span class="o">=</span> <span class="p">[];</span>
         <span class="kd">var</span> <span class="nx">keys</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">tunings</span><span class="p">);</span>
         <span class="kd">var</span> <span class="nx">t</span><span class="p">;</span>
@@ -1871,18 +1884,18 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
             <span class="k">return</span> <span class="nx">t</span><span class="p">.</span><span class="nx">deepCopy</span><span class="p">();</span>
         <span class="p">}</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-136">             <td class="docs">               <h2>TuningInfo.at (key)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-137">             <td class="docs">               <h2>TuningInfo.at (key)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">at</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">t</span> <span class="o">=</span> <span class="nx">tunings</span><span class="p">[</span><span class="nx">key</span><span class="p">];</span>
         <span class="k">if</span> <span class="p">(</span><span class="nx">t</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">return</span> <span class="nx">t</span><span class="p">.</span><span class="nx">deepCopy</span><span class="p">();</span>
         <span class="p">}</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-137">             <td class="docs">               <h2>TuningInfo.names ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">names</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-138">             <td class="docs">               <h2>TuningInfo.names ()</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">names</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">keys</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">tunings</span><span class="p">);</span>
         <span class="nx">keys</span><span class="p">.</span><span class="nx">sort</span><span class="p">();</span>
         <span class="k">return</span> <span class="nx">keys</span><span class="p">;</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-138">             <td class="docs">               <h2>TuningInfo.register (key, tuning)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">register</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">tuning</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-139">             <td class="docs">               <h2>TuningInfo.register (key, tuning)</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">TuningInfo</span><span class="p">.</span><span class="nx">register</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">tuning</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">key</span> <span class="o">===</span> <span class="s2">&quot;string&quot;</span> <span class="o">&amp;&amp;</span> <span class="nx">tuning</span> <span class="k">instanceof</span> <span class="nx">Tuning</span><span class="p">)</span> <span class="p">{</span>
             <span class="nx">tunings</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">tuning</span><span class="p">;</span>
             <span class="nx">Tuning</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
@@ -1892,7 +1905,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
             <span class="p">}(</span><span class="nx">key</span><span class="p">));</span>
         <span class="p">}</span>
     <span class="p">};</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-139">             <td class="docs">               <h1>RGen</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">RGen</span><span class="p">(</span><span class="nx">seed</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-140">             <td class="docs">               <h1>RGen</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">RGen</span><span class="p">(</span><span class="nx">seed</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">seed</span> <span class="o">!==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="p">{</span>
             <span class="nx">seed</span> <span class="o">=</span> <span class="o">+</span><span class="k">new</span> <span class="nb">Date</span><span class="p">();</span>
         <span class="p">}</span>
@@ -1918,7 +1931,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
     
     <span class="kd">var</span> <span class="nx">_i</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Uint32Array</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
     <span class="kd">var</span> <span class="nx">_f</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Float32Array</span><span class="p">(</span><span class="nx">_i</span><span class="p">.</span><span class="nx">buffer</span><span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-140">             <td class="docs">               <h2>frand ()</h2>
+    </pre></div>             </td>           </tr>                               <tr id="section-141">             <td class="docs">               <h2>frand ()</h2>
 
 <p>return a number from 0.0 to 0.999...</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">RGen</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">next</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
         <span class="nx">_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0x3F800000</span> <span class="o">|</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">trand</span><span class="p">()</span> <span class="o">&gt;&gt;&gt;</span> <span class="mi">9</span><span class="p">);</span>
@@ -1927,7 +1940,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
     
     <span class="nx">subcollider</span><span class="p">.</span><span class="nx">RGen</span> <span class="o">=</span> <span class="nx">RGen</span><span class="p">;</span>
     
-    </pre></div>             </td>           </tr>                               <tr id="section-141">             <td class="docs">               <hr />             </td>             <td class="code">               <div class="highlight"><pre>    
+    </pre></div>             </td>           </tr>                               <tr id="section-142">             <td class="docs">               <hr />             </td>             <td class="code">               <div class="highlight"><pre>    
     <span class="nx">ScaleInfo</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span>
         <span class="s2">&quot;major&quot;</span><span class="p">,</span> <span class="k">new</span> <span class="nx">Scale</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">11</span><span class="p">],</span> <span class="mi">12</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="s2">&quot;Major&quot;</span><span class="p">)</span>
     <span class="p">);</span>
@@ -1944,7 +1957,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
             <span class="mi">1</span><span class="p">,</span> <span class="mi">16</span><span class="o">/</span><span class="mi">15</span><span class="p">,</span> <span class="mi">9</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">45</span><span class="o">/</span><span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="o">/</span><span class="mi">8</span>
         <span class="p">]),</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Limit Just Intonation&quot;</span><span class="p">)</span>
     <span class="p">);</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-142">             <td class="docs">               <hr />             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-143">             <td class="docs">               <h5>utility functions</h5>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">extend</span><span class="p">(</span><span class="nx">child</span><span class="p">,</span> <span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-143">             <td class="docs">               <hr />             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-144">             <td class="docs">               <h5>utility functions</h5>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">extend</span><span class="p">(</span><span class="nx">child</span><span class="p">,</span> <span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">key</span> <span class="k">in</span> <span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">if</span> <span class="p">(</span><span class="nx">parent</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
                 <span class="nx">child</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">parent</span><span class="p">[</span><span class="nx">key</span><span class="p">];</span>
@@ -2045,7 +2058,7 @@ Note that if the array is empty (and therefore has no indexed slots) the item wi
             <span class="k">delete</span> <span class="nx">$ary</span><span class="p">[</span><span class="nx">name</span><span class="p">];</span>
         <span class="p">};</span>
     <span class="p">}</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-144">             <td class="docs">               <hr />             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-145">             <td class="docs">               <h5>exports</h5>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">exports</span> <span class="o">=</span> <span class="nx">subcollider</span><span class="p">;</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-145">             <td class="docs">               <hr />             </td>             <td class="code">               <div class="highlight"><pre>    </pre></div>             </td>           </tr>                               <tr id="section-146">             <td class="docs">               <h5>exports</h5>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">exports</span> <span class="o">=</span> <span class="nx">subcollider</span><span class="p">;</span>
     
     <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">module</span> <span class="o">!==</span> <span class="s2">&quot;undefined&quot;</span> <span class="o">&amp;&amp;</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">exports</span><span class="p">;</span>

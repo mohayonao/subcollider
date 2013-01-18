@@ -213,7 +213,20 @@
         return quant === 0 ? this : Math.floor(this / quant) * quant;
     }
     register("trunc", 1, $num_trunc);
-
+    
+    // ## mulAdd (quant:Number)
+    // Multiply and add
+    function $num_mulAdd(mul, add) {
+        return this * mul + add;
+    }
+    function $ary_mulAdd(mul, add) {
+        var a = new Array(this.length);
+        for (var i = a.length; i--; )
+            a[i] = this[i] * mul + add;
+        return a;
+    }
+    register("mulAdd", 2, $num_mulAdd, $ary_mulAdd);
+    
     // ## asInteger ()
     // Convert to Integer
     function $num_asInteger() {
