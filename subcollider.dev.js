@@ -1152,8 +1152,8 @@
         offset  = (typeof offset  === "number") ? offset  : 0;
         
         this.list = list;
-        this.repeats = Math.max(0, repeats|0);
-        this.offset  = Math.max(0, offset |0);
+        this.repeats = repeats !== Infinity ? Math.max(0, repeats)|0 : Infinity;
+        this.offset  = Math.max(0, offset )|0;
     }
     extend(Pser, Pattern);
     
@@ -1239,7 +1239,7 @@
         this.start  = start;
         this.value  = this.start;
         this.step   = step || 1;
-        this.length = Math.max(0, length|0);
+        this.length = length !== Infinity ? Math.max(0, length)|0 : Infinity;
     }
     extend(Pseries, Pattern);
     
@@ -1266,7 +1266,7 @@
         this.start  = start;
         this.value  = this.start;
         this.grow   = grow || 1;
-        this.length = Math.max(0, length|0);
+        this.length = length !== Infinity ? Math.max(0, length)|0 : Infinity;
     }
     extend(Pgeom, Pattern);
     
