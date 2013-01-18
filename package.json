@@ -1,5 +1,6 @@
 {
     "name": "subcollider",
+    "version": "0.0.1",
     "description": "JavaScript library that provides like SuperCollider functions.",
     "author": "nao yonamine <mohayonao@gmail.com>",
     "repository": {
