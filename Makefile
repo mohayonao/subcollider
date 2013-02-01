@@ -7,7 +7,7 @@ test:
 	@mocha
 
 minify:
-	@uglifyjs --unsafe -nm -nc -o ./subcollider.js ./subcollider.dev.js
+	@uglifyjs --unsafe -nm -nc  --source-map ./subcollider.js.map -o ./subcollider.js ./subcollider.dev.js
 
 doc:
 	@docco --template ./misc/docco.jst ./subcollider.dev.js
