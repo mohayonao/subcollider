@@ -1,22 +1,27 @@
 {
-    "name": "subcollider",
-    "version": "0.0.1",
-    "description": "JavaScript library that provides like SuperCollider functions.",
-    "author": "nao yonamine <mohayonao@gmail.com>",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/mohayonao/subcollider.js.git"
-    },
-    "main": "subcollider.dev.js",
-    "licenses": [
-        { "type": "MIT",
-          "url" : "https://raw.github.com/mohayonao/subcollider.js/master/LICENSE" }
-    ],
-    "devDependencies": {
-        "uglify-js": "*",
-        "jshint"   : "*",
-        "mocha"    : "*",
-        "chai"     : "*",
-        "docco"    : "*"
+  "name": "subcollider",
+  "version": "0.0.1",
+  "description": "JavaScript library that provides like SuperCollider functions.",
+  "author": "nao yonamine <mohayonao@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mohayonao/subcollider.js.git"
+  },
+  "main": "subcollider.dev.js",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://raw.github.com/mohayonao/subcollider.js/master/LICENSE"
     }
+  ],
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-jshint": "~0.4.3",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-nodeunit": "~0.1.2",
+    "grunt-contrib-uglify": "~0.2.0",
+    "nodeunit": "~0.8.0"
+  }
 }
