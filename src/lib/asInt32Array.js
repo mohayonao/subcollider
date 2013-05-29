@@ -1,10 +1,8 @@
-(function(sc) {
-  "use strict";
-
-  sc.register("asInt32Array", {
-    Array: function() {
-      return new Int32Array(this);
-    }
-  });
-
-})(sc);
+/**
+ * Returns a new Int32Array based upon *this*
+ */
+sc.define("asInt32Array", {
+  Array: function() {
+    return new Int32Array(this);
+  }
+});

@@ -1,9 +1,6 @@
-(function(sc) {
-  "use strict";
-
+sc.define("valueArray", function() {
   var slice = [].slice;
-
-  sc.register("valueArray", {
+  return {
     Number: function() {
       return this;
     },
@@ -31,6 +28,5 @@
         }, this);
       }
     }
-  });
-
-})(sc);
+  };
+});

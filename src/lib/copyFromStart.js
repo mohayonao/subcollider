@@ -1,6 +1,8 @@
-(function(sc) {
-  "use strict";
-
+/**
+ * Return a new Array which is a copy of the indexed slots of the receiver from the start of the collection to *end*.
+ * @arguments _(end)_
+ */
+sc.define("copyFromStart", function() {
   var copyFromStart = function(end) {
     if (Array.isArray(end)) {
       return end.map(function(end) {
@@ -10,10 +12,8 @@
     end = Math.max(0, end|0);
     return this.slice(0, end + 1);
   };
-
-  sc.register("copyFromStart", {
+  return {
     Array : copyFromStart,
     String: copyFromStart
-  });
-
-})(sc);
+  };
+});

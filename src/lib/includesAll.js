@@ -1,13 +1,15 @@
-(function(sc) {
-  "use strict";
-
-  sc.register("includesAll", {
-    Array: function(item) {
-      for (var i = 0, imax = item.length; i < imax; ++i) {
-        if (this.indexOf(item[i]) === -1) { return false; }
-      }
-      return true;
+/**
+ * Answer whether all items in aCollection are contained in the receiver.
+ * @arguments _(list)_
+ * @example
+ *  [1, 2, 3, 4].includesAll([2, 4]); // => true
+ *  [1, 2, 3, 4].includesAll([4, 5]); // => false
+ */
+sc.define("includesAll", {
+  Array: function(list) {
+    for (var i = 0, imax = list.length; i < imax; ++i) {
+      if (this.indexOf(list[i]) === -1) { return false; }
     }
-  });
-
-})(sc);
+    return true;
+  }
+});

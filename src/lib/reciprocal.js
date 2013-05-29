@@ -1,16 +1,12 @@
-(function(sc) {
-  "use strict";
-
-  /**
-   * 1 / this
-   */
-  sc.register("reciprocal", {
-    Number: function() {
-      return 1 / this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.reciprocal(); });
-    }
-  });
-
-})(sc);
+/**
+ * 1 / this
+ * @arguments _none_
+ */
+sc.define("reciprocal", {
+  Number: function() {
+    return 1 / this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.reciprocal(); });
+  }
+});

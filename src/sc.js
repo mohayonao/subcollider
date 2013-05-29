@@ -36,10 +36,21 @@
       };
     }
   };
-  sc.register = function(key, opts) {
+  sc.define = function(name, deps, payload) {
+    if (arguments.length === 2) {
+      payload = deps;
+      deps    = null;
+    }
+    if (typeof payload === "function") {
+      payload = payload(sc);
+    }
+    register(name, payload);
+  };
+
+  var register = function(key, opts) {
     var klassname, klass, func;
     if (Array.isArray(key)) {
-      return key.forEach(function(key) { sc.register(key, opts); });
+      return key.forEach(function(key) { register(key, opts); });
     }
     sc[key] = make_sc_function(key);
     for (klassname in opts) {
@@ -103,4 +114,4 @@
     window.sc = exports;
   }
 
-})(this.self||global);
+})(global);

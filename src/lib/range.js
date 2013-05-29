@@ -1,46 +1,31 @@
-(function(sc) {
-  "use strict";
-
-  /**
-   * Creates an array of numbers progressing from *start* up to but not including *end*.
-   * @arguments _([start=0], end [, step=1])_
-   * @example
-   *  Array.range(10); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-   *  Array.range(0, 30, 5); // [0, 5, 10, 15, 20, 25]
-   */
-  sc.register("*range", {
-    Array: function(start, end, step) {
-      start = +start || 0;
-      step  = +step  || 1;
-      if (end === void 0) {
-        end   = start;
-        start = 0;
+/**
+ * @example
+ *  Array.r(5); // => [ 0, 1, 2, 3, 4, 5 ]
+ *  Array.r("2..5"); // => [ 2, 3, 4, 5 ]
+ *  Array.r("1, 3..5"); // => [ 1, 3, 5 ]
+ */
+sc.define(["*range", "*r"], {
+  Array: function(cmd) {
+    if (typeof cmd === "string") {
+      var items = cmd.split(/(?:\.\.|,)/);
+      var first, second, last;
+      if (items.length === 3) {
+        first  = +items[0];
+        second = +items[1];
+        last   = +items[2];
+        return (first).series(second, last);
+      } else if (items.length === 2) {
+        first  = +items[0];
+        last   = +items[1];
+        second = first + ((first < +last) ? 1 : -1);
+        return (first).series(second, last);
+      } else if (items.length === 1) {
+        return Array.series((+items[0]) + 1);
+      } else {
+        return [];
       }
-      var length = Math.max(0, Math.ceil((end - start) / step));
-      var index  = -1;
-      var result = new Array(length);
-      while (++index < length) {
-        result[index] = start;
-        start += step;
-      }
-      return result;
+    } else if (typeof cmd === "number") {
+      return Array.series(cmd + 1);
     }
-  });
-
-  /**
-   * @arguments _(end, step:1)_
-   * @example
-   *  (10).range(); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-   *  (10).range(30, 5); // [0, 5, 10, 15, 20, 25]
-   */
-  sc.register("range", {
-    Number: function(end, step) {
-      if (end === void 0) {
-        return Array.series(this, 0, 1);
-      }
-      step = step === void 0 ? (this < end) ? +1 : -1 : step;
-      return Array.range(this, end, step);
-    }
-  });
-
-})(sc);
+  }
+});

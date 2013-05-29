@@ -1,10 +1,8 @@
-(function(sc) {
-  "use strict";
-
-  sc.register("notEmpty", {
-    Array: function() {
-      return this.length !== 0;
-    }
-  });
-
-})(sc);
+/**
+ * Checks is the receiver is not empty.
+ */
+sc.define("notEmpty", {
+  Array: function() {
+    return this.length !== 0;
+  }
+});

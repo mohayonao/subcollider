@@ -230,31 +230,31 @@
   // ### MORE THAN TWELVE-TONE ET
   sc.TuningInfo.register(
     "et19",
-    new Tuning(Array.range(0, 19).opMul(12/19), 2, "ET19")
+    new Tuning(Array.range("0..18").opMul(12/19), 2, "ET19")
   );
 
   sc.TuningInfo.register(
     "et22",
-    new Tuning(Array.range(0, 22).opMul(12/22), 2, "ET22")
+    new Tuning(Array.range("0..21").opMul(12/22), 2, "ET22")
   );
 
   sc.TuningInfo.register(
     "et24",
-    new Tuning(Array.range(0, 24).opMul(12/24), 2, "ET24")
+    new Tuning(Array.range("0..23").opMul(12/24), 2, "ET24")
   );
 
   sc.TuningInfo.register(
     "et31",
-    new Tuning(Array.range(0, 31).opMul(12/31), 2, "ET31")
+    new Tuning(Array.range("0..30").opMul(12/31), 2, "ET31")
   );
 
   sc.TuningInfo.register(
     "et41",
-    new Tuning(Array.range(0, 41).opMul(12/41), 2, "ET41")
+    new Tuning(Array.range("0..40").opMul(12/41), 2, "ET41")
   );
   sc.TuningInfo.register(
     "et53",
-    new Tuning(Array.range(0, 53).opMul(12/53), 2, "ET53")
+    new Tuning(Array.range("0..53").opMul(12/53), 2, "ET53")
   );
   // ### NON-TWELVE-TONE JI
   sc.TuningInfo.register(
@@ -284,25 +284,25 @@
   // ### HARMONIC SERIES -- length arbitary
   sc.TuningInfo.register(
     "harmonic",
-    new Tuning(Array.range(1,25).ratiomidi(), 2, "Harmonic Series 24")
+    new Tuning(Array.range("1..24").ratiomidi(), 2, "Harmonic Series 24")
   );
   // ### STRETCHED/SHRUNK OCTAVE
   // ### Bohlen-Pierce
   sc.TuningInfo.register(
     "bp",
-    new Tuning(Array.range(13).opMul((3).ratiomidi() / 13), 3.0, "Bohlen-Pierce")
+    new Tuning(Array.range("0..12").opMul((3).ratiomidi() / 13), 3.0, "Bohlen-Pierce")
   );
   sc.TuningInfo.register(
     "wcAlpha",
-    new Tuning(Array.range(15).opMul(0.78), (15 * 0.78).midiratio(), "Wendy Carlos Alpha")
+    new Tuning(Array.range("0..14").opMul(0.78), (15 * 0.78).midiratio(), "Wendy Carlos Alpha")
   );
   sc.TuningInfo.register(
     "wcBeta",
-    new Tuning(Array.range(19).opMul(0.638), (19 * 0.638).midiratio(), "Wendy Carlos Beta")
+    new Tuning(Array.range("0..18").opMul(0.638), (19 * 0.638).midiratio(), "Wendy Carlos Beta")
   );
   sc.TuningInfo.register(
     "wcGamma",
-    new Tuning(Array.range(34).opMul(0.351), (34 * 0.351).midiratio(), "Wendy Carlos Gamma")
+    new Tuning(Array.range("0..33").opMul(0.351), (34 * 0.351).midiratio(), "Wendy Carlos Gamma")
   );
 
   sc.Tuning = Tuning;

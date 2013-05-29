@@ -1,18 +1,23 @@
-(function(sc) {
-  "use strict";
-
-  sc.register("maxDepth", {
-    Array: function(max) {
-      var res, i, imax;
-      max = max === void 0 ? 1 : max;
-      res = max;
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (Array.isArray(this[i])) {
-          res = Math.max(res, this[i].maxDepth(max+1));
-        }
+/**
+ * Returns the maximum depth of all subarrays.
+ * @arguments _none_
+ * @example
+ * [[1, 2, 3], [[41, 52], 5, 6], 1, 2, 3].maxDepth(); // => 3
+ */
+sc.define("maxDepth", function() {
+  var maxDepth = function(that, max) {
+    var res, i, imax;
+    res = max;
+    for (i = 0, imax = that.length; i < imax; ++i) {
+      if (Array.isArray(that[i])) {
+        res = Math.max(res, maxDepth(that[i], max+1));
       }
-      return res;
     }
-  });
-
-})(sc);
+    return res;
+  };
+  return {
+    Array: function() {
+      return maxDepth(this, 1);
+    }
+  };
+});

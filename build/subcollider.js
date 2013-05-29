@@ -1,6 +1,9 @@
 (function(global) {
   "use strict";
 
+(function(global) {
+  "use strict";
+
   var slice = [].slice;
   var conflicts = {
     Number  : [],
@@ -36,10 +39,21 @@
       };
     }
   };
-  sc.register = function(key, opts) {
+  sc.define = function(name, deps, payload) {
+    if (arguments.length === 2) {
+      payload = deps;
+      deps    = null;
+    }
+    if (typeof payload === "function") {
+      payload = payload(sc);
+    }
+    register(name, payload);
+  };
+
+  var register = function(key, opts) {
     var klassname, klass, func;
     if (Array.isArray(key)) {
-      return key.forEach(function(key) { sc.register(key, opts); });
+      return key.forEach(function(key) { register(key, opts); });
     }
     sc[key] = make_sc_function(key);
     for (klassname in opts) {
@@ -103,1062 +117,919 @@
     window.sc = exports;
   }
 
-})(this.self||global);
+})(global);
 
-(function(sc) {
-  "use strict";
+/**
+ * absolute value
+ * @arguments _none_
+ * @example
+ *  (-10).abs(); // => 10
+ *  [ -2, -1, 0, 1, 2 ].abs(); // => [ 2, 1, 0, 1, 2 ]
+ */
+sc.define("abs", {
+  Number: function() {
+    return Math.abs(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.abs(); });
+  }
+});
 
-  /**
-   * absolute value
-   * @example
-   *  (-10).abs(); // => 10
-   *  [ -2, -1, 0, 1, 2 ].abs(); // => [ 2, 1, 0, 1, 2 ]
-   */
-  sc.register("abs", {
-    Number: function() {
-      return Math.abs(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.abs(); });
-    },
-    Function: function() {
-      var func = this;
-      return function() {
-        return func.apply(func, arguments).abs();
-      };
+/**
+ * (a - b).abs()
+ * @arguments _(number)_
+ * @example
+ *  (10).absdif(15); // => 5
+ */
+sc.define("absdif", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.absdif(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * (a - b).abs()
-   * @example
-   *  (10).absdif(15); // => 5
-   */
-  sc.register("absdif", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.absdif(num); }, this);
-      }
-      return Math.abs(this - num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.absdif(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.absdif(num); });
-      }
-    },
-    Function: function() {
-      var func = this;
-      return function() {
-        return func.apply(func, arguments).absdif();
-      };
+    return Math.abs(this - num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.absdif(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.absdif(num); });
     }
-  });
+  }
+});
 
-})(sc);
+/**
+ * Arccosine
+ * @arguments _none_
+ */
+sc.define("acos", {
+  Number: function() {
+    return Math.acos(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.acos(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Adds an item to an Array if there is space. This method may return a new Array.
+ * @arguments _(item)_
+ * @example
+ *  [1,2,3].add(4); // => [ 1, 2, 3, 4 ]
+ */
+sc.define("add", {
+  Array: function(item) {
+    var ret = this.slice();
+    ret.push(item);
+    return ret;
+  }
+});
 
-  /**
-   * Arccosine
-   */
-  sc.register("acos", {
-    Number: function() {
-      return Math.acos(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.acos(); });
-    },
-    Function: function() {
-      var func = this;
-      return function() {
-        return func.apply(func, arguments).acos();
-      };
+/**
+ * Adds all the elements of aCollection to the contents of the receiver. This method may return a new Array.
+ * @arguments _(items)_
+ * @example
+ *  [1, 2, 3, 4].addAll([7, 8, 9]); // => [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+ */
+sc.define(["addAll", "concat", "++"], {
+  Array: function(items) {
+    return this.concat(items);
+  }
+});
+
+/**
+ * Inserts the *item* before the contents of the receiver, possibly returning a new Array.
+ * @arguments _(item)_
+ * @example
+ *  [1, 2, 3, 4].addFirst(999); // [ 999, 2, 3, 4 ]
+ */
+sc.define("addFirst", {
+  Array: function(item) {
+    return [item].concat(this);
+  }
+});
+
+sc.define("addIfNotNil", {
+  Array: function(item) {
+    if (item !== null) {
+      return this.concat([item]);
     }
-  });
+    return this;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Adds an item to an Array if there is space. This method may return a new Array.
-   * @arguments _(item)_
-   * @example
-   *  [1,2,3].add(4); // => [ 1, 2, 3, 4 ]
-   */
-  sc.register("add", {
-    Array: function(item) {
-      var ret = this.slice();
-      ret.push(item);
-      return ret;
+/**
+ * 0 when b <= 0, a*b when b > 0
+ * @arguments _(number)_
+ */
+sc.define("amclip", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.amclip(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Adds all the elements of aCollection to the contents of the receiver. This method may return a new Array.
-   * @arguments _(items)_
-   * @example
-   *  [1, 2, 3, 4].addAll([7, 8, 9]); // => [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-   */
-  sc.register(["addAll", "concat", "++"], {
-    Array: function(items) {
-      return this.concat(items);
+    return this * 0.5 * (num + Math.abs(num));
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.amclip(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.amclip(num); });
     }
-  });
+  }
+});
 
-})(sc);
+/**
+ * Convert a linear amplitude to decibels.
+ * @arguments _none_
+ * @example
+ *  [0.5, 1, 2].ampdb(); // => [ -6.0205, 0, 6.0205 ]
+ */
+sc.define("ampdb", {
+  Number: function() {
+    return Math.log(this) * Math.LOG10E * 20;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.ampdb(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  /**
-   * Inserts the *item* before the contents of the receiver, possibly returning a new Array.
-   * @arguments _(item)_
-   * @example
-   *  [1, 2, 3, 4].addFirst(999); // [ 999, 2, 3, 4 ]
-   */
-  sc.register("addFirst", {
-    Array: function(item) {
-      return [item].concat(this);
+/**
+ * Answer whether *function* answers True for any item in the receiver. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ * @example
+ *  [1, 2, 3, 4].any("even"); // => true
+ *  [1, 2, 3, 4].any(function(x) { return x > 10; }); // => false
+ */
+sc.define("any", {
+  Array: function(func) {
+    func = sc.func(func);
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) { return true; }
     }
-  });
+    return false;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("addIfNotNil", {
-    Array: function(item) {
-      if (item !== null) {
-        return this.concat([item]);
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("amclip", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.amclip(num); }, this);
-      }
-      return this * 0.5 * (num + Math.abs(num));
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.amclip(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.amclip(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("ampdb", {
-    Number: function() {
-      return Math.log(this) * Math.LOG10E * 20;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.ampdb(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("any", {
-    Array: function(func) {
-      func = sc.func(func);
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) { return true; }
-      }
-      return false;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
+/**
+ * Returns a new Array base upon *this*
+ * @arguments _none_
+ * @example
+ *   (1).asArray(); // => [ 1 ]
+ *   [1, 2, 3].asArray(); // => [ 1, 2, 3 ]
+ */
+sc.define("asArray", function() {
   var asArray = function() {
     return [this];
   };
-
-  sc.register("asArray", {
+  return {
     Number : asArray,
     Boolean: asArray,
     Array: function() {
-      return this;
+      return this.slice();
     },
     String  : asArray,
     Function: asArray
-  });
+  };
+});
 
-})(sc);
+/**
+ * Returns a new Boolean based upon *this*
+ * @arguments _none_
+ * @example
+ *   (0).asBoolean(); // false
+ *   (1).asBoolean(); // true
+ *   [ ].asBoolean(); // false
+ *   [0].asBoolean(); // true
+ */
+sc.define("asBoolean", {
+  Number: function() {
+    return (this) !== 0;
+  },
+  Boolean: function() {
+    return this;
+  },
+  Array: function() {
+    return this.length > 0;
+  },
+  String: function() {
+    return this === "true";
+  },
+  Function: function() {
+    return true;
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * @arguments _none_
+ * @example
+ *   "0.5".asFloat(); // => 0.5
+ *   [1, 2, 3.14].asFloat(); // => [1, 2, 3.14]
+ */
+sc.define("asFloat", {
+  Number: function() {
+    return this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.asFloat(); });
+  },
+  String: function() {
+    return +this;
+  }
+});
 
-  sc.register("asBoolean", {
-    Number: function() {
-      return this !== 0;
-    },
-    Boolean: function() {
-      return this;
-    },
-    Array: function() {
-      return this.length > 0;
-    },
-    String: function() {
-      return this === "true";
-    },
-    Function: function() {
-      return true;
-    }
-  });
+/**
+ * Returns a new Float32Array based upon *this*
+ */
+sc.define("asFloat32Array", {
+  Array: function() {
+    return new Float32Array(this);
+  }
+});
 
-})(sc);
+/**
+ * Returns a new Float64Array based upon *this*
+ */
+sc.define("asFloat64Array", {
+  Array: function() {
+    return new Float64Array(this);
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("asFloat", {
-    Number: function() {
-      return this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.asFloat(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asFloat32Array", {
-    Array: function() {
-      return new Float32Array(this);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asFloat64Array", {
-    Array: function() {
-      return new Float64Array(this);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
+/**
+ * Returns a new Function based upon *this*
+ * @arguments _none_
+ * @example
+ *   (1).asFunction()(); // => 1
+ */
+sc.define("asFunction", function() {
   var asFunction = function() {
     var that = this;
     return function() { return that; };
   };
-
-  sc.register("asFunction", {
+  return {
     Number: asFunction,
     Array : asFunction,
     String: asFunction,
     Function: function() {
       return this;
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asInt16Array", {
-    Array: function() {
-      return new Int16Array(this);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asInt32Array", {
-    Array: function() {
-      return new Int32Array(this);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asInt8Array", {
-    Array: function() {
-      return new Int8Array(this);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asInteger", {
-    Number: function() {
-      return this|0;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.asInteger(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asNumber", {
-    Number: function() {
-      return this;
-    },
-    Boolean: function() {
-      return this ? 1 : 0;
-    },
-    Array: function() {
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (typeof this[i] === "number") { return this[i]; }
-      }
-      return 0;
-    },
-    String: function() {
-      return isNaN(+this) ? 0 : +this;
-    },
-    Function: function() {
-      return 0;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  var asString = function() {
-    return "" + this;
   };
+});
 
-  sc.register("asString", {
-    Number : asString,
-    Boolean: asString,
-    Array  : asString,
-    String: function() {
-      return this;
-    },
+/**
+ * Returns a new Int16Array based upon *this*
+ */
+sc.define("asInt16Array", {
+  Array: function() {
+    return new Int16Array(this);
+  }
+});
+
+/**
+ * Returns a new Int32Array based upon *this*
+ */
+sc.define("asInt32Array", {
+  Array: function() {
+    return new Int32Array(this);
+  }
+});
+
+/**
+ * Returns a new Int8Array based upon *this*
+ */
+sc.define("asInt8Array", {
+  Array: function() {
+    return new Int8Array(this);
+  }
+});
+
+/**
+ * @arguments _none_
+ * @example
+ *   "0.5".asInteger(); // => 0
+ *   [1, 2, 3.14].asInteger(); // => [1, 2, 3]
+ */
+sc.define("asInteger", {
+  Number: function() {
+    return this|0;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.asInteger(); });
+  },
+  String: function() {
+    return this|0;
+  }
+});
+
+/**
+ * Returns new a Number based upon *this*
+ * @arguments _none_
+ * @example
+ *  (true).asNumber(); // => 1
+ *  ["a", 10, 3.14].asNumber(); => 10
+ */
+sc.define("asNumber", {
+  Number: function() {
+    return this;
+  },
+  Boolean: function() {
+    return this ? 1 : 0;
+  },
+  Array: function() {
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (typeof this[i] === "number") { return this[i]; }
+    }
+    return 0;
+  },
+  String: function() {
+    return isNaN(+this) ? 0 : +this;
+  },
+  Function: function() {
+    return 0;
+  }
+});
+
+/**
+ * Returns a new String based upon *this*
+ */
+sc.define("asString", function() {
+  var asString = function() {
+    return this.toString();
+  };
+  return {
+    Number  : asString,
+    Boolean : asString,
+    Array   : asString,
+    String  : asString,
     Function: asString
-  });
+  };
+});
 
-})(sc);
+/**
+ * Returns a new Uint16Array based upon *this*
+ */
+sc.define("asUint16Array", {
+  Array: function() {
+    return new Uint16Array(this);
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Returns a new Uint32Array based upon *this*
+ */
+sc.define("asUint32Array", {
+  Array: function() {
+    return new Uint32Array(this);
+  }
+});
 
-  sc.register("asUint16Array", {
-    Array: function() {
-      return new Uint16Array(this);
+/**
+ * Returns a new Uint8Array based upon *this*
+ */
+sc.define("asUint8Array", {
+  Array: function() {
+    return new Uint8Array(this);
+  }
+});
+
+/**
+ * Arcsine
+ * @arguments _none_
+ */
+sc.define("asin", {
+  Number: function() {
+    return Math.asin(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.asin(); });
+  }
+});
+
+/**
+ * Return the item at *index*.
+ * @arguments _(index)_
+ * @example
+ *  x = [10,20,30];
+ *  y = [0,0,2,2,1];
+ *  x.at(y); // returns [ 10, 10, 30, 30, 20 ]
+ */
+sc.define(["at", "@"], {
+  Array: function(index) {
+    if (Array.isArray(index)) {
+      return index.map(function(index) {
+        return this.at(index);
+      }, this);
     }
-  });
+    return this[index|0];
+  }
+});
 
-})(sc);
+sc.define("atDec", {
+  Array: function(index, dec) {
+    dec = dec === void 0 ? 1 : dec;
+    return this.put(index, this.at(index).opSub(dec));
+  }
+});
 
-(function(sc) {
-  "use strict";
+sc.define("atInc", {
+  Array: function(index, inc) {
+    inc = inc === void 0 ? 1 : inc;
+    return this.put(index, this.at(index).opAdd(inc));
+  }
+});
 
-  sc.register("asUint32Array", {
-    Array: function() {
-      return new Uint32Array(this);
+sc.define("atModify", {
+  Array: function(index, func) {
+    return this.put(index, sc.func(func)(this.at(index), index));
+  }
+});
+
+/**
+ * Arctangent
+ * @arguments _none_
+ */
+sc.define("atan", {
+  Number: function() {
+    return Math.atan(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.atan(); });
+  }
+});
+
+/**
+ * Arctangent of ( *this* / *number* )
+ * @arguments _(number)_
+ */
+sc.define("atan2", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.atan2(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("asUint8Array", {
-    Array: function() {
-      return new Uint8Array(this);
+    return Math.atan2(this, num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.atan2(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.atan2(num); });
     }
-  });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Arcsine
-   */
-  sc.register("asin", {
-    Number: function() {
-      return Math.asin(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.asin(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return the item at *index*.
-   * @arguments _(index)_
-   * @example
-   *  x = [10,20,30];
-   *  y = [0,0,2,2,1];
-   *  x.at(y); // returns [ 10, 10, 30, 30, 20 ]
-   */
-  sc.register(["at", "@"], {
-    Array: function(index) {
-      if (Array.isArray(index)) {
-        return index.map(function(index) {
-          return this.at(index);
-        }, this);
-      }
-      return this[index|0];
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("atDec", {
-    Array: function(index, dec) {
-      dec = dec === void 0 ? 1 : dec;
-      return this.put(index, this.at(index).opSub(dec));
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("atInc", {
-    Array: function(index, inc) {
-      inc = inc === void 0 ? 1 : inc;
-      return this.put(index, this.at(index).opAdd(inc));
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("atModify", {
-    Array: function(index, func) {
-      return this.put(index, sc.func(func)(this.at(index), index));
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Arctangent
-   */
-  sc.register("atan", {
-    Number: function() {
-      return Math.atan(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.atan(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("atan2", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.atan2(num); }, this);
-      }
-      return Math.atan2(this, num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.atan2(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.atan2(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("biexp", {
-    Number: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
-      if (Array.isArray(inCenter) || Array.isArray(inMin) ||Array.isArray(inMax) ||
-          Array.isArray(outCenter) || Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inCenter,inMin,inMax,outCenter,outMin,outMax].flop().map(function(items) {
-          return items[0].biexp(items[1],items[2],items[3],items[4],items[5],items[6],clip);
-        });
-      }
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      if (this >= inCenter) {
-        return this.explin(inCenter, inMax, outCenter, outMax);
-      } else {
-        return this.explin(inMin, inCenter, outMin, outCenter);
-      }
-    },
-    Array: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
-      return this.map(function(x) { return x.biexp(inCenter, inMin, inMax, outCenter, outMin, outMax, clip); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("bilin", {
-    Number: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
-      if (Array.isArray(inCenter) || Array.isArray(inMin) ||Array.isArray(inMax) ||
-          Array.isArray(outCenter) || Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inCenter,inMin,inMax,outCenter,outMin,outMax].flop().map(function(items) {
-          return items[0].bilin(items[1],items[2],items[3],items[4],items[5],items[6],clip);
-        });
-      }
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      if (this >= inCenter) {
-        return this.linlin(inCenter, inMax, outCenter, outMax);
-      } else {
-        return this.linlin(inMin, inCenter, outMin, outCenter);
-      }
-    },
-    Array: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
-      return this.map(function(x) { return x.bilin(inCenter, inMin, inMax, outCenter, outMin, outMax, clip); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("bilinrand", {
-    Number: function() {
-      return (Math.random() - Math.random()) * this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.bilinrand(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("binaryValue", {
-    Number: function() {
-      return this > 0 ? 1 : 0;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.binaryValue(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["bitAnd", "&"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.bitAnd(num); }, this);
-      }
-      return this & num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.bitAnd(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.bitAnd(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["bitNot", "~"], {
-    Number: function() {
-      return ~this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.bitNot(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["bitOr", "|"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.bitOr(num); }, this);
-      }
-      return this | num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.bitOr(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.bitOr(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("bitTest", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.bitTest(num); }, this);
-      }
-      return !!(this & (1 << num));
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.bitTest(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.bitTest(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["bitXor", "^"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.bitXor(num); }, this);
-      }
-      return this ^ num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.bitXor(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.bitXor(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("blendAt", {
-    Array: function(index, method) {
-      if (Array.isArray(index)) {
-        return index.map(function(index) {
-          return this.blendAt(index, method);
-        }, this);
-      }
-      method = method === void 0 ? "clipAt" : method;
-      var i = Math.floor(index);
-      var x0 = this[method](i  );
-      var x1 = this[method](i+1);
-      return x0 + Math.abs(index - i) * (x1 - x0);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("bubble", {
-    Array: function(depth, levels) {
-      depth  = depth  === void 0 ? 0 : depth;
-      levels = levels === void 0 ? 1 : levels;
-      if (depth <= 0) {
-        if (levels <= 1) { return [this]; }
-        return [this.bubble(depth, levels-1)];
-      }
-      return this.map(function(item) {
-        return item.bubble(depth-1, levels);
+sc.define("biexp", {
+  Number: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
+    if (Array.isArray(inCenter) || Array.isArray(inMin) ||Array.isArray(inMax) ||
+        Array.isArray(outCenter) || Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inCenter,inMin,inMax,outCenter,outMin,outMax].flop().map(function(items) {
+        return items[0].biexp(items[1],items[2],items[3],items[4],items[5],items[6],clip);
       });
-    },
-    Number: function(depth, levels) {
-      depth  = depth  === void 0 ? 0 : depth;
-      levels = levels === void 0 ? 1 : levels;
+    }
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
+    }
+    if (this >= inCenter) {
+      return this.explin(inCenter, inMax, outCenter, outMax);
+    } else {
+      return this.explin(inMin, inCenter, outMin, outCenter);
+    }
+  },
+  Array: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
+    return this.map(function(x) { return x.biexp(inCenter, inMin, inMax, outCenter, outMin, outMax, clip); });
+  }
+});
+
+sc.define("bilin", {
+  Number: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
+    if (Array.isArray(inCenter) || Array.isArray(inMin) ||Array.isArray(inMax) ||
+        Array.isArray(outCenter) || Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inCenter,inMin,inMax,outCenter,outMin,outMax].flop().map(function(items) {
+        return items[0].bilin(items[1],items[2],items[3],items[4],items[5],items[6],clip);
+      });
+    }
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
+    }
+    if (this >= inCenter) {
+      return this.linlin(inCenter, inMax, outCenter, outMax);
+    } else {
+      return this.linlin(inMin, inCenter, outMin, outCenter);
+    }
+  },
+  Array: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
+    return this.map(function(x) { return x.bilin(inCenter, inMin, inMax, outCenter, outMin, outMax, clip); });
+  }
+});
+
+sc.define("bilinrand", {
+  Number: function() {
+    return (Math.random() - Math.random()) * this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.bilinrand(); });
+  }
+});
+
+sc.define("binaryValue", {
+  Number: function() {
+    return this > 0 ? 1 : 0;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.binaryValue(); });
+  }
+});
+
+sc.define(["bitAnd", "&"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.bitAnd(num); }, this);
+    }
+    return this & num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.bitAnd(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.bitAnd(num); });
+    }
+  }
+});
+
+sc.define(["bitNot", "~"], {
+  Number: function() {
+    return ~this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.bitNot(); });
+  }
+});
+
+sc.define(["bitOr", "|"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.bitOr(num); }, this);
+    }
+    return this | num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.bitOr(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.bitOr(num); });
+    }
+  }
+});
+
+sc.define("bitTest", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.bitTest(num); }, this);
+    }
+    return !!(this & (1 << num));
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.bitTest(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.bitTest(num); });
+    }
+  }
+});
+
+sc.define(["bitXor", "^"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.bitXor(num); }, this);
+    }
+    return this ^ num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.bitXor(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.bitXor(num); });
+    }
+  }
+});
+
+/**
+ * Returns a linearly interpolated value between the two closest indices.
+ * @arguments _(index [, method="clipAt"])_
+ * @example
+ *   [2, 5, 6].blendAt(0.4); // => 3.2
+ */
+sc.define("blendAt", {
+  Array: function(index, method) {
+    if (Array.isArray(index)) {
+      return index.map(function(index) {
+        return this.blendAt(index, method);
+      }, this);
+    }
+    method = method === void 0 ? "clipAt" : method;
+    var i = Math.floor(index);
+    var x0 = this[method](i  );
+    var x1 = this[method](i+1);
+    return x0 + Math.abs(index - i) * (x1 - x0);
+  }
+});
+
+sc.define("bubble", {
+  Array: function(depth, levels) {
+    depth  = depth  === void 0 ? 0 : depth;
+    levels = levels === void 0 ? 1 : levels;
+    if (depth <= 0) {
       if (levels <= 1) { return [this]; }
       return [this.bubble(depth, levels-1)];
     }
-  });
+    return this.map(function(item) {
+      return item.bubble(depth-1, levels);
+    });
+  },
+  Number: function(depth, levels) {
+    depth  = depth  === void 0 ? 0 : depth;
+    levels = levels === void 0 ? 1 : levels;
+    if (levels <= 1) { return [this]; }
+    return [this.bubble(depth, levels-1)];
+  }
+});
 
-})(sc);
+/**
+ * next larger integer.
+ * @arguments _none_
+ */
+sc.define("ceil", {
+  Number: function() {
+    return Math.ceil(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.ceil(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Choose an element from the collection at random.
+ * @arguments _none_
+ * @example
+ *  [1, 2, 3, 4].choose();
+ */
+sc.define("choose", {
+  Array: function() {
+    return this[(Math.random() * this.length)|0];
+  }
+});
 
-  /**
-   * next larger integer.
-   */
-  sc.register("ceil", {
-    Number: function() {
-      return Math.ceil(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.ceil(); });
+/**
+ * If the receiver is less than minVal then answer minVal, else if the receiver is greater than maxVal then answer maxVal, else answer the receiver.
+ * @arguments _([lo=-1, hi=1])_
+ * @example
+ *  [ -0.6, -0.3, 0, 0.3, 0.6 ].clip(-0.5, 0.5); // => [ -0.5, -0.3, 0, 0.3, 0.5 ]
+ */
+sc.define("clip", {
+  Number: function(lo, hi) {
+    if (Array.isArray(lo) || Array.isArray(hi)) {
+      return [this,lo,hi].flop().map(function(items) {
+        return items[0].clip(items[1], items[2]);
+      });
     }
-  });
+    lo = lo === void 0 ? -1 : lo;
+    hi = hi === void 0 ? +1 : hi;
+    return Math.max(lo, Math.min(this, hi));
+  },
+  Array: function(lo, hi) {
+    return this.map(function(x) { return x.clip(lo, hi); });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Choose an element from the collection at random.
-   * @example
-   *  [1, 2, 3, 4].choose();
-   */
-  sc.register("choose", {
-    Array: function() {
-      return this[(Math.random() * this.length)|0];
+/**
+ * clips receiver to +/- aNumber
+ * @arguments _([number=1])_
+ * @example
+ *  [ -0.6, -0.3, 0, 0.3, 0.6 ].clip2(0.5); // => [ -0.5, -0.3, 0, 0.3, 0.5 ]
+ */
+sc.define("clip2", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.clip2(num); }, this);
     }
-  });
+    num = num === void 0 ? 1 : num;
+    return this.clip(-num, +num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.clip2(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.clip2(num); });
+    }
+  }
+});
 
-})(sc);
+/**
+ * Same as `at`, but values for index greater than the size of the Array will be clipped to the last index.
+ * @arguments _(index)_
+ * @example
+ *  [ 1, 2, 3 ].clipAt(13); // => 3
+ *  [ 1, 2, 3 ].clipAt([ 0, 1, 2, 3 ]); // => [ 1, 2, 3, 3 ]
+ */
+sc.define(["clipAt", "|@|"], {
+  Array: function(index) {
+    if (Array.isArray(index)) {
+      return index.map(function(index) {
+        return this.clipAt(index);
+      }, this);
+    }
+    return this[(index|0).clip(0, this.length-1)];
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("clip", {
-    Number: function(lo, hi) {
-      if (Array.isArray(lo) || Array.isArray(hi)) {
-        return [this,lo,hi].flop().map(function(items) {
-          return items[0].clip(items[1], items[2]);
-        });
+/**
+ * Same as `wrapExtend` but the sequences "clip" (return their last element) rather than wrapping.
+ * @arguments _(size)_
+ * @example
+ *  [ 1, 2, 3 ].clipExtend(9); // => [ 1, 2, 3, 3, 3, 3, 3, 3, 3 ]
+ */
+sc.define("clipExtend", {
+  Array: function(size) {
+    size = Math.max(0, size|0);
+    if (this.length < size) {
+      var a = new Array(size);
+      for (var i = 0, imax = this.length; i< imax; ++i) {
+        a[i] = this[i];
       }
-      return Math.max(lo, Math.min(this, hi));
-    },
-    Array: function(lo, hi) {
-      return this.map(function(x) { return x.clip(lo, hi); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("clip2", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.clip2(num); }, this);
-      }
-      return this.clip(-num, +num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.clip2(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.clip2(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Same as `at`, but values for index greater than the size of the ArrayedCollection will be clipped to the last index.
-   * @example
-   *  [ 1, 2, 3 ].clipAt(13); // => 3
-   *  [ 1, 2, 3 ].clipAt([ 0, 1, 2, 3 ]); // => [ 1, 2, 3, 3 ]
-   */
-  sc.register(["clipAt", "|@|"], {
-    Array: function(index) {
-      if (Array.isArray(index)) {
-        return index.map(function(index) {
-          return this.clipAt(index);
-        }, this);
-      }
-      return this[(index|0).clip(0, this.length-1)];
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Same as `wrapExtend` but the sequences "clip" (return their last element) rather than wrapping.
-   * @arguments _(size)_
-   * @example
-   *  [ 1, 2, 3 ].clipExtend(9); // => [ 1, 2, 3, 3, 3, 3, 3, 3, 3 ]
-   */
-  sc.register("clipExtend", {
-    Array: function(size) {
-      size = Math.max(0, size|0);
-      if (this.length < size) {
-        var a = new Array(size);
-        for (var i = 0, imax = this.length; i< imax; ++i) {
-          a[i] = this[i];
-        }
-        for (var b = a[i-1]; i < size; ++i) {
-          a[i] = b;
-        }
-        return a;
-      } else {
-        return this.slice(0, size);
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Same as `put`, but values for index greater than the size of the ArrayedCollection will be clipped to the last index.
-   * @arguments _(index, item)_
-   */
-  sc.register("clipPut", {
-    Array: function(index, item) {
-      if (typeof index === "number") {
-        this[index.clip(0, this.length-1)] = item;
-      } else if (Array.isArray(index)) {
-        index.forEach(function(index) {
-          this.clipPut(index, item);
-        }, this);
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("clipSwap", {
-    Array: function(i, j) {
-      i = (i|0).clip(0, this.length-1);
-      j = (j|0).clip(0, this.length-1);
-      var t = this[i];
-      this[i] = this[j];
-      this[j] = t;
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("clump", {
-    Array: function(groupSize) {
-      var list, sublist, i, imax;
-      list = [];
-      sublist = [];
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        sublist.push(this[i]);
-        if (sublist.length >= groupSize) {
-          list.push(sublist);
-          sublist = [];
-        }
-      }
-      if (sublist.length > 0) {
-        list.push(sublist);
-      }
-      return list;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("clumps", {
-    Array: function(groupSizeList) {
-      var index, list, sublist, subSize, i, imax;
-      index = 0;
-      list = [];
-      subSize = groupSizeList[0];
-      sublist = [];
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        sublist.push(this[i]);
-        if (sublist.length >= subSize) {
-          index += 1;
-          list.push(sublist);
-          subSize = groupSizeList[index % groupSizeList.length];
-          sublist = [];
-        }
-      }
-      if (sublist.length > 0) {
-        list.push(sublist);
-      }
-      return list;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("coin", {
-    Number: function() {
-      return Math.random() < this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.coin(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("collect", {
-    Number: function(func) {
-      func = sc.func(func);
-      var a = new Array(this|0);
-      for (var i = 0, imax = a.length; i < imax; ++i) {
-        a[i] = func(i);
+      for (var b = a[i-1]; i < size; ++i) {
+        a[i] = b;
       }
       return a;
-    },
-    Array: function(func) {
-      return this.map(sc.func(func));
+    } else {
+      return this.slice(0, size);
     }
-  });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("copy", {
-    Number: function() {
-      return this;
-    },
-    Boolean: function() {
-      return this;
-    },
-    Array: function() {
-      return this.slice();
-    },
-    String: function() {
-      return this;
-    },
-    Function: function() {
-      return this;
+/**
+ * Same as `put`, but values for index greater than the size of the ArrayedCollection will be clipped to the last index.
+ * @arguments _(index, item)_
+ */
+sc.define("clipPut", {
+  Array: function(index, item) {
+    if (typeof index === "number") {
+      this[index.clip(0, this.length-1)] = item;
+    } else if (Array.isArray(index)) {
+      index.forEach(function(index) {
+        this.clipPut(index, item);
+      }, this);
     }
-  });
+    return this;
+  }
+});
 
-})(sc);
+sc.define("clipSwap", {
+  Array: function(i, j) {
+    i = (i|0).clip(0, this.length-1);
+    j = (j|0).clip(0, this.length-1);
+    var t = this[i];
+    this[i] = this[j];
+    this[j] = t;
+    return this;
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Separates the collection into sub-collections by separating every groupSize elements.
+ * @arguments _(groupSize)_
+ * @example
+ *   [1, 2, 3, 4, 5, 6, 7, 8].clump(3); // => [ [ 1, 2, 3 ], [ 4, 5, 6 ], [ 7, 8 ] ]
+ */
+sc.define("clump", {
+  Array: function(groupSize) {
+    var list, sublist, i, imax;
+    list = [];
+    sublist = [];
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      sublist.push(this[i]);
+      if (sublist.length >= groupSize) {
+        list.push(sublist);
+        sublist = [];
+      }
+    }
+    if (sublist.length > 0) {
+      list.push(sublist);
+    }
+    return list;
+  }
+});
 
+/**
+ * Separates the collection into sub-collections by separating elements into groupings whose size is given by integers in the groupSizeList.
+ * @arguments _(groupSizeList)_
+ * @example
+ *   [1, 2, 3, 4, 5, 6, 7, 8].clumps([1, 2]);
+ *   // => [ [ 1 ], [ 2, 3 ], [ 4 ], [ 5, 6 ], [ 7 ], [ 8 ] ]
+ */
+sc.define("clumps", {
+  Array: function(groupSizeList) {
+    var index, list, sublist, subSize, i, imax;
+    index = 0;
+    list = [];
+    subSize = groupSizeList[0];
+    sublist = [];
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      sublist.push(this[i]);
+      if (sublist.length >= subSize) {
+        index += 1;
+        list.push(sublist);
+        subSize = groupSizeList[index % groupSizeList.length];
+        sublist = [];
+      }
+    }
+    if (sublist.length > 0) {
+      list.push(sublist);
+    }
+    return list;
+  }
+});
+
+/**
+ * Answers a Boolean which is the result of a random test whose probability of success in a range from zero to one is this.
+ * @arguments _none_
+ */
+sc.define("coin", {
+  Number: function() {
+    return Math.random() < this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.coin(); });
+  }
+});
+
+/**
+ * Answer a new array which consists of the results of function evaluated for each item in the collection. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ * @example
+ *  [ 1, 2, 3, 4 ].collect("reciprocal"); // => [ 1, 0.5, 0.3333, 0.25 ]
+ *  (3).collect(function(x) { return x * 100; }); // => [ 0, 100, 200 ]
+ */
+sc.define("collect", {
+  Number: function(func) {
+    func = sc.func(func);
+    var a = new Array(this|0);
+    for (var i = 0, imax = a.length; i < imax; ++i) {
+      a[i] = func(i, i);
+    }
+    return a;
+  },
+  Array: function(func) {
+    return this.map(sc.func(func));
+  }
+});
+
+/**
+ * Make a copy of the receiver. (shallow copy)
+ * @arguments _none_
+ */
+sc.define("copy", {
+  Number: function() {
+    return this;
+  },
+  Boolean: function() {
+    return this;
+  },
+  Array: function() {
+    return this.slice();
+  },
+  String: function() {
+    return this;
+  },
+  Function: function() {
+    return this;
+  }
+});
+
+/**
+ * Return a new Array which is a copy of the indexed slots of the receiver from the start of the collection to *end*.
+ * @arguments _(end)_
+ */
+sc.define("copyFromStart", function() {
   var copyFromStart = function(end) {
     if (Array.isArray(end)) {
       return end.map(function(end) {
@@ -1168,23 +1039,19 @@
     end = Math.max(0, end|0);
     return this.slice(0, end + 1);
   };
-
-  sc.register("copyFromStart", {
+  return {
     Array : copyFromStart,
     String: copyFromStart
-  });
+  };
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return a new Array which is a copy of the indexed slots of the receiver from *start* to *end*.
-   * @arguments _(start, end)_
-   * @example
-   *  [1, 2, 3, 4, 5].copyRange(1, 3); // [ 2, 3, 4 ]
-   */
+/**
+ * Return a new Array which is a copy of the indexed slots of the receiver from *start* to *end*.
+ * @arguments _(start, end)_
+ * @example
+ *  [1, 2, 3, 4, 5].copyRange(1, 3); // [ 2, 3, 4 ]
+ */
+sc.define("copyRange", function() {
   var copyRange = function(start, end) {
     if (Array.isArray(start) || Array.isArray(end)) {
       return [start, end].flop().map(function(items) {
@@ -1195,34 +1062,28 @@
     end   = Math.max(0, end|0);
     return this.slice(start, end + 1);
   };
-
-  sc.register("copyRange", {
+  return {
     Array : copyRange,
     String: copyRange
-  });
+  };
+});
 
-})(sc);
+/**
+ * Return a new Array consisting of the values starting at *first*, then every step of the distance between *first* and *second*, up until *last*.
+ * @arguments _(first, second, last)_
+ * @example
+ *   [1, 2, 3, 4, 5, 6].copySeries(0, 2, 5); // => [ 1, 3, 5 ]
+ */
+sc.define("copySeries", {
+  Array: function(first, second, last) {
+    return this.at(first.series(second, last));
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return a new *Array* consisting of the values starting at *first*, then every step of the distance between *first* and *second*, up until *last*.
-   * @arguments _(first, second, last)_
-   * @example
-   *   [1, 2, 3, 4, 5, 6].copySeries(0, 2, 5); // => [ 1, 3, 5 ]
-   */
-  sc.register("copySeries", {
-    Array: function(first, second, last) {
-      return this.at(first.series(second, last));
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
+/**
+ * Return a new Array which is a copy of the indexed slots of the receiver from *start* to the end of the collection
+ */
+sc.define("copyToEnd", function() {
   var copyToEnd = function(start) {
     if (Array.isArray(start)) {
       return start.map(function(start) {
@@ -1232,426 +1093,407 @@
     start = Math.max(0, start|0);
     return this.slice(start);
   };
-
-  sc.register("copyToEnd", {
+  return {
     Array : copyToEnd,
     String: copyToEnd
-  });
+  };
+});
 
-})(sc);
+/**
+ * Cosine
+ * @arguments _none_
+ */
+sc.define("cos", {
+  Number: function() {
+    return Math.cos(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.cos(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Hyperbolic cosine
+ * @arguments _none_
+ */
+sc.define("cosh", {
+  Number: function() {
+    return (Math.pow(Math.E, this) + Math.pow(Math.E, -this)) * 0.5;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.cosh(); });
+  }
+});
 
-  /**
-   * Cosine
-   */
-  sc.register("cos", {
-    Number: function() {
-      return Math.cos(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.cos(); });
+/**
+ * Answer the number of items for which *function* answers True. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ * @example
+ *   [1, 2, 3, 4].count("even"); // => 2
+ *   [1, 2, 3, 4].count(function(x, i) { return x & i; }); // => 1
+ */
+sc.define("count", {
+  Array: function(func) {
+    func = sc.func(func);
+    var sum = 0;
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) { ++sum; }
     }
-  });
+    return sum;
+  }
+});
 
-})(sc);
+/**
+ * Convert cycles per second to MIDI note.
+ * @arguments _none_
+ * @returns midi note
+ * @example
+ *  (440).cpsmidi(); // => 69
+ *  Array.range("440, 550..880").cpsmidi(); // => [69, 72.8631, 76.0195, 78.6882, 81 ]
+ */
+sc.define("cpsmidi", {
+  Number: function() {
+    return Math.log(Math.abs(this) * 1/440) * Math.LOG2E * 12 + 69;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.cpsmidi(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Convert cycles per second to decimal octaves.
+ * @arguments _none_
+ * @example
+ *   (440).cpsoct(); // => 4.75
+ *   Array.range("440, 550..880").cpsoct(); // => [ 4.75, 5.0719, 5.3349, 5.5573, 5.75 ]
+ */
+sc.define("cpsoct", {
+  Number: function() {
+    return Math.log(Math.abs(this) * 1/440) * Math.LOG2E + 4.75;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.cpsoct(); });
+  }
+});
 
-  /**
-   * Hyperbolic cosine
-   */
-  sc.register("cosh", {
-    Number: function() {
-      return (Math.pow(Math.E, this) + Math.pow(Math.E, -this)) * 0.5;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.cosh(); });
-    }
-  });
+/**
+ * the cube of the number
+ * @arguments _none_
+ */
+sc.define("cubed", {
+  Number: function() {
+    return this * this * this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.cubed(); });
+  }
+});
 
-})(sc);
+/**
+ * Separates the array into sub-array by randomly separating elements according to the given probability.
+ * @arguments _([probability=0.5])_
+ */
+sc.define("curdle", {
+  Array: function(probability) {
+    probability = probability === void 0 ? 0.5 : probability;
+    return this.separate(function() {
+      return probability.coin();
+    });
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("count", {
-    Array: function(func) {
-      func = sc.func(func);
-      var sum = 0;
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) { ++sum; }
-      }
-      return sum;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Convert cycles per second to MIDI note.
-   * @returns midi note
-   * @example
-   *  (440).cpsmidi(); // => 69
-   *  Array.range(440, 880, 110).cpsmidi(); // => [69, 72.8631, 76.0195, 78.6882]
-   */
-  sc.register("cpsmidi", {
-    Number: function() {
-      return Math.log(Math.abs(this) * 1/440) * Math.LOG2E * 12 + 69;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.cpsmidi(); });
-    },
-    Function: function() {
-      var func = this;
-      return function() {
-        return func.apply(func, arguments).cpsmidi();
-      };
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("cpsoct", {
-    Number: function() {
-      return Math.log(Math.abs(this) * 1/440) * Math.LOG2E + 4.75;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.cpsoct(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * the cube of the number
-   */
-  sc.register("cubed", {
-    Number: function() {
-      return this * this * this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.cubed(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("curdle", {
-    Array: function(probability) {
-      return this.separate(function() {
-        return probability.coin();
+/**
+ * map the receiver from an assumed curve-exponential input range (inMin..inMax) to a linear output range (outMin..outMax). If the input exceeds the assumed input range.
+ * @arguments _([inMin=0, inMax=1, outMin=0, outMax=1, curve=-4, clip="minmax"])_
+ * @example
+ *   [0, 2, 4, 6, 8, 10].curvelin(0, 10, -1, 1);
+ *   // => [ -1, 0.2222, 0.2905, 0.3846, 0.5375, 1 ]
+ */
+sc.define("curvelin", {
+  Number: function(inMin, inMax, outMin, outMax, curve, clip) {
+    if (Array.isArray(inMin) || Array.isArray(inMax) ||
+        Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
+        return items[0].curvelin(items[1],items[2],items[3],items[4],curve,clip);
       });
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("curvelin", {
-    Number: function(inMin, inMax, outMin, outMax, curve, clip) {
-      if (Array.isArray(inMin) || Array.isArray(inMax) ||
-          Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
-          return items[0].curvelin(items[1],items[2],items[3],items[4],curve,clip);
-        });
-      }
-      inMin  = inMin  === void 0 ?  0 : inMin;
-      inMax  = inMax  === void 0 ?  1 : inMax;
-      outMin = outMin === void 0 ?  0 : outMin;
-      outMax = outMax === void 0 ?  1 : outMax;
-      curve  = curve  === void 0 ? -4 : curve;
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      if (Math.abs(curve) < 0.001) {
-        return this.linlin(inMin, inMax, outMin, outMax);
-      }
-      var grow = Math.exp(curve);
-      var a = (outMax - outMin) / (1.0 - grow);
-      var b = outMin + a;
-      var scaled = (this - inMin) / (inMax - inMin);
-      return Math.log((b - scaled) / a) / curve;
-    },
-    Array: function(inMin, inMax, outMin, outMax, curve, clip) {
-      return this.map(function(x) { return x.curvelin(inMin, inMax, outMin, outMax, curve, clip); });
+    inMin  = inMin  === void 0 ?  0 : inMin;
+    inMax  = inMax  === void 0 ?  1 : inMax;
+    outMin = outMin === void 0 ?  0 : outMin;
+    outMax = outMax === void 0 ?  1 : outMax;
+    curve  = curve  === void 0 ? -4 : curve;
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("dbamp", {
-    Number: function() {
-      return Math.pow(10, this * 0.05);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.dbamp(); });
+    if (Math.abs(curve) < 0.001) {
+      return this.linlin(inMin, inMax, outMin, outMax);
     }
-  });
+    var grow = Math.exp(curve);
+    var a = (outMax - outMin) / (1.0 - grow);
+    var b = outMin + a;
+    var scaled = (this - inMin) / (inMax - inMin);
+    return Math.log((b - scaled) / a) / curve;
+  },
+  Array: function(inMin, inMax, outMin, outMax, curve, clip) {
+    return this.map(function(x) { return x.curvelin(inMin, inMax, outMin, outMax, curve, clip); });
+  }
+});
 
-})(sc);
+/**
+ * Convert a decibels to a linear amplitude.
+ * @arguments _none_
+ * @example
+ *   (12).dbamp(); // => 3.981071705534973
+ *   [-6, -3, 0, 3, 6].dbamp(); // => [ 0.5011, 0.7079, 1, 1.412, 1.9952 ]
+ */
+sc.define("dbamp", {
+  Number: function() {
+    return Math.pow(10, this * 0.05);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.dbamp(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * converts degree to radian
+ * @arguments _none_
+ */
+sc.define("degrad", {
+  Number: function() {
+    return this * Math.PI / 180;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.degrad(); });
+  }
+});
 
-  sc.register("degrad", {
-    Number: function() {
-      return this * Math.PI / 180;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.degrad(); });
-    }
-  });
+/**
+ * @arguments _(scale [, stepsPerOctave=12])_
+ */
+sc.define("degreeToKey", {
+  Number: function(scale, stepsPerOctave) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    var scaleDegree = this.round()|0;
+    var accidental = (this - scaleDegree) * 10;
+    return scale.performDegreeToKey(scaleDegree, stepsPerOctave, accidental);
+  },
+  Array: function(scale, stepsPerOctave) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    return this.map(function(scaleDegree) {
+      return scaleDegree.degreeToKey(scale, stepsPerOctave);
+    });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("degreeToKey", {
-    Number: function(scale, stepsPerOctave) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      var scaleDegree = this.round()|0;
-      var accidental = (this - scaleDegree) * 10;
-      return scale.performDegreeToKey(scaleDegree, stepsPerOctave, accidental);
-    },
-    Array: function(scale, stepsPerOctave) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      return this.map(function(scaleDegree) {
-        return scaleDegree.degreeToKey(scale, stepsPerOctave);
-      });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("delimit", {
-    Array: function(func) {
-      var list, sublist, i, imax;
-      func = func === void 0 ? sc.func(true) : sc.func(func);
-      list = [];
-      sublist = [];
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) {
-          list.push(sublist);
-          sublist = [];
-        } else {
-          sublist.push(this[i]);
-        }
-      }
-      list.push(sublist);
-      return list;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("detect", {
-    Array: function(func) {
-      func = sc.func(func);
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) { return this[i]; }
-      }
-      return null;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("detectIndex", {
-    Array: function(func) {
-      func = sc.func(func);
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) { return i; }
-      }
-      return -1;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("difference", {
-    Array: function(that) {
-      return this.slice().removeAll(that);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("differentiate", {
-    Array: function() {
-      var prev = 0;
-      return this.map(function(item) {
-        var ret = item - prev;
-        prev = item;
-        return ret;
-      });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("difsqr", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.difsqr(num); }, this);
-      }
-      return this * this - num * num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.difsqr(num.wrapAt(i)); });
+sc.define("delimit", {
+  Array: function(func) {
+    var list, sublist, i, imax;
+    func = func === void 0 ? sc.func(true) : sc.func(func);
+    list = [];
+    sublist = [];
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) {
+        list.push(sublist);
+        sublist = [];
       } else {
-        return this.map(function(x) { return x.difsqr(num); });
+        sublist.push(this[i]);
       }
     }
-  });
+    list.push(sublist);
+    return list;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("distort", {
-    Number: function() {
-      return this / (1 + Math.abs(this));
-    },
-    Array: function() {
-      return this.map(function(x) { return x.distort(); });
+/**
+ * Answer the first item in the receiver for which *function* answers True. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ * @example
+ *  [1, 2, 3, 4].detect("even"); // => 2
+ *  [1, 2, 3, 4].detect(function(x, i) { return x & i; }); // => 3
+ */
+sc.define("detect", {
+  Array: function(func) {
+    func = sc.func(func);
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) { return this[i]; }
     }
-  });
+    return null;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Integer Division
-   * @example
-   *  (10).div(3);       // => 3
-   *  [10,20,30].div(3); // => [ 3, 6, 10 ]
-   */
-  sc.register("div", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.div(num); }, this);
-      }
-      return Math.floor(this / num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.div(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.div(num); });
-      }
+/**
+ * Similar to `detect` but returns the index instead of the item itself.
+ * @arguments _(function)_
+ */
+sc.define("detectIndex", {
+  Array: function(func) {
+    func = sc.func(func);
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) { return i; }
     }
-  });
+    return -1;
+  }
+});
 
-})(sc);
+/**
+ * Return the set of all items which are elements of this, but not of *that*.
+ * @arguments _(that)_
+ * @example
+ *  [1, 2, 3].difference([2, 3, 4, 5]); // => [ 1 ]
+ */
+sc.define("difference", {
+  Array: function(that) {
+    return this.slice().removeAll(that);
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Returns an array with the pairwise difference between all elements.
+ * @arguments _none_
+ * @example
+ *   [3, 4, 1, 1].differentiate(); // => [ 3, 1, -3, 0 ]
+ */
+sc.define("differentiate", {
+  Array: function() {
+    var prev = 0;
+    return this.map(function(item) {
+      var ret = item - prev;
+      prev = item;
+      return ret;
+    });
+  }
+});
 
-  sc.register("do", {
-    Number: function(func) {
-      func = sc.func(func);
-      var i, imax = this|0;
-      for (i = 0; i < imax; ++i) {
-        func(i, i);
-      }
-      return this;
-    },
-    Array: function(func) {
-      this.forEach(sc.func(func));
-      return this;
+/**
+ * (a * a) - (b * b)
+ * @arguments _(number)_
+ */
+sc.define("difsqr", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.difsqr(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("doAdjacentPairs", {
-    Array: function(func) {
-      func = sc.func(func);
-      for (var i = 0, imax = this.length - 1; i < imax; ++i) {
-        func(this[i], this[i+1], i);
-      }
-      return this;
+    return this * this - num * num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.difsqr(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.difsqr(num); });
     }
-  });
+  }
+});
 
-})(sc);
+/**
+ * a nonlinear distortion function.
+ * @arguments _none_
+ * @example
+ *   (1).distort(); // => 0.5
+ *   [0, 1, 5, 10].distort(); // => [ 0, 0.5, 0.8333, 0.9090 ]
+ */
+sc.define("distort", {
+  Number: function() {
+    return this / (1 + Math.abs(this));
+  },
+  Array: function() {
+    return this.map(function(x) { return x.distort(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("drop", {
-    Array: function(n) {
-      n |= 0;
-      if (n < 0) {
-        return this.slice(0, this.length + n);
-      } else {
-        return this.slice(n);
-      }
+/**
+ * Integer Division
+ * @arguments _(number)_
+ * @example
+ *  (10).div(3);       // => 3
+ *  [10,20,30].div(3); // => [ 3, 6, 10 ]
+ */
+sc.define("div", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.div(num); }, this);
     }
-  });
+    return Math.floor(this / num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.div(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.div(num); });
+    }
+  }
+});
 
-})(sc);
+/**
+ * Iterate over the elements in order, calling the function for each element. The function is passed two arguments, the element and an index.
+ * @arguments _(function)_
+ */
+sc.define("do", {
+  Number: function(func) {
+    func = sc.func(func);
+    var i, imax = this|0;
+    for (i = 0; i < imax; ++i) {
+      func(i, i);
+    }
+    return this;
+  },
+  Array: function(func) {
+    this.forEach(sc.func(func));
+    return this;
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Calls function for every adjacent pair of elements in the SequentialCollection. The function is passed the two adjacent elements and an index.
+ * @arguments _(function)_
+ */
+sc.define("doAdjacentPairs", {
+  Array: function(func) {
+    func = sc.func(func);
+    for (var i = 0, imax = this.length - 1; i < imax; ++i) {
+      func(this[i], this[i+1], i);
+    }
+    return this;
+  }
+});
 
+/**
+ * Drop the first *n* items of the array. If *n* is negative, drop the last *-n* items.
+ * @arguments _(number)_
+ * @example
+ *   [1, 2, 3, 4, 5].drop( 3); // [ 4, 5 ]
+ *   [1, 2, 3, 4, 5].drop(-3); // [ 1, 2 ] 
+ */
+sc.define("drop", {
+  Array: function(n) {
+    n |= 0;
+    if (n < 0) {
+      return this.slice(0, this.length + n);
+    } else {
+      return this.slice(n);
+    }
+  }
+});
+
+/**
+ * Duplicates the receiver *n* times.
+ * @arguments _([n=2])_
+ * @example
+ *   (2).dup(5); // => [ 2, 2, 2, 2, 2 ]
+ *   [1, 2, 3].dup(3) // => [ [1, 2, 3], [1, 2, 3], [1, 2, 3] ]
+ */
+sc.define("dup", function() {
   var dup = function(n) {
     n = n === void 0 ? 2 : n;
     var a = new Array(n|0);
@@ -1660,8 +1502,7 @@
     }
     return a;
   };
-
-  sc.register("dup", {
+  return {
     Number : dup,
     Boolean: dup,
     Array  : function(n) {
@@ -1677,42 +1518,33 @@
       n = n === void 0 ? 2 : n;
       return Array.fill(n|0, this);
     }
-  });
+  };
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("equalWithPrecision", {
-    Number: function(that, precision) {
-      if (Array.isArray(that) || Array.isArray(precision)) {
-        return [this,that,precision].flop().map(function(items) {
-          return items[0].equalWithPrecision(items[1],items[2]);
-        });
-      }
-      precision = precision === void 0 ? 0.0001 : precision;
-      return Math.abs(this - that) < precision;
-    },
-    Array: function(that, precision) {
-      if (Array.isArray(that)) {
-        return this.map(function(x, i) { return x.equalWithPrecision(this.wrapAt(i), precision); });
-      } else {
-        return this.map(function(x) { return x.equalWithPrecision(that); });
-      }
+sc.define("equalWithPrecision", {
+  Number: function(that, precision) {
+    if (Array.isArray(that) || Array.isArray(precision)) {
+      return [this,that,precision].flop().map(function(items) {
+        return items[0].equalWithPrecision(items[1],items[2]);
+      });
     }
-  });
+    precision = precision === void 0 ? 0.0001 : precision;
+    return Math.abs(this - that) < precision;
+  },
+  Array: function(that, precision) {
+    if (Array.isArray(that)) {
+      return this.map(function(x, i) { return x.equalWithPrecision(this.wrapAt(i), precision); });
+    } else {
+      return this.map(function(x) { return x.equalWithPrecision(that); });
+    }
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
+sc.define(["equals", "=="], function() {
   var equals = function(arg) {
     return this === arg;
   };
-
-  sc.register(["equals", "=="], {
+  return {
     Number : equals,
     Boolean: equals,
     Array: function(arg) {
@@ -1728,384 +1560,353 @@
     },
     String  : equals,
     Function: equals
-  });
+  };
+});
 
-})(sc);
+/**
+ * true if dividable by 2 with no rest
+ * @arguments _none_
+ */
+sc.define("even", {
+  Number: function() {
+    return (this & 1) === 0;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.even(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("even", {
-    Number: function() {
-      return (this & 1) === 0;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.even(); });
+sc.define(["every", "sc_every"], {
+  Array: function(func) {
+    func = sc.func(func);
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (!func(this[i], i)) { return false; }
     }
-  });
+    return true;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["every", "sc_every"], {
-    Array: function(func) {
-      func = sc.func(func);
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (!func(this[i], i)) { return false; }
-      }
-      return true;
+/**
+ * Returns the difference of the receiver and its clipped form.
+ * @arguments _(number)_
+ */
+sc.define("excess", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.excess(num); }, this);
     }
-  });
+    return this - this.clip(-num, +num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.excess(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.excess(num); });
+    }
+  }
+});
 
-})(sc);
+/**
+ * whether the receiver is greater than minVal and less than maxVal.
+ * @arguments _(lo, hi)_
+ */
+sc.define("exclusivelyBetween", {
+  Number: function(lo, hi) {
+    if (Array.isArray(lo) || Array.isArray(hi)) {
+      return [this,lo,hi].flop().map(function(items) {
+        return items[0].exclusivelyBetween(items[1], items[2]);
+      });
+    }
+    return (lo <= this) && (this < hi);
+  },
+  Array: function(lo, hi) {
+    // todo: expand
+    return this.map(function(x) { return x.exclusivelyBetween(lo, hi); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * e to the power of the receiver.
+ * @arguments _none_
+ */
+sc.define("exp", {
+  Number: function() {
+    return Math.exp(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.exp(); });
+  }
+});
 
-  sc.register("excess", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.excess(num); }, this);
-      }
-      return this - this.clip(-num, +num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.excess(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.excess(num); });
+/**
+ * map the receiver from an assumed exponential input range (inMin..inMax) to an exponential output range (outMin..outMax). If the input exceeds the assumed input range.
+ * @arguments _(inMin, inMax, outMin, outMax [, clip="minmax"])_
+ */
+sc.define("expexp", {
+  Number: function(inMin, inMax, outMin, outMax, clip) {
+    if (Array.isArray(inMin) || Array.isArray(inMax) ||
+        Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
+        return items[0].expexp(items[1],items[2],items[3],items[4],clip);
+      });
+    }
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
+    }
+    return Math.pow(outMax/outMin, Math.log(this/inMin) / Math.log(inMax/inMin)) * outMin;
+  },
+  Array: function(inMin, inMax, outMin, outMax, clip) {
+    return this.map(function(x) { return x.expexp(inMin, inMax, outMin, outMax, clip); });
+  }
+});
+
+/**
+ * map the receiver from an assumed exponential input range (inMin..inMax) to a linear output range (outMin..outMax). If the input exceeds the assumed input range.
+ * @arguments _(inMin, inMax, outMin, outMax [, clip="minmax"])_
+ */
+sc.define("explin", {
+  Number: function(inMin, inMax, outMin, outMax, clip) {
+    if (Array.isArray(inMin) || Array.isArray(inMax) ||
+        Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
+        return items[0].explin(items[1],items[2],items[3],items[4],clip);
+      });
+    }
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
+    }
+    return (Math.log(this/inMin)) / (Math.log(inMax/inMin)) * (outMax-outMin) + outMin;
+  },
+  Array: function(inMin, inMax, outMin, outMax, clip) {
+    return this.map(function(x) { return x.explin(inMin, inMax, outMin, outMax, clip); });
+  }
+});
+
+/**
+ * Fill a SequenceableCollection with random values in the range minVal to maxVal with exponential distribution.
+ * @arguments _(size [, minVal=0, maxVal=1])_
+ * @example
+ *  Array.exprand(8, 1, 100);
+ */
+sc.define("*exprand", {
+  Array: function(size, minVal, maxVal) {
+    minVal = minVal === void 0 ? 0 : minVal;
+    maxVal = maxVal === void 0 ? 1 : maxVal;
+    minVal = Math.max(1e-6, minVal);
+    maxVal = Math.max(1e-6, maxVal);
+    var a = new Array(size|0);
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = minVal.exprand(maxVal);
+    }
+    return a;
+  }
+});
+
+/**
+ * an exponentially distributed random number in the interval ]a, b[.
+ * @arguments _(number)_
+ */
+sc.define("exprand", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.exprand(num); }, this);
+    }
+    return this > num ?
+      num * Math.exp(Math.log(this / num) * Math.random()) :
+      this * Math.exp(Math.log(num / this) * Math.random());
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.exprand(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.exprand(num); });
+    }
+  }
+});
+
+/**
+ * Extends the object to match size by adding a number of items. If size is less than receiver size then truncate. This method may return a new Array.
+ * @arguments _(size, item)_
+ * @example
+ *  [1, 2, 3, 4].extend(10, 9); // => [ 1, 2, 3, 4, 9, 9, 9, 9, 9, 9 ]
+ */
+sc.define("extend", {
+  Array: function(size, item) {
+    size = Math.max(0, size|0);
+    var a = new Array(size);
+    for (var i = 0; i < size; ++i) {
+      a[i] = (i < this.length) ? this[i] : item;
+    }
+    return a;
+  }
+});
+
+/**
+ * the factorial of this.
+ * @arguments _none_
+ */
+sc.define("factorial", {
+  Number: function() {
+    if (this < 0) {
+      return 1;
+    } else {
+      return [1,1,2,6,24,120,720,5040,40320,362880,3628800,39916800,479001600][this|0];
+    }
+  },
+  Array: function() {
+    return this.map(function(x) { return x.factorial(); });
+  }
+});
+
+/**
+ * Fill an Array with a fibonacci series.
+ * @arguments _(size [, a=0, b=1])_
+ * @example
+ *  Array.fib(5); // => [ 1, 1, 2, 3, 5 ]
+ */
+sc.define("*fib", {
+  Array: function(size, x, y) {
+    x = x === void 0 ? 0 : x;
+    y = y === void 0 ? 1 : y;
+    var a = new Array(size|0);
+    for (var t, i = 0, imax = a.length; i < imax; i++) {
+      a[i] = y;
+      t = y;
+      y = x + y;
+      x = t;
+    }
+    return a;
+  }
+});
+
+/**
+ * @arguments _([a=0, b=1])_
+ * @returns an array with a fibonacci series of this size beginning with a and b.
+ * @example
+ *  (5).fib(2, 32); // => [ 32, 34, 66, 100, 166 ]
+ */
+sc.define("fib", {
+  Number: function(a, b) {
+    if (Array.isArray(a) || Array.isArray(b)) {
+      return [this,a,b].flop().map(function(items) {
+        return items[0].geom(items[1], items[2]);
+      });
+    }
+    return Array.fib(this, a, b);
+  }
+});
+
+/**
+ * Creates an Array of the given size, the elements of which are determined by evaluation the given function.
+ * @arguments _(size [, function])_
+ * @example
+ *  Array.fill(3, 5); // => [ 5, 5, 5 ]
+ *  Array.fill(3, function(i) { return i * 2; }) // => [ 0, 2, 4 ]
+ */
+sc.define("*fill", {
+  Array: function(size, func) {
+    size |= 0;
+    func = sc.func(func);
+    var a = new Array(size);
+    for (var i = 0; i < size; i++) {
+      a[i] = func(i);
+    }
+    return a;
+  }
+});
+
+/**
+ * Inserts the item into the contents of the receiver.
+ * @arguments _(item)_
+ * @example
+ *  [1,2,3,4].fill(4); // [ 4, 4, 4, 4 ]
+ */
+sc.define("fill", {
+  Array: function(item) {
+    for (var i = 0, imax = this.length; i < imax; i++) {
+      this[i] = item;
+    }
+    return this;
+  }
+});
+
+/**
+ * Creates a 2 dimensional Collection of the given sizes. The items are determined by evaluation of the supplied function. The function is passed row and column indexes as arguments.
+ * @arguments _(rows, cols [, function])_
+ * @example
+ *   Array.fill2D(2, 4, 1); // => [ [ 1, 1, 1, 1], [ 1, 1, 1, 1 ] ]
+ */
+sc.define("*fill2D", {
+  Array: function(rows, cols, func) {
+    rows |= 0;
+    cols |= 0;
+    func = sc.func(func);
+    var a, a2, row, col;
+    a = new Array(rows);
+    for (row = 0; row < rows; ++row) {
+      a2 = a[row] = new Array(cols);
+      for (col = 0; col < cols; ++col) {
+        a2[col] = func(row, col);
       }
     }
-  });
+    return a;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("exclusivelyBetween", {
-    Number: function(lo, hi) {
-      if (Array.isArray(lo) || Array.isArray(hi)) {
-        return [this,lo,hi].flop().map(function(items) {
-          return items[0].exclusivelyBetween(items[1], items[2]);
-        });
-      }
-      return (lo <= this) && (this < hi);
-    },
-    Array: function(lo, hi) {
-      // todo: expand
-      return this.map(function(x) { return x.exclusivelyBetween(lo, hi); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * e to the power of the receiver.
-   */
-  sc.register("exp", {
-    Number: function() {
-      return Math.exp(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.exp(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("expexp", {
-    Number: function(inMin, inMax, outMin, outMax, clip) {
-      if (Array.isArray(inMin) || Array.isArray(inMax) ||
-          Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
-          return items[0].expexp(items[1],items[2],items[3],items[4],clip);
-        });
-      }
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      return Math.pow(outMax/outMin, Math.log(this/inMin) / Math.log(inMax/inMin)) * outMin;
-    },
-    Array: function(inMin, inMax, outMin, outMax, clip) {
-      return this.map(function(x) { return x.expexp(inMin, inMax, outMin, outMax, clip); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("explin", {
-    Number: function(inMin, inMax, outMin, outMax, clip) {
-      if (Array.isArray(inMin) || Array.isArray(inMax) ||
-          Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
-          return items[0].explin(items[1],items[2],items[3],items[4],clip);
-        });
-      }
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      return (Math.log(this/inMin)) / (Math.log(inMax/inMin)) * (outMax-outMin) + outMin;
-    },
-    Array: function(inMin, inMax, outMin, outMax, clip) {
-      return this.map(function(x) { return x.explin(inMin, inMax, outMin, outMax, clip); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill a SequenceableCollection with random values in the range minVal to maxVal with exponential distribution.
-   * @arguments _(size [, minVal=0, maxVal=1])_
-   * @example
-   *  Array.exprand(8, 1, 100);
-   */
-  sc.register("*exprand", {
-    Array: function(size, minVal, maxVal) {
-      minVal = minVal === void 0 ? 0 : minVal;
-      maxVal = maxVal === void 0 ? 1 : maxVal;
-      minVal = Math.max(1e-6, minVal);
-      maxVal = Math.max(1e-6, maxVal);
-      var a = new Array(size|0);
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = minVal.exprand(maxVal);
-      }
-      return a;
-    }
-  });
-
-  /**
-   * an exponentially distributed random number in the interval ]a, b[.
-   * @arguments _(num)_
-   */
-  sc.register("exprand", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.exprand(num); }, this);
-      }
-      return this > num ?
-        num * Math.exp(Math.log(this / num) * Math.random()) :
-        this * Math.exp(Math.log(num / this) * Math.random());
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.exprand(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.exprand(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Extends the object to match size by adding a number of items. If size is less than receiver size then truncate. This method may return a new Array.
-   * @arguments _(size, item)_
-   * @example
-   *  [1, 2, 3, 4].extend(10, 9); // => [ 1, 2, 3, 4, 9, 9, 9, 9, 9, 9 ]
-   */
-  sc.register("extend", {
-    Array: function(size, item) {
-      size = Math.max(0, size|0);
-      var a = new Array(size);
-      for (var i = 0; i < size; ++i) {
-        a[i] = (i < this.length) ? this[i] : item;
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("factorial", {
-    Number: function() {
-      if (this < 0) {
-        return 1;
-      } else {
-        return [1,1,2,6,24,120,720,5040,40320,362880,3628800,39916800,479001600][this|0];
-      }
-    },
-    Array: function() {
-      return this.map(function(x) { return x.factorial(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill an Array with a fibonacci series.
-   * @arguments _(size [, a=0, b=1])_
-   * @example
-   *  Array.fib(5); // => [ 1, 1, 2, 3, 5 ]
-   */
-  sc.register("*fib", {
-    Array: function(size, x, y) {
-      x = x === void 0 ? 0 : x;
-      y = y === void 0 ? 1 : y;
-      var a = new Array(size|0);
-      for (var t, i = 0, imax = a.length; i < imax; i++) {
-        a[i] = y;
-        t = y;
-        y = x + y;
-        x = t;
-      }
-      return a;
-    }
-  });
-
-  /**
-   * @arguments _([a=0, b=1])_
-   * @returns an array with a fibonacci series of this size beginning with a and b.
-   * @example
-   *  (5).fib(2, 32); // => [ 32, 34, 66, 100, 166 ]
-   */
-  sc.register("fib", {
-    Number: function(a, b) {
-      if (Array.isArray(a) || Array.isArray(b)) {
-        return [this,a,b].flop().map(function(items) {
-          return items[0].geom(items[1], items[2]);
-        });
-      }
-      return Array.fib(this, a, b);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Creates an Array of the given size, the elements of which are determined by evaluation the given function.
-   * @example
-   *  Array.fill(3, 5); // => [ 5, 5, 5 ]
-   *  Array.fill(3, function(i) { return i * 2; }) // => [ 0, 2, 4 ]
-   */
-  sc.register("*fill", {
-    Array: function(size, func) {
-      size |= 0;
-      func = sc.func(func);
-      var a = new Array(size);
-      for (var i = 0; i < size; i++) {
-        a[i] = func(i);
-      }
-      return a;
-    }
-  });
-
-  /**
-   * Inserts the item into the contents of the receiver.
-   * @arguments _(item)_
-   * @example
-   *  [1,2,3,4].fill(4); // [ 4, 4, 4, 4 ]
-   */
-  sc.register("fill", {
-    Array: function(item) {
-      for (var i = 0, imax = this.length; i < imax; i++) {
-        this[i] = item;
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("*fill2D", {
-    Array: function(rows, cols, func) {
-      rows |= 0;
-      cols |= 0;
-      func = sc.func(func);
-      var a, a2, row, col;
-      a = new Array(rows);
+/**
+ * Creates a 3 dimensional Collection of the given sizes. The items are determined by evaluation of the supplied function. The function is passed plane, row and column indexes as arguments.
+ * @arguments _(planes, rows, cols [, function])_
+ */
+sc.define("*fill3D", {
+  Array: function(planes, rows, cols, func) {
+    planes |= 0;
+    rows |= 0;
+    cols |= 0;
+    func = sc.func(func);
+    var a, a2, a3, plane, row, col;
+    a = new Array(planes);
+    for (plane = 0; plane < planes; ++plane) {
+      a2 = a[plane] = new Array(rows);
       for (row = 0; row < rows; ++row) {
-        a2 = a[row] = new Array(cols);
+        a3 = a2[row] = new Array(cols);
         for (col = 0; col < cols; ++col) {
-          a2[col] = func(row, col);
+          a3[col] = func(plane, row, col);
         }
       }
-      return a;
     }
-  });
+    return a;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("*fill3D", {
-    Array: function(planes, rows, cols, func) {
-      planes |= 0;
-      rows |= 0;
-      cols |= 0;
-      func = sc.func(func);
-      var a, a2, a3, plane, row, col;
-      a = new Array(planes);
-      for (plane = 0; plane < planes; ++plane) {
-        a2 = a[plane] = new Array(rows);
-        for (row = 0; row < rows; ++row) {
-          a3 = a2[row] = new Array(cols);
-          for (col = 0; col < cols; ++col) {
-            a3[col] = func(plane, row, col);
-          }
-        }
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
+/**
+ * Creates a N dimensional Array where N is the size of the array *dimensions*. The items are determined by evaluation of the supplied function. The function is passed N number of indexes as arguments.
+ * @arguments _(dimensions [, function])_
+ * @example
+ *   Array.fillND([1, 2, 3, 4], function(a, b, c, d) { return a+b+c+d; }); // => 4D
+ */
+sc.define("*fillND", function() {
   var fillND = function(dimensions, func, args) {
     var n, a, argIndex, i;
     n = dimensions[0];
@@ -2126,86 +1927,85 @@
     }
     return a;
   };
-
-  sc.register("*fillND", {
+  return {
     Array: function(dimensions, func) {
       return fillND(dimensions, sc.func(func), []);
     }
-  });
+  };
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("find", {
-    Array: function(sublist, offset) {
-      if (!Array.isArray(sublist)) {
-        return -1;
-      }
-      offset = Math.max(0, offset|0);
-      for (var i = offset, imax = this.length; i < imax; ++i) {
-        var b = true;
-        for (var j = 0, jmax = sublist.length; j < jmax; j++) {
-          if (this[i + j] !== sublist[j]) {
-            b = false;
-            break;
-          }
-        }
-        if (b) { return i; }
-      }
+/**
+ * Finds the starting index of a number of elements contained in the array.
+ * @arguments _(sublist [, offset=0])_
+ * @example
+ *   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].find([4, 5, 6]); // => 4
+ */
+sc.define("find", {
+  Array: function(sublist, offset) {
+    if (!Array.isArray(sublist)) {
       return -1;
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("findAll", {
-    Array: function(sublist, offset) {
-      if (!Array.isArray(sublist)) {
-        return [];
-      }
-      offset = Math.max(0, offset|0);
-      var a = [];
-      for (var i = offset, imax = this.length; i < imax; ++i) {
-        var b = true;
-        for (var j = 0, jmax = sublist.length; j < jmax; ++j) {
-          if (this[i + j] !== sublist[j]) {
-            b = false;
-            break;
-          }
+    offset = Math.max(0, offset|0);
+    for (var i = offset, imax = this.length; i < imax; ++i) {
+      var b = true;
+      for (var j = 0, jmax = sublist.length; j < jmax; j++) {
+        if (this[i + j] !== sublist[j]) {
+          b = false;
+          break;
         }
-        if (b) { a.push(i); }
       }
-      return a;
+      if (b) { return i; }
     }
-  });
+    return -1;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return the first element of the collection.
-   * @arguments _none_
-   * @example
-   *  [3, 4, 5].first() # => 3
-   */
-  sc.register("first", {
-    Array: function() {
-      return this[0];
+/**
+ * Similar to `find` but returns an array of all the indices at which the sequence is found.
+ * @arguments _(sublist [, offset=0])_
+ * @example
+ *   [7, 8, 7, 6, 5, 6, 7, 6, 7, 8, 9].findAll([7, 6]); // => [ 2, 6 ]
+ */
+sc.define("findAll", {
+  Array: function(sublist, offset) {
+    if (!Array.isArray(sublist)) {
+      return [];
     }
-  });
+    offset = Math.max(0, offset|0);
+    var a = [];
+    for (var i = offset, imax = this.length; i < imax; ++i) {
+      var b = true;
+      for (var j = 0, jmax = sublist.length; j < jmax; ++j) {
+        if (this[i + j] !== sublist[j]) {
+          b = false;
+          break;
+        }
+      }
+      if (b) { a.push(i); }
+    }
+    return a;
+  }
+});
 
-})(sc);
+/**
+ * Return the first element of the collection.
+ * @arguments _none_
+ * @example
+ *  [3, 4, 5].first() # => 3
+ */
+sc.define("first", {
+  Array: function() {
+    return this[0];
+  }
+});
 
-(function(sc) {
-  "use strict";
-
+/**
+ * Returns a collection from which all nesting has been flattened.
+ * @arguments _none_
+ * @example
+ *   [[1, 2, 3], [[4, 5], [[6]]]].flat(); // => [ 1, 2, 3, 4, 5, 6 ]
+ */
+sc.define("flat", function() {
   var flat = function(that, list) {
     var i, imax;
     for (i = 0, imax = that.length; i < imax; ++i) {
@@ -2217,43 +2017,34 @@
     }
     return list;
   };
-
-  sc.register("flat", {
+  return {
     Array: function() {
       return flat(this, []);
     }
-  });
+  };
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("flatIf", {
-    Array: function(func) {
-      func = sc.func(func);
-      var list, i, imax;
-      list = [];
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (Array.isArray(this[i])) {
-          if (func(this[i], i)) {
-            list = list.concat(this[i].flatIf(func));
-          } else {
-            list.push(this[i]);
-          }
+sc.define("flatIf", {
+  Array: function(func) {
+    func = sc.func(func);
+    var list, i, imax;
+    list = [];
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      if (Array.isArray(this[i])) {
+        if (func(this[i], i)) {
+          list = list.concat(this[i].flatIf(func));
         } else {
           list.push(this[i]);
         }
+      } else {
+        list.push(this[i]);
       }
-      return list;
     }
-  });
+    return list;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
+sc.define("flatSize", function() {
   var flatSize = function(list) {
     if (!Array.isArray(list)) {
       return 1;
@@ -2264,2601 +2055,2284 @@
     }
     return size;
   };
-
-  sc.register("flatSize", {
+  return {
     Array: function() {
       return flatSize(this);
     }
-  });
+  };
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("flatten", {
-    Array: function(numLevels) {
-      var list, i, imax;
-      numLevels = numLevels === void 0 ? 1 : numLevels|0;
-      if (numLevels <= 0) { return this; }
-      numLevels -= 1;
-      list = [];
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (Array.isArray(this[i])) {
-          list = list.addAll(this[i].flatten(numLevels));
-        } else {
-          list.push(this[i]);
-        }
-      }
-      return list;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * next smaller integer
-   */
-  sc.register("floor", {
-    Number: function() {
-      return Math.floor(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.floor(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("flop", {
-    Array: function() {
-      var maxsize = this.reduce(function(len, sublist) {
-        return Math.max(len, Array.isArray(sublist) ? sublist.length : 1);
-      }, 0);
-      var a = new Array(maxsize), size = this.length;
-      if (size === 0) {
-        a[0] = [];
+/**
+ * Returns an array from which *numLevels* of nesting has been flattened.
+ * @arguments _([numLevels=1])_
+ * @example
+ *  [[1, 2, 3], [[4, 5], [[6]]]].flatten(1); // => [ 1, 2, 3, [ 4, 5 ], [ [ 6 ] ] ]
+ *  [[1, 2, 3], [[4, 5], [[6]]]].flatten(2); // => [ 1, 2, 3, 4, 5, [ 6 ] ]
+ */
+sc.define("flatten", {
+  Array: function(numLevels) {
+    var list, i, imax;
+    numLevels = numLevels === void 0 ? 1 : numLevels|0;
+    if (numLevels <= 0) { return this; }
+    numLevels -= 1;
+    list = [];
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      if (Array.isArray(this[i])) {
+        list = list.addAll(this[i].flatten(numLevels));
       } else {
-        for (var i = 0; i < maxsize; ++i) {
-          var sublist = a[i] = new Array(size);
-          for (var j = 0; j < size; ++j) {
-            sublist[j] = Array.isArray(this[j]) ? this[j].wrapAt(i) : this[j];
-          }
+        list.push(this[i]);
+      }
+    }
+    return list;
+  }
+});
+
+/**
+ * next smaller integer
+ * @arguments _none_
+ */
+sc.define("floor", {
+  Number: function() {
+    return Math.floor(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.floor(); });
+  }
+});
+
+/**
+ * Invert rows and colums in a two dimensional Array (turn inside out).
+ * @arguments _none_
+ * @example
+ *  [[1, 2, 3], [4, 5, 6]].flop(); // => [ [ 1, 4 ], [ 2, 5 ], [ 3, 6 ] ]
+ */
+sc.define("flop", {
+  Array: function() {
+    var maxsize = this.reduce(function(len, sublist) {
+      return Math.max(len, Array.isArray(sublist) ? sublist.length : 1);
+    }, 0);
+    var a = new Array(maxsize), size = this.length;
+    if (size === 0) {
+      a[0] = [];
+    } else {
+      for (var i = 0; i < maxsize; ++i) {
+        var sublist = a[i] = new Array(size);
+        for (var j = 0; j < size; ++j) {
+          sublist[j] = Array.isArray(this[j]) ? this[j].wrapAt(i) : this[j];
         }
       }
-      return a;
     }
-  });
+    return a;
+  }
+});
 
-})(sc);
+/**
+ * the folded value, a bitwise or with aNumber
+ * @arguments _(lo, hi)_
+ */
+sc.define("fold", {
+  Number: function(lo, hi) {
+    if (Array.isArray(lo) || Array.isArray(hi)) {
+      return [this,lo,hi].flop().map(function(items) {
+        return items[0].fold(items[1], items[2]);
+      });
+    }
+    var _in = this, x, c, range, range2;
+    x = _in - lo;
+    if (_in >= hi) {
+      _in = hi + hi - _in;
+      if (_in >= lo) { return _in; }
+    } else if (_in < lo) {
+      _in = lo + lo - _in;
+      if (_in < hi) { return _in; }
+    } else { return _in; }
 
-(function(sc) {
-  "use strict";
+    if (hi === lo) { return lo; }
+    range = hi - lo;
+    range2 = range + range;
+    c = x - range2 * Math.floor(x / range2);
+    if (c >= range) { c = range2 - c; }
+    return c + lo;
+  },
+  Array: function(lo, hi) {
+    return this.map(function(x) { return x.fold(lo, hi); });
+  }
+});
 
-  /**
-   * the folded value, a bitwise or with aNumber
-   * @arguments _(lo, hi)_
-   */
-  sc.register("fold", {
-    Number: function(lo, hi) {
-      if (Array.isArray(lo) || Array.isArray(hi)) {
-        return [this,lo,hi].flop().map(function(items) {
-          return items[0].fold(items[1], items[2]);
-        });
+/**
+ * the folded value, a bitwise or with aNumber
+ * @arguments _(number)_
+ */
+sc.define("fold2", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.fold(num); }, this);
+    }
+    return this.fold(-num, +num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.fold2(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.fold2(num); });
+    }
+  }
+});
+
+/**
+ * Same as `at`, but values for *index* greater than the size of the Array will be folded back.
+ * @arguments _(index)_
+ * @example
+ *  [ 1, 2, 3 ].foldAt(5); // => 2
+ *  [ 1, 2, 3 ].foldAt([ 0, 1, 2, 3 ]); // => [ 1, 2, 3, 2 ]
+ */
+sc.define(["foldAt", "@|@"], {
+  Array: function(index) {
+    if (Array.isArray(index)) {
+      return index.map(function(index) {
+        return this.foldAt(index);
+      }, this);
+    }
+    return this[(index|0).fold(0, this.length-1)];
+  }
+});
+
+/**
+ * Same as `wrapExtend` but the sequences fold back on the list elements.
+ * @arguments _(size)_
+ * @example
+ *  [ 1, 2, 3 ].foldExtend(9); // => [ 1, 2, 3, 2, 1, 2, 3, 2, 1 ]
+ */
+sc.define("foldExtend", {
+  Array: function(size) {
+    size = Math.max(0, size|0);
+    var a = new Array(size);
+    for (var i = 0; i < size; ++i) {
+      a[i] = this.foldAt(i);
+    }
+    return a;
+  }
+});
+
+/**
+ * Same as `put`, but values for index greater than the size of the Array will be folded back.
+ * @arguments _(index, item)_
+ */
+sc.define("foldPut", {
+  Array: function(index, item) {
+    if (typeof index === "number") {
+      this[index.fold(0, this.length-1)] = item;
+    } else if (Array.isArray(index)) {
+      index.forEach(function(index) {
+        this.foldPut(index, item);
+      }, this);
+    }
+    return this;
+  }
+});
+
+sc.define("foldSwap", {
+  Array: function(i, j) {
+    i = (i|0).fold(0, this.length-1);
+    j = (j|0).fold(0, this.length-1);
+    var t = this[i];
+    this[i] = this[j];
+    this[j] = t;
+    return this;
+  }
+});
+
+/**
+ * Executes *function* for all integers from this to *endval*, inclusive.
+ * @arguments _(endval, function)_
+ */
+sc.define("for", {
+  Number: function(endValue, func) {
+    func = sc.func(func);
+    var i = this, j = 0;
+    while (i <= endValue) { func(i++, j++); }
+    return this;
+  }
+});
+
+/**
+ * Executes *function* for all integers from this to *endval*, inclusive, stepping each time by *stepval*.
+ * @arguments _(endval, stepval, function)_
+ */
+sc.define("forBy", {
+  Number: function(endValue, stepValue, func) {
+    var i = this, j = 0;
+    if (stepValue > 0) {
+      while (i <= endValue) { func(i, j++); i += stepValue; }
+    } else {
+      while (i >= endValue) { func(i, j++); i += stepValue; }
+    }
+    return this;
+  }
+});
+
+/**
+ * Calls *function* for numbers from this up to endval stepping each time by a step specified by second.
+ * @arguments _(second, last, function)_
+ */
+sc.define("forSeries", {
+  Number: function(second, last, func) {
+    return this.forBy(last, second - this, func);
+  }
+});
+
+/**
+ * fractional part
+ * @arguments _none_
+ */
+sc.define("frac", {
+  Number: function() {
+    var frac = this - Math.floor(this);
+    return frac < 0 ? 1 + frac : frac;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.frac(); });
+  }
+});
+
+/**
+ * a gaussian distributed random number.
+ * @arguments _(upperLimit)_
+ */
+sc.define("gauss", {
+  Number: function(standardDeviation) {
+    return (((Math.sqrt(-2*Math.log(Math.random())) * Math.sin(Math.random() * 2 * Math.PI)) * standardDeviation) + this);
+  },
+  Array: function(standardDeviation) {
+    return this.map(function(x) { return x.gauss(standardDeviation); });
+  }
+});
+
+/**
+ * map the receiver onto a gauss function.
+ * @arguments _([a=1, b=0, c=1])_
+ */
+sc.define("gaussCurve", {
+  Number: function(a, b, c) {
+    a = a === void 0 ? 1 : a;
+    b = b === void 0 ? 0 : b;
+    c = c === void 0 ? 1 : c;
+    var x = this - b;
+    return a * (Math.exp((x * x) / (-2.0 * (c * c))));
+  },
+  Array: function(a, b, c) {
+    return this.map(function(x) { return x.gaussCurve(a, b, c); });
+  }
+});
+
+/**
+ * Greatest common divisor
+ * @arguments _(number)_
+ * @example
+ *  [3, 6, 9, 12, 15].gcd(100); // => [ 1, 2, 1, 4, 5 ]
+ */
+sc.define("gcd", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.gcd(num); }, this);
+    }
+    var t, a =this|0, b=num|0;
+    while (b !== 0) {
+      t = a % b;
+      a = b;
+      b = t;
+    }
+    return a;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.gcd(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.gcd(num); });
+    }
+  }
+});
+
+/**
+ * Fill an Array with a geometric series.
+ * @arguments (size [, start=1, grow=2])
+ * @example
+ *  Array.geom(5, 1, 3) // => [ 1, 3, 9, 27, 81 ]
+ */
+sc.define("*geom", {
+  Array: function(size, start, grow) {
+    start = start === void 0 ? 1 : start;
+    grow  = grow  === void 0 ? 2 : grow;
+    var a = new Array(size|0);
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = start;
+      start *= grow;
+    }
+    return a;
+  }
+});
+
+/**
+ * @arguments (start, grow)
+ * @returns an array with a geometric series of this size from start.
+ * @example
+ *  (5).geom(1, 3) // => [ 1, 3, 9, 27, 81 ]
+ */
+sc.define("geom", {
+  Number: function(start, grow) {
+    if (Array.isArray(start) || Array.isArray(grow)) {
+      return [this,start,grow].flop().map(function(items) {
+        return items[0].geom(items[1], items[2]);
+      });
+    }
+    return Array.geom(this, start, grow);
+  }
+});
+
+sc.define(["greater", ">"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.greater(num); }, this);
+    }
+    return this > num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.greater(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.greater(num); });
+    }
+  }
+});
+
+sc.define(["greaterThan", ">="], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.greaterThan(num); }, this);
+    }
+    return this >= num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.greaterThan(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.greaterThan(num); });
+    }
+  }
+});
+
+sc.define("half", {
+  Number: function() {
+    return this * 0.5;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.half(); });
+  }
+});
+
+/**
+ * a value for a hanning window function between 0 and 1.
+ * @arguments _none_
+ */
+sc.define("hanWindow", {
+  Number: function() {
+    if (this < 0 || this > 1) { return 0; }
+    return 0.5 - 0.5 * Math.cos(this * 2 * Math.PI);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.hanWindow(); });
+  }
+});
+
+sc.define("histo", {
+  Array: function(steps, min, max) {
+    var freqs, freqIndex, lastIndex, stepSize, outliers = 0;
+    var i, imax;
+    steps = steps === void 0 ? 100 : steps;
+    min   = min   === void 0 ? this.minItem() : min;
+    max   = max   === void 0 ? this.maxItem() : max;
+    freqs = Array.fill(steps, 0);
+    lastIndex = steps - 1;
+    stepSize = (steps / (max - min))|0;
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      freqIndex = ((this[i] - min) * stepSize)|0;
+      if (freqIndex.inclusivelyBetween(0, lastIndex)) {
+        freqs[freqIndex] = freqs[freqIndex] + 1;
+      } else {
+        // if max is derived from maxItem, count it in:
+        if (this[i] === max) {
+          freqs[steps-1] += 1;
+        } else {
+          outliers += 1;
+        }
       }
-      var _in = this, x, c, range, range2;
-      x = _in - lo;
-      if (_in >= hi) {
-        _in = hi + hi - _in;
-        if (_in >= lo) { return _in; }
-      } else if (_in < lo) {
-        _in = lo + lo - _in;
-        if (_in < hi) { return _in; }
-      } else { return _in; }
+      if (outliers > 0) {
+        console.log("histogram :" + outliers + "out of (histogram) range values in collection.");
+      }
+    }
+    return freqs;
+  }
+});
 
-      if (hi === lo) { return lo; }
-      range = hi - lo;
-      range2 = range + range;
-      c = x - range2 * Math.floor(x / range2);
-      if (c >= range) { c = range2 - c; }
+/**
+ * Square root of the sum of the squares.
+ * @arguments _(number)_
+ */
+sc.define("hypot", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.hypot(num); }, this);
+    }
+    return Math.sqrt((this * this) + (num * num));
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.hypotApx(num); }, this);
+    }
+    var x = Math.abs(this), y = Math.abs(num);
+    var minxy = Math.min(x, y);
+    return x + y - (Math.sqrt(2) - 1) * minxy;
+  }
+});
+
+sc.define("hypotApx", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.hypotApx(num); }, this);
+    }
+    var x = Math.abs(this), y = Math.abs(num);
+    var minxy = Math.min(x, y);
+    return x + y - (Math.sqrt(2) - 1) * minxy;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.hypotApx(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.hypotApx(num); });
+    }
+  }
+});
+
+/**
+ * Return a boolean indicating whether the collection contains anything matching *item*.
+ * @arguments _(item)_
+ */
+sc.define("includes", {
+  Array: function(item) {
+    return this.indexOf(item) !== -1;
+  }
+});
+
+/**
+ * Answer whether all items in aCollection are contained in the receiver.
+ * @arguments _(list)_
+ * @example
+ *  [1, 2, 3, 4].includesAll([2, 4]); // => true
+ *  [1, 2, 3, 4].includesAll([4, 5]); // => false
+ */
+sc.define("includesAll", {
+  Array: function(list) {
+    for (var i = 0, imax = list.length; i < imax; ++i) {
+      if (this.indexOf(list[i]) === -1) { return false; }
+    }
+    return true;
+  }
+});
+
+/**
+ * Answer whether any item in aCollection is contained in the receiver.
+ * @arguments _(list)_
+ * @example
+ *  [1, 2, 3, 4].includesAny([4, 5]); // => true
+ *  [1, 2, 3, 4].includesAny([5, 6]); // => false
+ */
+sc.define("includesAny", {
+  Array: function(list) {
+    for (var i = 0, imax = list.length; i < imax; ++i) {
+      if (this.indexOf(list[i]) !== -1) { return true; }
+    }
+    return false;
+  }
+});
+
+
+/**
+ * whether the receiver is greater than or equal to minVal and less than or equal to maxVal.
+ * @arguments _(lo, hi)_
+ */
+sc.define("inclusivelyBetween", {
+  Number: function(lo, hi) {
+    if (Array.isArray(lo) || Array.isArray(hi)) {
+      return [this,lo,hi].flop().map(function(items) {
+        return items[0].inclusivelyBetween(items[1], items[2]);
+      });
+    }
+    return (lo <= this) && (this <= hi);
+  },
+  Array: function(lo, hi) {
+    // todo: expand
+    return this.map(function(x) { return x.inclusivelyBetween(lo, hi); });
+  }
+});
+
+/**
+ * Returns the closest index of the value in the array (collection must be sorted).
+ * @arguments _(item)_
+ * @example
+ *  [2, 3, 5, 6].indexIn(5.2); // => 2
+ */
+sc.define("indexIn", {
+  Array: function(item) {
+    var i, j = this.indexOfGreaterThan(item);
+    if (j === -1) { return this.length - 1; }
+    if (j ===  0) { return j; }
+    i = j - 1;
+    return ((item - this[i]) < (this[j] - item)) ? i : j;
+  }
+});
+
+/**
+ * Returns a linearly interpolated float index for the value (collection must be sorted). Inverse operation is `blendAt`.
+ * @arguments _(item)_
+ * @example
+ *  [2, 3, 5, 6].indexInBetween(5.2); // => 2.2
+ */
+sc.define("indexInBetween", {
+  Array: function(item) {
+    var i = this.indexOfGreaterThan(item);
+    if (i === -1) { return this.length - 1; }
+    if (i ===  0) { return i; }
+    var a = this[i-1];
+    var b = this[i];
+    var div = b - a;
+    if (div === 0) { return i; }
+    return ((item - a) / div) + i - 1;
+  }
+});
+
+/**
+ * Return the index of an *item* in the collection, or -1 if not found.
+ * @arguments _(item [, offset=0])_
+ */
+sc.define(["indexOf", "sc_indexOf"], {
+  Array: function(item, offset) {
+    offset = offset === void 0 ? 0 : offset;
+    return this.indexOf(item, offset|0);
+  }
+});
+
+/**
+ * Return the index of something in the collection that equals the *item*, or -1 if not found.
+ * @arguments _(item [, offset=0])_
+ * @example
+ *  [[3], [4], [5]].indexOfEqual([5]); // => 2
+ */
+sc.define("indexOfEqual", {
+  Array: function(item, offset) {
+    offset = offset === void 0 ? 0 : offset|0;
+    for (var i = offset, imax = this.length; i < imax; i++) {
+      if (this[i].equals(item)) { return i; }
+    }
+    return -1;
+  }
+});
+
+/**
+ * Return the first index containing an *item* which is greater than *item*.
+ * @arguments _(item)_
+ * @example
+ *  [10, 5, 77, 55, 12, 123].indexOfGreaterThan(70); // => 2
+ */
+sc.define("indexOfGreaterThan", {
+  Array: function(item) {
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (this[i] > item) { return i; }
+    }
+    return -1;
+  }
+});
+
+/**
+ * Return an array of indices of things in the collection that equal the *item*, or [] if not found.
+ * @arguments _(item [, offset=0])_
+ * @example
+ *  [7, 8, 7, 6, 5, 6, 7, 6, 7, 8, 9].indicesOf(7); // => [ 0, 2, 6, 8 ]
+ */
+sc.define("indicesOf", {
+  Array: function(item, offset) {
+    offset = offset === void 0 ? 0 : offset|0;
+    var a = [];
+    for (var i = offset, imax = this.length; i < imax; i++) {
+      if (this[i] === item) { a.push(i); }
+    }
+    return a;
+  }
+});
+
+/**
+ * Same as `indicesOf`, but use `equals` method.
+ * @arguments _(item [, offset=0])_
+ * @example
+ *  [[7], [8], [5], [6], 7, 6, [7], 9].indicesOfEqual([7]); // => [ 0, 6 ]
+ */
+sc.define("indicesOfEqual", {
+  Array: function(item, offset) {
+    offset = offset === void 0 ? 0 : offset|0;
+    var a = [];
+    for (var i = offset, imax = this.length; i < imax; i++) {
+      if (this[i].equals(item)) { a.push(i); }
+    }
+    return a;
+  }
+});
+
+/**
+ * reduce
+ * @arguments _(thisValue, function)_
+ * @example
+ *   [1, 2, 3, 4, 5].inject(0, "+"); // => 15
+ */
+sc.define("inject", {
+  Array: function(thisValue, func) {
+    return this.reduce(sc.func(func), thisValue);
+  }
+});
+
+/**
+ * reduce right
+ * @arguments _(thisValue, function)_
+ * @example
+ *   [1, 2, 3, 4, 5].injectr([], "++"); // => [ 5, 4, 3, 2, 1 ]
+ */
+sc.define("injectr", {
+  Array: function(thisValue, func) {
+    return this.reduceRight(sc.func(func), thisValue);
+  }
+});
+
+/**
+ * Inserts the *item* into the contents of the receiver. This method may return a new Array.
+ * @arguments _(index, item)_
+ * @example
+ *  [1, 2, 3, 4].insert(1, 999); // [ 1, 999, 3, 4 ]
+ */
+sc.define("insert", {
+  Array: function(index, item) {
+    index = Math.max(0, index|0);
+    var ret = this.slice();
+    ret.splice(index, 0, item);
+    return ret;
+  }
+});
+
+sc.define("instill", {
+  Array: function(index, item, defaultValue) {
+    var res;
+    index = Math.max(0, index|0);
+    if (index >= this.length) {
+      res = this.extend(index + 1, defaultValue);
+    } else {
+      res = this.slice();
+    }
+    res[index] = item;
+    return res;
+  }
+});
+
+/**
+ * Fill an `Array` with the interpolated values between the *start* and *end* values.
+ * @arguments _(size [, start=0, end=1])_
+ * @example
+ *  Array.interpolation(5, 3.2, 20.5); // => [3.2, 7.525, 11.850, 16.175, 20.5]
+ */
+sc.define("*interpolation", {
+  Array: function(size, start, end) {
+    start = start === void 0 ? 0 : start;
+    end   = end   === void 0 ? 1 : end;
+    if (size === 1) {
+      return [start];
+    }
+    var a = new Array(size|0);
+    var step = (end - start) / (size - 1);
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = start + (i * step);
+    }
+    return a;
+  }
+});
+
+sc.define("invert", {
+  Array: function(axis) {
+    var index;
+    if (this.length === 0) { return []; }
+    if (typeof axis === "number") {
+      index = axis * 2;
+    } else {
+      index = this.minItem() + this.maxItem();
+    }
+    return index.opSub(this);
+  }
+});
+
+/**
+ * Checks if the receiver is an array.
+ */
+sc.define("isArray", {
+  Number: function() {
+    return false;
+  },
+  Boolean: function() {
+    return false;
+  },
+  Array: function() {
+    return true;
+  },
+  String: function() {
+    return false;
+  },
+  Function: function() {
+    return false;
+  }
+});
+
+/**
+ * Checks if the receiver is a boolean value.
+ */
+sc.define("isBoolean", {
+  Number: function() {
+    return false;
+  },
+  Boolean: function() {
+    return true;
+  },
+  Array: function() {
+    return false;
+  },
+  String: function() {
+    return false;
+  },
+  Function: function() {
+    return false;
+  }
+});
+
+/**
+ * Checks if the receiver is empty.
+ */
+sc.define("isEmpty", {
+  Array: function() {
+    return this.length === 0;
+  }
+});
+
+/**
+ * Checks if the receiver is a function.
+ */
+sc.define("isFunction", {
+  Number: function() {
+    return false;
+  },
+  Boolean: function() {
+    return false;
+  },
+  Array: function() {
+    return false;
+  },
+  String: function() {
+    return false;
+  },
+  Function: function() {
+    return true;
+  }
+});
+
+/**
+ * Checks if the receiver is `NaN`.
+ */
+sc.define("isNaN", {
+  Number: function() {
+    return isNaN(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.isNaN(); });
+  }
+});
+
+/**
+ * Checks if the receiver is < 0.
+ */
+sc.define("isNegative", {
+  Number: function() {
+    return this < 0;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.isNegative(); });
+  }
+});
+
+/**
+ * Checks if the receiver is a number.
+ */
+sc.define("isNumber", {
+  Number: function() {
+    return true;
+  },
+  Boolean: function() {
+    return false;
+  },
+  Array: function() {
+    return false;
+  },
+  String: function() {
+    return false;
+  },
+  Function: function() {
+    return false;
+  }
+});
+
+/**
+ * Checks if the receiver is >= 0.
+ */
+sc.define("isPositive", {
+  Number: function() {
+    return this >= 0;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.isPositive(); });
+  }
+});
+
+/**
+ * the whether the receiver is a power of two.
+ */
+sc.define("isPowerOfTwo", {
+  Number: function() {
+    var a = Math.log(this) / Math.log(2);
+    var b = a|0;
+    return a === b;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.isPowerOfTwo(); });
+  }
+});
+
+/**
+ * Checks if the receiver is > 0.
+ */
+sc.define("isStrictlyPositive", {
+  Number: function() {
+    return this > 0;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.isStrictlyPositive(); });
+  }
+});
+
+/**
+ * Checks if the receiver is a string.
+ */
+sc.define("isString", {
+  Number: function() {
+    return false;
+  },
+  Boolean: function() {
+    return false;
+  },
+  Array: function() {
+    return false;
+  },
+  String: function() {
+    return true;
+  },
+  Function: function() {
+    return false;
+  }
+});
+
+/**
+ * Returns True if all elements of this are also elements of *that*
+ * @arguments _(that)_
+ * @example
+ *  [1, 2].isSubsetOf([ 1, 2, 3, 4]); // => true
+ *  [1, 5].isSubsetOf([ 1, 2, 3, 4]); // => false
+ */
+sc.define("isSubsetOf", {
+  Array: function(that) {
+    return that.includesAll(this);
+  }
+});
+
+sc.define("iwrap", {
+  Number: function(lo, hi) {
+    if (Array.isArray(lo) || Array.isArray(hi)) {
+      return [this,lo,hi].flop().map(function(items) {
+        return items[0].iwrap(items[1], items[2]);
+      });
+    }
+    var _in = this|0, b2, c;
+    lo |= 0;
+    hi |= 0;
+    if (lo <= hi) {
+      if (lo <= _in && _in <= hi) {
+        return _in;
+      }
+      b2 = hi - lo + 1;
+      c  = (_in - lo) % b2;
+      if (c < 0) { c += b2; }
       return c + lo;
-    },
-    Array: function(lo, hi) {
-      return this.map(function(x) { return x.fold(lo, hi); });
     }
-  });
+  },
+  Array: function(lo, hi) {
+    return this.map(function(x) { return x.iwrap(lo, hi); });
+  }
+});
 
-})(sc);
+/**
+ * Keep the first *n* items of the array. If *n* is negative, keep the last *-n* items.
+ * @arguments _(n)_
+ * @example
+ *  [1, 2, 3, 4, 5].keep( 3); // => [ 1, 2, 3 ]
+ *  [1, 2, 3, 4, 5].keep(-3); // => [ 3, 4, 5 ]
+ */
+sc.define("keep", {
+  Array: function(n) {
+    n |= 0;
+    if (n < 0) {
+      return this.slice(this.length + n);
+    } else {
+      return this.slice(0, n);
+    }
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * inverse of degreeToKey.
+ * @arguments _(scale [, stepsPerOctave=12])_
+ * @example
+ *  l = [0, 1, 5, 9, 11]; // pentatonic scale
+ *  Array.range("60..73").collect(function(i) { return i.keyToDegree(l); });
+ *  // => [ 25, 26, 26.25, 26.5, 26.75, 27, 27.25, 27.5, 27.75, 28, 28.5, 29, 30, 31 ]
+ */
+sc.define("keyToDegree", {
+  Number: function(scale, stepsPerOctave) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    return scale.performKeyToDegree(this, stepsPerOctave);
+  },
+  Array: function(scale, stepsPerOctave) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    return this.map(function(val) {
+      return val.keyToDegree(scale, stepsPerOctave);
+    });
+  }
+});
 
-  /**
-   * the folded value, a bitwise or with aNumber
-   */
-  sc.register("fold2", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.fold(num); }, this);
-      }
-      return this.fold(-num, +num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.fold2(num.wrapAt(i)); });
+/**
+ * Returns a new Array whose elements are interlaced sequences of the elements of the receiver's subcollections, up to size length. The receiver is unchanged.
+ * @arguments _(size)_
+ * @example
+ *  [[1, 2, 3], [0]].lace(10); // => [ 1, 0, 2, 0, 3, 0, 1, 0, 2, 0 ]
+ */
+sc.define("lace", {
+  Array: function(size) {
+    size = Math.max(1, size|0);
+    var a = new Array(size);
+    var v, wrap = this.length;
+    for (var i = 0; i < size; ++i) {
+      v = this[i % wrap];
+      a[i] = Array.isArray(v) ? v[ ((i/wrap)|0) % v.length ] : v;
+    }
+    return a;
+  }
+});
+
+/**
+ * Return the last element of the collection.
+ * @arguments _none_
+ * @example
+ *  [3, 4, 5].last(); // => 5
+ */
+sc.define("last", {
+  Array: function() {
+    return this[this.length-1];
+  }
+});
+
+sc.define("lastForWhich", {
+  Array: function(func) {
+    func = sc.func(func);
+    var prev = null;
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) {
+        prev = this[i];
       } else {
-        return this.map(function(x) { return x.fold2(num); });
+        return prev;
       }
     }
-  });
+    return prev;
+  }
+});
 
-})(sc);
+sc.define("lastIndex", {
+  Array: function() {
+    return this.length - 1;
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register(["foldAt", "@|@"], {
-    Array: function(index) {
-      if (Array.isArray(index)) {
-        return index.map(function(index) {
-          return this.foldAt(index);
-        }, this);
-      }
-      return this[(index|0).fold(0, this.length-1)];
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("foldExtend", {
-    Array: function(size) {
-      size = Math.max(0, size|0);
-      var a = new Array(size);
-      for (var i = 0; i < size; ++i) {
-        a[i] = this.foldAt(i);
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("foldPut", {
-    Array: function(index, item) {
-      if (typeof index === "number") {
-        this[index.fold(0, this.length-1)] = item;
-      } else if (Array.isArray(index)) {
-        index.forEach(function(index) {
-          this.foldPut(index, item);
-        }, this);
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("foldSwap", {
-    Array: function(i, j) {
-      i = (i|0).fold(0, this.length-1);
-      j = (j|0).fold(0, this.length-1);
-      var t = this[i];
-      this[i] = this[j];
-      this[j] = t;
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("for", {
-    Number: function(endValue, func) {
-      func = sc.func(func);
-      var i = this, j = 0;
-      while (i <= endValue) { func(i++, j++); }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("forBy", {
-    Number: function(endValue, stepValue, func) {
-      var i = this, j = 0;
-      if (stepValue > 0) {
-        while (i <= endValue) { func(i, j++); i += stepValue; }
+sc.define("lastIndexForWhich", {
+  Array: function(func) {
+    func = sc.func(func);
+    var prev = -1;
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) {
+        prev = i;
       } else {
-        while (i >= endValue) { func(i, j++); i += stepValue; }
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("forSeries", {
-    Number: function(second, last, func) {
-      return this.forBy(last, second - this, func);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * fractional part
-   */
-  sc.register("frac", {
-    Number: function() {
-      var frac = this - Math.floor(this);
-      return frac < 0 ? 1 + frac : frac;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.frac(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("gauss", {
-    Number: function(standardDeviation) {
-      return (((Math.sqrt(-2*Math.log(Math.random())) * Math.sin(Math.random() * 2 * Math.PI)) * standardDeviation) + this);
-    },
-    Array: function(standardDeviation) {
-      return this.map(function(x) { return x.gauss(standardDeviation); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("gaussCurve", {
-    Number: function(a, b, c) {
-      a = a === void 0 ? 1 : a;
-      b = b === void 0 ? 0 : b;
-      c = c === void 0 ? 1 : c;
-      var x = this - b;
-      return a * (Math.exp((x * x) / (-2.0 * (c * c))));
-    },
-    Array: function(a, b, c) {
-      return this.map(function(x) { return x.gaussCurve(a, b, c); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("gcd", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.gcd(num); }, this);
-      }
-      var t, a =this|0, b=num|0;
-      while (b !== 0) {
-        t = a % b;
-        a = b;
-        b = t;
-      }
-      return a;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.gcd(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.gcd(num); });
+        return prev;
       }
     }
-  });
+    return prev;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill an Array with a geometric series.
-   * @arguments (size [, start=1, grow=2])
-   * @example
-   *  Array.geom(5, 1, 3) // => [ 1, 3, 9, 27, 81 ]
-   */
-  sc.register("*geom", {
-    Array: function(size, start, grow) {
-      start = start === void 0 ? 1 : start;
-      grow  = grow  === void 0 ? 2 : grow;
-      var a = new Array(size|0);
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = start;
-        start *= grow;
-      }
-      return a;
+/**
+ * Least common multiple
+ * @arguments _(number)_
+ * @example
+ *    [3, 6, 12, 24, 48].lcm(20); // => [ 60, 60, 60, 120, 240 ]
+ */
+sc.define("lcm", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.lcm(num); }, this);
     }
-  });
-
-  /**
-   * @arguments (start, grow)
-   * @returns an array with a geometric series of this size from start.
-   * @example
-   *  (5).geom(1, 3) // => [ 1, 3, 9, 27, 81 ]
-   */
-  sc.register("geom", {
-    Number: function(start, grow) {
-      if (Array.isArray(start) || Array.isArray(grow)) {
-        return [this,start,grow].flop().map(function(items) {
-          return items[0].geom(items[1], items[2]);
-        });
-      }
-      return Array.geom(this, start, grow);
+    return Math.abs(this * num) / this.gcd(num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.lcm(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.lcm(num); });
     }
-  });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["greater", ">"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.greater(num); }, this);
-      }
-      return this > num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.greater(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.greater(num); });
-      }
+/**
+ * map the receiver onto an L-curve.
+ * @arguments _([a=1, m=0, n=1, tau=1])_
+ */
+sc.define("lcurve", {
+  Number: function(a, m, n, tau) {
+    a = a === void 0 ? 1 : a;
+    m = m === void 0 ? 0 : m;
+    n = n === void 0 ? 1 : n;
+    tau = tau === void 0 ? 1 : tau;
+    var rTau, x = -this;
+    if (tau === 1) {
+      return a * (m * Math.exp(x) + 1) / (n * Math.exp(x) + 1);
+    } else {
+      rTau = 1 / tau;
+      return a * (m * Math.exp(x) * rTau + 1) / (n * Math.exp(x) * rTau + 1);
     }
-  });
+  },
+  Array: function(a, m, n, tau) {
+    return this.map(function(x) { return x.lcurve(a, m, n, tau); });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["greaterThan", ">="], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.greaterThan(num); }, this);
-      }
-      return this >= num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.greaterThan(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.greaterThan(num); });
-      }
+sc.define(["leftShift", "<<"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.leftShift(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("half", {
-    Number: function() {
-      return this * 0.5;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.half(); });
+    return this << num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.leftShift(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.leftShift(num); });
     }
-  });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("hanWindow", {
-    Number: function() {
-      if (this < 0 || this > 1) { return 0; }
-      return 0.5 - 0.5 * Math.cos(this * 2 * Math.PI);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.hanWindow(); });
+sc.define(["less", "<"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.less(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("histo", {
-    Array: function(steps, min, max) {
-      var freqs, freqIndex, lastIndex, stepSize, outliers = 0;
-      var i, imax;
-      steps = steps === void 0 ? 100 : steps;
-      min   = min   === void 0 ? this.minItem() : min;
-      max   = max   === void 0 ? this.maxItem() : max;
-      freqs = Array.fill(steps, 0);
-      lastIndex = steps - 1;
-      stepSize = (steps / (max - min))|0;
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        freqIndex = ((this[i] - min) * stepSize)|0;
-        if (freqIndex.inclusivelyBetween(0, lastIndex)) {
-          freqs[freqIndex] = freqs[freqIndex] + 1;
-        } else {
-          // if max is derived from maxItem, count it in:
-          if (this[i] === max) {
-            freqs[steps-1] += 1;
-          } else {
-            outliers += 1;
-          }
-        }
-        if (outliers > 0) {
-          console.log("histogram :" + outliers + "out of (histogram) range values in collection.");
-        }
-      }
-      return freqs;
+    return this < num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.less(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.less(num); });
     }
-  });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("hypot", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.hypot(num); }, this);
-      }
-      return Math.sqrt((this * this) + (num * num));
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.hypotApx(num); }, this);
-      }
-      var x = Math.abs(this), y = Math.abs(num);
-      var minxy = Math.min(x, y);
-      return x + y - (Math.sqrt(2) - 1) * minxy;
+sc.define(["lessThan", "<="], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.lessThan(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("hypotApx", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.hypotApx(num); }, this);
-      }
-      var x = Math.abs(this), y = Math.abs(num);
-      var minxy = Math.min(x, y);
-      return x + y - (Math.sqrt(2) - 1) * minxy;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.hypotApx(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.hypotApx(num); });
-      }
+    return this <= num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.lessThan(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.lessThan(num); });
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("includes", {
-    Array: function(item) {
-      return this.indexOf(item) !== -1;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("includesAll", {
-    Array: function(item) {
-      for (var i = 0, imax = item.length; i < imax; ++i) {
-        if (this.indexOf(item[i]) === -1) { return false; }
-      }
-      return true;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("includesAny", {
-    Array: function(item) {
-      for (var i = 0, imax = item.length; i < imax; ++i) {
-        if (this.indexOf(item[i]) !== -1) { return true; }
-      }
-      return false;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("inclusivelyBetween", {
-    Number: function(lo, hi) {
-      if (Array.isArray(lo) || Array.isArray(hi)) {
-        return [this,lo,hi].flop().map(function(items) {
-          return items[0].inclusivelyBetween(items[1], items[2]);
-        });
-      }
-      return (lo <= this) && (this <= hi);
-    },
-    Array: function(lo, hi) {
-      // todo: expand
-      return this.map(function(x) { return x.inclusivelyBetween(lo, hi); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("indexIn", {
-    Array: function(item) {
-      var i, j = this.indexOfGreaterThan(item);
-      if (j === -1) { return this.length - 1; }
-      if (j ===  0) { return j; }
-      i = j - 1;
-      return ((item - this[i]) < (this[j] - item)) ? i : j;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("indexInBetween", {
-    Array: function(item) {
-      var i = this.indexOfGreaterThan(item);
-      if (i === -1) { return this.length - 1; }
-      if (i ===  0) { return i; }
-      var a = this[i-1];
-      var b = this[i];
-      var div = b - a;
-      if (div === 0) { return i; }
-      return ((item - a) / div) + i - 1;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return the index of an *item* in the collection, or -1 if not found.
-   * @arguments _(item [, offset=0])_
-   */
-  sc.register(["indexOf", "sc_indexOf"], {
-    Array: function(item, offset) {
-      offset = offset === void 0 ? 0 : offset;
-      return this.indexOf(item, offset|0);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return the index of something in the collection that equals the *item*, or -1 if not found.
-   * @arguments _(item [, offset=0])_
-   * @example
-   *  [[3], [4], [5]].indexOfEqual([5]); // => 2
-   */
-  sc.register("indexOfEqual", {
-    Array: function(item, offset) {
-      offset = offset === void 0 ? 0 : offset|0;
-      for (var i = offset, imax = this.length; i < imax; i++) {
-        if (this[i].equals(item)) { return i; }
-      }
-      return -1;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return the first index containing an *item* which is greater than *item*.
-   * @arguments _(item)_
-   * @example
-   *  [10, 5, 77, 55, 12, 123].indexOfGreaterThan(70); // => 2
-   */
-  sc.register("indexOfGreaterThan", {
-    Array: function(item) {
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (this[i] > item) { return i; }
-      }
-      return -1;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("indicesOf", {
-    Array: function(item, offset) {
-      offset = offset === void 0 ? 0 : offset|0;
-      var a = [];
-      for (var i = offset, imax = this.length; i < imax; i++) {
-        if (this[i] === item) { a.push(i); }
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return an array of indices of things in the collection that equal the *item*, or [] if not found.
-   * @arguments _(item [, offset=0])_
-   * @example
-   *  [7, 8, 7, 6, 5, 6, 7, 6, 7, 8, 9].indicesOfEqual(7); // => [ 0, 2, 6, 8 ]
-   */
-  sc.register("indicesOfEqual", {
-    Array: function(item, offset) {
-      offset = offset === void 0 ? 0 : offset|0;
-      var a = [];
-      for (var i = offset, imax = this.length; i < imax; i++) {
-        if (this[i].equals(item)) { a.push(i); }
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("inject", {
-    Array: function(thisValue, func) {
-      return this.reduce(sc.func(func), thisValue);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("injectr", {
-    Array: function(thisValue, func) {
-      return this.reduceRight(sc.func(func), thisValue);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Inserts the *item* into the contents of the receiver. This method may return a new Array.
-   * @arguments _(index, item)_
-   * @example
-   *  [1, 2, 3, 4].insert(1, 999); // [ 1, 999, 3, 4 ]
-   */
-  sc.register("insert", {
-    Array: function(index, item) {
-      index = Math.max(0, index|0);
-      var ret = this.slice();
-      ret.splice(index, 0, item);
-      return ret;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("instill", {
-    Array: function(index, item, defaultValue) {
-      var res;
-      index = Math.max(0, index|0);
-      if (index >= this.length) {
-        res = this.extend(index + 1, defaultValue);
-      } else {
-        res = this.slice();
-      }
-      res[index] = item;
-      return res;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill an `Array` with the interpolated values between the *start* and *end* values.
-   * @arguments _(size [, start=0, end=1])_
-   * @example
-   *  Array.interpolation(5, 3.2, 20.5); // => [3.2, 7.525, 11.850, 16.175, 20.5]
-   */
-  sc.register("*interpolation", {
-    Array: function(size, start, end) {
-      start = start === void 0 ? 0 : start;
-      end   = end   === void 0 ? 1 : end;
-      if (size === 1) {
-        return [start];
-      }
-      var a = new Array(size|0);
-      var step = (end - start) / (size - 1);
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = start + (i * step);
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("invert", {
-    Array: function(axis) {
-      var index;
-      if (this.length === 0) { return []; }
-      if (typeof axis === "number") {
-        index = axis * 2;
-      } else {
-        index = this.minItem() + this.maxItem();
-      }
-      return index.opSub(this);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isArray", {
-    Number: function() {
-      return false;
-    },
-    Boolean: function() {
-      return false;
-    },
-    Array: function() {
-      return true;
-    },
-    String: function() {
-      return false;
-    },
-    Function: function() {
-      return false;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isBoolean", {
-    Number: function() {
-      return false;
-    },
-    Boolean: function() {
-      return true;
-    },
-    Array: function() {
-      return false;
-    },
-    String: function() {
-      return false;
-    },
-    Function: function() {
-      return false;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isEmpty", {
-    Array: function() {
-      return this.length === 0;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isFunction", {
-    Number: function() {
-      return false;
-    },
-    Boolean: function() {
-      return false;
-    },
-    Array: function() {
-      return false;
-    },
-    String: function() {
-      return false;
-    },
-    Function: function() {
-      return true;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isNaN", {
-    Number: function() {
-      return isNaN(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.isNaN(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isNegative", {
-    Number: function() {
-      return this < 0;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.isNegative(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isNumber", {
-    Number: function() {
-      return true;
-    },
-    Boolean: function() {
-      return false;
-    },
-    Array: function() {
-      return false;
-    },
-    String: function() {
-      return false;
-    },
-    Function: function() {
-      return false;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isPositive", {
-    Number: function() {
-      return this >= 0;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.isPositive(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isPowerOfTwo", {
-    Number: function() {
-      var a = Math.log(this) / Math.log(2);
-      var b = a|0;
-      return a === b;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.isPowerOfTwo(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isStrictlyPositive", {
-    Number: function() {
-      return this > 0;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.isStrictlyPositive(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isString", {
-    Number: function() {
-      return false;
-    },
-    Boolean: function() {
-      return false;
-    },
-    Array: function() {
-      return false;
-    },
-    String: function() {
-      return true;
-    },
-    Function: function() {
-      return false;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("isSubsetOf", {
-    Array: function(that) {
-      return that.includesAll(this);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("iwrap", {
-    Number: function(lo, hi) {
-      if (Array.isArray(lo) || Array.isArray(hi)) {
-        return [this,lo,hi].flop().map(function(items) {
-          return items[0].iwrap(items[1], items[2]);
-        });
-      }
-      var _in = this|0, b2, c;
-      lo |= 0;
-      hi |= 0;
-      if (lo <= hi) {
-        if (lo <= _in && _in <= hi) {
-          return _in;
-        }
-        b2 = hi - lo + 1;
-        c  = (_in - lo) % b2;
-        if (c < 0) { c += b2; }
-        return c + lo;
-      }
-    },
-    Array: function(lo, hi) {
-      return this.map(function(x) { return x.iwrap(lo, hi); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("keep", {
-    Array: function(n) {
-      n |= 0;
-      if (n < 0) {
-        return this.slice(this.length + n);
-      } else {
-        return this.slice(0, n);
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("keyToDegree", {
-    Number: function(scale, stepsPerOctave) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      return scale.performKeyToDegree(this, stepsPerOctave);
-    },
-    Array: function(scale, stepsPerOctave) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      return this.map(function(val) {
-        return val.keyToDegree(scale, stepsPerOctave);
+  }
+});
+
+/**
+ * map the receiver from an assumed linear input range (inMin..inMax) to an exponential curve output range (outMin..outMax).
+ * @arguments _([inMin=0, inMax=1, outMin=0, outMax=1, curve=-4, clip="minmax"])_
+ */
+sc.define("lincurve", {
+  Number: function(inMin, inMax, outMin, outMax, curve, clip) {
+    if (Array.isArray(inMin) || Array.isArray(inMax) ||
+        Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
+        return items[0].lincurve(items[1],items[2],items[3],items[4],curve,clip);
       });
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("lace", {
-    Array: function(size) {
-      size = Math.max(1, size|0);
-      var a = new Array(size);
-      var v, wrap = this.length;
-      for (var i = 0; i < size; ++i) {
-        v = this[i % wrap];
-        a[i] = Array.isArray(v) ? v[ ((i/wrap)|0) % v.length ] : v;
-      }
-      return a;
+    inMin  = inMin  === void 0 ?  0 : inMin;
+    inMax  = inMax  === void 0 ?  1 : inMax;
+    outMin = outMin === void 0 ?  0 : outMin;
+    outMax = outMax === void 0 ?  1 : outMax;
+    curve  = curve  === void 0 ? -4 : curve;
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return the last element of the collection.
-   * @arguments _none_
-   * @example
-   *  [3, 4, 5].last(); // => 5
-   */
-  sc.register("last", {
-    Array: function() {
-      return this[this.length-1];
+    if (Math.abs(curve) < 0.001) {
+      return this.linlin(inMin, inMax, outMin, outMax);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("lastForWhich", {
-    Array: function(func) {
-      func = sc.func(func);
-      var prev = null;
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) {
-          prev = this[i];
-        } else {
-          return prev;
-        }
-      }
-      return prev;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("lastIndex", {
-    Array: function() {
-      return this.length - 1;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("lastIndexForWhich", {
-    Array: function(func) {
-      func = sc.func(func);
-      var prev = -1;
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) {
-          prev = i;
-        } else {
-          return prev;
-        }
-      }
-      return prev;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("lcm", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.lcm(num); }, this);
-      }
-      return Math.abs(this * num) / this.gcd(num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.lcm(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.lcm(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("lcurve", {
-    Number: function(a, m, n, tau) {
-      a = a === void 0 ? 1 : a;
-      m = m === void 0 ? 0 : m;
-      n = n === void 0 ? 1 : n;
-      tau = tau === void 0 ? 1 : tau;
-      var rTau, x = -this;
-      if (tau === 1) {
-        return a * (m * Math.exp(x) + 1) / (n * Math.exp(x) + 1);
-      } else {
-        rTau = 1 / tau;
-        return a * (m * Math.exp(x) * rTau + 1) / (n * Math.exp(x) * rTau + 1);
-      }
-    },
-    Array: function(a, m, n, tau) {
-      return this.map(function(x) { return x.lcurve(a, m, n, tau); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["leftShift", "<<"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.leftShift(num); }, this);
-      }
-      return this << num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.leftShift(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.leftShift(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["less", "<"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.less(num); }, this);
-      }
-      return this < num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.less(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.less(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["lessThan", "<="], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.lessThan(num); }, this);
-      }
-      return this <= num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.lessThan(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.lessThan(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("lincurve", {
-    Number: function(inMin, inMax, outMin, outMax, curve, clip) {
-      if (Array.isArray(inMin) || Array.isArray(inMax) ||
-          Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
-          return items[0].lincurve(items[1],items[2],items[3],items[4],curve,clip);
-        });
-      }
-      inMin  = inMin  === void 0 ?  0 : inMin;
-      inMax  = inMax  === void 0 ?  1 : inMax;
-      outMin = outMin === void 0 ?  0 : outMin;
-      outMax = outMax === void 0 ?  1 : outMax;
-      curve  = curve  === void 0 ? -4 : curve;
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      if (Math.abs(curve) < 0.001) {
-        return this.linlin(inMin, inMax, outMin, outMax);
-      }
-      var grow = Math.exp(curve);
-      var a = (outMax - outMin) / (1.0 - grow);
-      var b = outMin + a;
-      var scaled = (this - inMin) / (inMax - inMin);
-      return b - (a * Math.pow(grow, scaled));
-    },
-    Array: function(inMin, inMax, outMin, outMax, curve, clip) {
-      return this.map(function(x) { return x.lincurve(inMin, inMax, outMin, outMax, curve, clip); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("linexp", {
-    Number: function(inMin, inMax, outMin, outMax, clip) {
-      if (Array.isArray(inMin) || Array.isArray(inMax) ||
-          Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
-          return items[0].linexp(items[1],items[2],items[3],items[4],clip);
-        });
-      }
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      return Math.pow(outMax/outMin, (this-inMin)/(inMax-inMin)) * outMin;
-    },
-    Array: function(inMin, inMax, outMin, outMax, clip) {
-      return this.map(function(x) { return x.linexp(inMin, inMax, outMin, outMax, clip); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("linlin", {
-    Number: function(inMin, inMax, outMin, outMax, clip) {
-      if (Array.isArray(inMin) || Array.isArray(inMax) ||
-          Array.isArray(outMin) || Array.isArray(outMax)) {
-        return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
-          return items[0].linlin(items[1],items[2],items[3],items[4],clip);
-        });
-      }
-      switch (clip) {
-      case "min":
-        if (this <= inMin) { return outMin; }
-        break;
-      case "max":
-        if (this >= inMax) { return outMax; }
-        break;
-      case "minmax":
-        /* falls through */
-      default:
-        if (this <= inMin) { return outMin; }
-        if (this >= inMax) { return outMax; }
-        break;
-      }
-      return (this-inMin)/(inMax-inMin) * (outMax-outMin) + outMin;
-    },
-    Array: function(inMin, inMax, outMin, outMax, clip) {
-      return this.map(function(x) { return x.linlin(inMin, inMax, outMin, outMax, clip); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill a SequenceableCollection with random values in the range *minVal* to *maxVal* with a linear distribution.
-   * @arguments _(size [, minVal=0, maxVal=1])_
-   * @example
-   *  Array.linrand(8, 1, 100);
-   */
-  sc.register("*linrand", {
-    Array: function(size, minVal, maxVal) {
-      minVal = minVal === void 0 ? 0 : minVal;
-      maxVal = maxVal === void 0 ? 1 : maxVal;
-      var a = new Array(size|0);
-      var range = maxVal - minVal;
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = minVal + range.linrand();
-      }
-      return a;
-    }
-  });
-
-  /**
-   * @arguments _( )_
-   * @returns a linearly distributed random number from zero to this.
-   * @example
-   *  (10).linrand();
-   */
-  sc.register("linrand", {
-    Number: function() {
-      return Math.min(Math.random(), Math.random()) * this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.linrand(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Base e logarithm.
-   */
-  sc.register("log", {
-    Number: function() {
-      return Math.log(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.log(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Base 10 logarithm.
-   */
-  sc.register("log10", {
-    Number: function() {
-      return Math.log(this) * Math.LOG10E;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.log10(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Base 2 logarithm.
-   */
-  sc.register("log2", {
-    Number: function() {
-      return Math.log(Math.abs(this)) * Math.LOG2E;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.log2(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("log2Ceil", {
-    Number: function() {
-      if (this <= 0) {
-        return Math.ceil(Math.log(0x100000000 + (this|0)) / Math.log(2));
-      } else if (this > 0) {
-        return Math.ceil(Math.log(this|0) / Math.log(2));
-      }
-    },
-    Array: function() {
-      return this.map(function(x) { return x.log2Ceil(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("madd", {
-    Number: function(mul, add) {
-      if (Array.isArray(mul) || Array.isArray(add)) {
-        return [this,mul,add].flop().map(function(items) {
-          return items[0].madd(items[1],items[2]);
-        });
-      }
-      return this * mul + add;
-    },
-    Array: function(mul, add) {
-      return this.map(function(x) { return x.madd(mul, add); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("max", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.max(num); }, this);
-      }
-      return Math.max(this, num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.max(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.max(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("maxDepth", {
-    Array: function(max) {
-      var res, i, imax;
-      max = max === void 0 ? 1 : max;
-      res = max;
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (Array.isArray(this[i])) {
-          res = Math.max(res, this[i].maxDepth(max+1));
-        }
-      }
-      return res;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Answer the index of the maximum of the results of *function* evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index. If function is nil, then answer the maximum of all items in the receiver.
-   * @arguments _([func=nil])_
-   * @example
-   *  [3.2, 12.2, 13, 0.4].maxIndex(); // => 2
-   */
-  sc.register("maxIndex", {
-    Array: function(func) {
-      var i, imax, maxValue, maxIndex, val;
-      maxIndex = -1;
-      if (func) {
-        func = sc.func(func);
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          val = func(this[i], i);
-          if (i === 0) {
-            maxValue = val;
-            maxIndex = 0;
-          } else if (val > maxValue) {
-            maxValue = val;
-            maxIndex = i;
-          }
-        }
-      } else {
-        // optimized version if no function
-        val = this[0];
-        maxValue = val;
-        maxIndex = 0;
-        for (i = 1, imax = this.length; i < imax; ++i) {
-          val = this[i];
-          if (val > maxValue) {
-            maxValue = val;
-            maxIndex = i;
-          }
-        }
-      }
-      return maxIndex;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("maxSizeAtDepth", {
-    Array: function(rank) {
-      var maxsize = 0, sz, i, imax;
-      if (rank === 0 || rank === void 0) { return this.length; }
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        sz = Array.isArray(this[i]) ? this[i].maxSizeAtDepth(rank-1) : 1;
-        if (sz > maxsize) { maxsize = sz; }
-      }
-      return maxsize;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["maxValue", "maxItem"], {
-    Array: function(func) {
-      var i, imax, maxValue, maxElement, val;
-      if (func) {
-        func = sc.func(func);
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          val = func(this[i], i);
-          if (i === 0) {
-            maxValue = val;
-            maxElement = this[i];
-          } else if (val > maxValue) {
-            maxValue = val;
-            maxElement = this[i];
-          }
-        }
-      } else {
-        // optimized version if no function
-        val = this[0];
-        maxValue = val;
-        maxElement = this[0];
-        for (i = 1, imax = this.length; i < imax; ++i) {
-          val = this[i];
-          if (val > maxValue) {
-            maxValue = val;
-            maxElement = this[i];
-          }
-        }
-      }
-      return maxElement;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("mean", {
-    Array: function(func) {
-      if (func) { func = sc.func(func); }
-      return this.sum(func) / this.length;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("middle", {
-    Array: function() {
-      return this[(this.length - 1) >> 1];
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("middleIndex", {
-    Array: function() {
-      return (this.length - 1) >> 1;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Convert MIDI note to cycles per second
-   * @returns cycles per second
-   * @example
-   *  (69).midicps(); // => 440
-   *  Array.range(69, 81).midicps(); // => [ 440, 466.1637, ... , 830.6093 ]
-   */
-  sc.register("midicps", {
-    Number: function() {
-      return 440 * Math.pow(2, (this - 69) * 1/12);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.midicps(); });
-    },
-    Function: function() {
-      var func = this;
-      return function() {
-        return func.apply(func, arguments).midicps();
-      };
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("midiratio", {
-    Number: function() {
-      return Math.pow(2, this * 1/12);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.midiratio(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("min", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.min(num); }, this);
-      }
-      return Math.min(this, num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.min(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.min(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Answer the index of the minimum of the results of *function* evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index. If function is nil, then answer the minimum of all items in the receiver.
-   * @arguments _([func=nil])_
-   * @example
-   *  [3.2, 12.2, 13, 0.4].minIndex(); // => 3
-   */
-  sc.register("minIndex", {
-    Array: function(func) {
-      var i, imax, minValue, minIndex, val;
-      minIndex = -1;
-      if (func) {
-        func = sc.func(func);
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          val = func(this[i], i);
-          if (i === 0) {
-            minValue = val;
-            minIndex = 0;
-          } else if (val < minValue) {
-            minValue = val;
-            minIndex = i;
-          }
-        }
-      } else {
-        // optimized version if no function
-        val = this[0];
-        minValue = val;
-        minIndex = 0;
-        for (i = 1, imax = this.length; i < imax; ++i) {
-          val = this[i];
-          if (val < minValue) {
-            minValue = val;
-            minIndex = i;
-          }
-        }
-      }
-      return minIndex;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["minValue", "minItem"], {
-    Array: function(func) {
-      var i, imax, minValue, minElement, val;
-      if (func) {
-        func = sc.func(func);
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          val = func(this[i], i);
-          if (i === 0) {
-            minValue = val;
-            minElement = this[i];
-          } else if (val < minValue) {
-            minValue = val;
-            minElement = this[i];
-          }
-        }
-      } else {
-        // optimized version if no function
-        minElement = this[0];
-        for (i = 1, imax = this.length; i < imax; ++i) {
-          if (this[i] < minElement) {
-            minElement = this[i];
-          }
-        }
-      }
-      return minElement;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return a new Array which is the receiver made into a palindrome. The receiver is unchanged.
-   * @example
-   *  [1, 2, 3, 4].mirror(); // => [1, 2, 3, 4, 3, 2, 1]
-   */
-  sc.register("mirror", {
-    Array: function() {
-      var size = this.length * 2 - 1;
-      if (size < 2) {
-        return this.slice(0);
-      }
-      var i, j, imax, a = new Array(size);
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        a[i] = this[i];
-      }
-      for (j = imax - 2, imax = size; i < imax; ++i, --j) {
-        a[i] = this[j];
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return a new Array which is the receiver made into a palindrome with the last element removed. This is useful if the list will be repeated cyclically, the first element will not get played twice. The receiver is unchanged.
-   * @example
-   *  [1, 2, 3, 4].mirror1(); // => [1, 2, 3, 4, 3, 2]
-   */
-  sc.register("mirror1", {
-    Array: function() {
-      var size = this.length * 2 - 2;
-      if (size < 2) {
-        return this.slice(0);
-      }
-      var i, j, imax, a = new Array(size);
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        a[i] = this[i];
-      }
-      for (j = imax - 2, imax = size; i < imax; ++i, --j) {
-        a[i] = this[j];
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Return a new Array which is the receiver concatenated with a reversal of itself. The center element is duplicated. The receiver is unchanged.
-   * @example
-   *  [1, 2, 3, 4].mirror2(); // => [1, 2, 3, 4, 4, 3, 2, 1]
-   */
-  sc.register("mirror2", {
-    Array: function() {
-      var size = this.length * 2;
-      if (size < 2) {
-        return this.slice(0);
-      }
-      var i, j, imax, a = new Array(size);
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        a[i] = this[i];
-      }
-      for (j = imax - 1, imax = size; i < imax; ++i, --j) {
-        a[i] = this[j];
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Integer Modulo
-   * @example
-   *  (10).mod(3); // => 1
-   *  [10,20,30].mod(3); // => [ 1, 2, 0 ]
-   */
-  sc.register("mod", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.mod(num); }, this);
-      }
-      if (this <= 0) {
-        return num + Math.floor(this % num);
-      } else {
-        return Math.floor(this % num);
-      }
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.mod(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.mod(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("mode", {
-    Array: function(degree, octave) {
-      octave = octave === void 0 ? 12 : octave;
-      return this.rotate(degree.neg()).opSub(this.wrapAt(degree)).opMod(octave);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("nearestInList", {
-    Number: function(list) {
-      return list.performNearestInList(this);
-    },
-    Array: function(list) {
-      // collection is sorted
-      return this.map(function(item) {
-        return list.at(list.indexIn(item));
+    var grow = Math.exp(curve);
+    var a = (outMax - outMin) / (1.0 - grow);
+    var b = outMin + a;
+    var scaled = (this - inMin) / (inMax - inMin);
+    return b - (a * Math.pow(grow, scaled));
+  },
+  Array: function(inMin, inMax, outMin, outMax, curve, clip) {
+    return this.map(function(x) { return x.lincurve(inMin, inMax, outMin, outMax, curve, clip); });
+  }
+});
+
+/**
+ * map the receiver from an assumed linear input range (inMin..inMax) to an exponential output range (outMin..outMax).
+ * @arguments _([inMin=0, inMax=1, outMin=0, outMax=1, clip="minmax"])_
+ */
+sc.define("linexp", {
+  Number: function(inMin, inMax, outMin, outMax, clip) {
+    if (Array.isArray(inMin) || Array.isArray(inMax) ||
+        Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
+        return items[0].linexp(items[1],items[2],items[3],items[4],clip);
       });
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("nearestInScale", {
-    Number: function(scale, stepsPerOctave) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      return scale.performNearestInScale(this, stepsPerOctave);
-    },
-    Array: function(scale, stepsPerOctave) {
-      // collection is sorted
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      var root = this.trunc(stepsPerOctave);
-      var key  = this.opMod(stepsPerOctave);
-      return key.nearestInScale(scale).opAdd(root);
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
     }
-  });
+    return Math.pow(outMax/outMin, (this-inMin)/(inMax-inMin)) * outMin;
+  },
+  Array: function(inMin, inMax, outMin, outMax, clip) {
+    return this.map(function(x) { return x.linexp(inMin, inMax, outMin, outMax, clip); });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * negation
-   */
-  sc.register("neg", {
-    Number: function() {
-      return -this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.neg(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("*new", {
-    Array: function(size) {
-      return new Array(size|0);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("*newClear", {
-    Array: function(size) {
-      var a = new Array(size|0);
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = 0;
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("*newFrom", {
-    Array: function(item) {
-      return item.slice();
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * the next power of aNumber
-   */
-  sc.register("nextPowerOf", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.nextPowerOf(num); }, this);
-      }
-      return Math.pow(num, Math.ceil(Math.log(this) / Math.log(num)));
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.nextPowerOf(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.nextPowerOf(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * the next power of three
-   */
-  sc.register("nextPowerOfThree", {
-    Number: function() {
-      return Math.pow(3, Math.ceil(Math.log(this) / Math.log(3)));
-    },
-    Array: function() {
-      return this.map(function(x) { return x.nextPowerOfThree(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * the number relative to this that is the next power of 2
-   */
-  sc.register("nextPowerOfTwo", {
-    Number: function() {
-      if (this <= 0) {
-        return 1;
-      } else {
-        return Math.pow(2, Math.ceil(Math.log(this) / Math.log(2)));
-      }
-    },
-    Array: function() {
-      return this.map(function(x) { return x.nextPowerOfTwo(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Returns a new *Array* with the receiver items normalized between *min* and *max*.
-   * @arguments _(min=0, max=1)_
-   * @example
-   *  [1, 2, 3].normalize(-20, 10); // => [ -20, -5, 10 ]
-   */
-  sc.register("normalize", {
-    Array: function(min, max) {
-      min = min === void 0 ? 0 : min;
-      max = max === void 0 ? 1 : max;
-      var minItem = this.minItem();
-      var maxItem = this.maxItem();
-      return this.map(function(el) {
-        return el.linlin(minItem, maxItem, min, max);
+/**
+ * map the receiver from an assumed linear input range to a linear output range.
+ * @arguments _([inMin=0, inMax=1, outMin=0, outMax=1, clip="minmax"])_
+ */
+sc.define("linlin", {
+  Number: function(inMin, inMax, outMin, outMax, clip) {
+    if (Array.isArray(inMin) || Array.isArray(inMax) ||
+        Array.isArray(outMin) || Array.isArray(outMax)) {
+      return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
+        return items[0].linlin(items[1],items[2],items[3],items[4],clip);
       });
     }
-  });
+    switch (clip) {
+    case "min":
+      if (this <= inMin) { return outMin; }
+      break;
+    case "max":
+      if (this >= inMax) { return outMax; }
+      break;
+    case "minmax":
+      /* falls through */
+    default:
+      if (this <= inMin) { return outMin; }
+      if (this >= inMax) { return outMax; }
+      break;
+    }
+    return (this-inMin)/(inMax-inMin) * (outMax-outMin) + outMin;
+  },
+  Array: function(inMin, inMax, outMin, outMax, clip) {
+    return this.map(function(x) { return x.linlin(inMin, inMax, outMin, outMax, clip); });
+  }
+});
 
-})(sc);
+/**
+ * Fill a SequenceableCollection with random values in the range *minVal* to *maxVal* with a linear distribution.
+ * @arguments _(size [, minVal=0, maxVal=1])_
+ * @example
+ *  Array.linrand(8, 1, 100);
+ */
+sc.define("*linrand", {
+  Array: function(size, minVal, maxVal) {
+    minVal = minVal === void 0 ? 0 : minVal;
+    maxVal = maxVal === void 0 ? 1 : maxVal;
+    var a = new Array(size|0);
+    var range = maxVal - minVal;
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = minVal + range.linrand();
+    }
+    return a;
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * @arguments _none_
+ * @returns a linearly distributed random number from zero to this.
+ * @example
+ *  (10).linrand();
+ */
+sc.define("linrand", {
+  Number: function() {
+    return Math.min(Math.random(), Math.random()) * this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.linrand(); });
+  }
+});
 
-  /**
-   * Returns the Array resulting from `this[i] / this.sum()`, so that the array will sum to 1.0.
-   * @arguments _none_
-   * @example
-   *  [1, 2, 3].normalizeSum(); // => [ 0.1666, 0.3333, 0.5 ]
-   */
-  sc.register("normalizeSum", {
+/**
+ * Base e logarithm.
+ * @arguments _none_
+ */
+sc.define("log", {
+  Number: function() {
+    return Math.log(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.log(); });
+  }
+});
+
+/**
+ * Base 10 logarithm.
+ * @arguments _none_
+ */
+sc.define("log10", {
+  Number: function() {
+    return Math.log(this) * Math.LOG10E;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.log10(); });
+  }
+});
+
+/**
+ * Base 2 logarithm.
+ * @arguments _none_
+ */
+sc.define("log2", {
+  Number: function() {
+    return Math.log(Math.abs(this)) * Math.LOG2E;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.log2(); });
+  }
+});
+
+sc.define("log2Ceil", {
+  Number: function() {
+    if (this <= 0) {
+      return Math.ceil(Math.log(0x100000000 + (this|0)) / Math.log(2));
+    } else if (this > 0) {
+      return Math.ceil(Math.log(this|0) / Math.log(2));
+    }
+  },
+  Array: function() {
+    return this.map(function(x) { return x.log2Ceil(); });
+  }
+});
+
+/**
+ * this * mul + add
+ * @arguments _(mul, add)_
+ */
+sc.define("madd", {
+  Number: function(mul, add) {
+    if (Array.isArray(mul) || Array.isArray(add)) {
+      return [this,mul,add].flop().map(function(items) {
+        return items[0].madd(items[1],items[2]);
+      });
+    }
+    return this * mul + add;
+  },
+  Array: function(mul, add) {
+    return this.map(function(x) { return x.madd(mul, add); });
+  }
+});
+
+/**
+ * Maximum
+ * @arguments _(number)_
+ */
+sc.define("max", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.max(num); }, this);
+    }
+    return Math.max(this, num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.max(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.max(num); });
+    }
+  }
+});
+
+/**
+ * Returns the maximum depth of all subarrays.
+ * @arguments _none_
+ * @example
+ * [[1, 2, 3], [[41, 52], 5, 6], 1, 2, 3].maxDepth(); // => 3
+ */
+sc.define("maxDepth", function() {
+  var maxDepth = function(that, max) {
+    var res, i, imax;
+    res = max;
+    for (i = 0, imax = that.length; i < imax; ++i) {
+      if (Array.isArray(that[i])) {
+        res = Math.max(res, maxDepth(that[i], max+1));
+      }
+    }
+    return res;
+  };
+  return {
     Array: function() {
-      return this.opDiv(this.sum());
+      return maxDepth(this, 1);
     }
-  });
+  };
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("notEmpty", {
-    Array: function() {
-      return this.length !== 0;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["notEquals", "!="], {
-    Number: function(arg) {
-      return this !== arg;
-    },
-    Array: function(arg) {
-      return !this.equals(arg);
-    },
-    String: function(arg) {
-      return this !== arg;
-    },
-    Function: function(arg) {
-      return this !== arg;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("numBits", {
-    Number: function() {
-      if (this <= 0) {
-        return Math.floor(Math.log(0x100000000 + (this|0)) / Math.log(2)) + 1;
-      } else if (this > 0) {
-        return Math.floor(Math.log(this|0) / Math.log(2)) + 1;
-      }
-    },
-    Array: function() {
-      return this.map(function(x) { return x.numBits(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("obtain", {
-    Array: function(index, defaultValue) {
-      if (Array.isArray(index)) {
-        return index.map(function(index) {
-          return this.obtain(index, defaultValue);
-        }, this);
-      }
-      index = Math.max(0, index|0);
-      if (index < this.length) {
-        return this[index|0];
-      }
-      return defaultValue;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("occurrencesOf", {
-    Array: function(item) {
-      var sum = 0;
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        if (this[i] === item || this[i].equals(item)) { ++sum; }
-      }
-      return sum;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("octcps", {
-    Number: function() {
-      return 440 * Math.pow(2, this - 4.75);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.octcps(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("odd", {
-    Number: function() {
-      return (this & 1) === 1;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.odd(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Addition
-   * @example
-   *  (10).opAdd(2); // => 12
-   *  [10,20,30].sc("+")(10); // => [ 20, 30, 40 ]
-   */
-  sc.register(["opAdd", "+"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.opAdd(num); }, this);
-      }
-      return this + num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.opAdd(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.opAdd(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Division
-   * @example
-   *  (10).opDiv(2); // => 5
-   *  [10,20,30].sc("/")(10); // => [ 1, 2, 3 ]
-   */
-  sc.register(["opDiv", "/"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.opDiv(num); }, this);
-      }
-      return this / num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.opDiv(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.opDiv(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Modulo
-   * @example
-   *  (10).opMod(3); // => 1
-   *  [10,20,30].sc("%")(3); // => [ 1, 2, 0 ]
-   */
-  sc.register(["opMod", "%"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.opMod(num); }, this);
-      }
-      return this % num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.opMod(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.opMod(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Multiplication  
-   * @example
-   *  (10).opMul(2); // => 20
-   *  [10,20,30].sc("*")(10); // => [ 100, 200, 300 ]
-   */
-  sc.register(["opMul", "*"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.opMul(num); }, this);
-      }
-      return this * num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.opMul(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.opMul(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Subtraction
-   * @example
-   *  (10).opSub(2); // => 8
-   *  [10,20,30].sc("-")(10); // => [ 0, 10, 20 ]
-   */
-  sc.register(["opSub", "-"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.opSub(num); }, this);
-      }
-      return this - num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.opSub(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.opSub(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["pairsDo", "keyValuesDo"], {
-    Array: function(func) {
+/**
+ * Answer the index of the maximum of the results of *function* evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index. If function is nil, then answer the maximum of all items in the receiver.
+ * @arguments _([func=nil])_
+ * @example
+ *  [3.2, 12.2, 13, 0.4].maxIndex(); // => 2
+ */
+sc.define("maxIndex", {
+  Array: function(func) {
+    var i, imax, maxValue, maxIndex, val;
+    maxIndex = -1;
+    if (func) {
       func = sc.func(func);
-      for (var i = 0, imax = this.length; i < imax; i += 2) {
-        func(this[i], this[i+1], i);
+      for (i = 0, imax = this.length; i < imax; ++i) {
+        val = func(this[i], i);
+        if (i === 0) {
+          maxValue = val;
+          maxIndex = 0;
+        } else if (val > maxValue) {
+          maxValue = val;
+          maxIndex = i;
+        }
       }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("partition", {
-    Number: function(parts, min) {
-      parts = typeof parts === "undefined" ? 2 : parts;
-      min = typeof min === "undefined" ? 1 : min;
-      var n = this - (min - 1 * parts);
-      var a = new Array(n);
-      for (var i = 1; i <= n-1; ++i) {
-        a[i-1] = i;
-      }
-      return a.scramble().keep(parts-1).sort().add(n).differentiate().opAdd(min-1);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("performDegreeToKey", {
-    Array: function(scaleDegree, stepsPerOctave, accidental) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      accidental     = accidental     === void 0 ?  0 : accidental;
-      var baseKey = (stepsPerOctave * ((scaleDegree / this.length)|0)) + this.wrapAt(scaleDegree);
-      return accidental === 0 ? baseKey : baseKey + (accidental * (stepsPerOctave / 12));
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("performKeyToDegree", {
-    Array: function(degree, stepsPerOctave) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      var n = ((degree / stepsPerOctave)|0) * this.length;
-      var key = degree % stepsPerOctave;
-      return this.indexInBetween(key) + n;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("performNearestInList", {
-    Array: function(degree) {
-      return this[this.indexIn(degree)];
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("performNearestInScale", {
-    Array: function(degree, stepsPerOctave) {
-      stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
-      var root = degree.trunc(stepsPerOctave);
-      var key  = degree % stepsPerOctave;
-      return this.performNearestInList(key) + root;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("permute", {
-    Array: function(nthPermutation) {
-      var obj1, obj2, i, j, z, size, t;
-      if (Array.isArray(nthPermutation)) {
-        return nthPermutation.map(function(nthPermutation) {
-          return this.permute(nthPermutation);
-        }, this);
-      }
-      obj1 = this;
-      obj2 = this.slice();
-      size = this.length;
-      z = nthPermutation|0;
-      for (i = 0; i < size-1; ++i) {
-        j = i + z % (size-i);
-        z = (z / (size-i))|0;
-        t = obj2[i];
-        obj2[i] = obj2[j];
-        obj2[j] = t;
-      }
-      return obj2;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Remove and return the last element of the Array.
-   * @arguments _none_
-   * @example
-   *  [1, 2, 3].pop(); // 3
-   */
-  sc.register("pop", {
-    Array: function() {
-      return this.pop();
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("postln", {
-    Number: function() {
-      console.log(this);
-      return this;
-    },
-    Boolean: function() {
-      console.log(this);
-      return this;
-    },
-    Array: function() {
-      console.log(JSON.stringify(this));
-      return this;
-    },
-    String: function() {
-      console.log(this);
-      return this;
-    },
-    Function: function() {
-      console.log(this);
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * this to the power of aNumber
-   * @arguments _(num)_
-   */
-  sc.register(["pow", "**"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.pow(num); }, this);
-      }
-      return Math.pow(this ,num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.pow(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.pow(num); });
+    } else {
+      // optimized version if no function
+      val = this[0];
+      maxValue = val;
+      maxIndex = 0;
+      for (i = 1, imax = this.length; i < imax; ++i) {
+        val = this[i];
+        if (val > maxValue) {
+          maxValue = val;
+          maxIndex = i;
+        }
       }
     }
-  });
+    return maxIndex;
+  }
+});
 
-})(sc);
+/**
+ * Returns the maximum size of all subarrays at a certain depth (dimension)
+ * @arguments _(rank)_
+ */
+sc.define("maxSizeAtDepth", {
+  Array: function(rank) {
+    var maxsize = 0, sz, i, imax;
+    if (rank === 0 || rank === void 0) { return this.length; }
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      sz = Array.isArray(this[i]) ? this[i].maxSizeAtDepth(rank-1) : 1;
+      if (sz > maxsize) { maxsize = sz; }
+    }
+    return maxsize;
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  /**
-   * the number relative to this that is the previous power of aNumber
-   */
-  sc.register("previousPowerOf", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.previousPowerOf(num); }, this);
+/**
+ * Answer the maximum of the results of *function* evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index.
+ * @arguments _([function=nil])_
+ * @example
+ *  [ 1, 5, 2, 4, 3 ].maxValue(); // => 5
+ */
+sc.define(["maxValue", "maxItem"], {
+  Array: function(func) {
+    var i, imax, maxValue, maxElement, val;
+    if (func) {
+      func = sc.func(func);
+      for (i = 0, imax = this.length; i < imax; ++i) {
+        val = func(this[i], i);
+        if (i === 0) {
+          maxValue = val;
+          maxElement = this[i];
+        } else if (val > maxValue) {
+          maxValue = val;
+          maxElement = this[i];
+        }
       }
-      return Math.pow(num, Math.ceil(Math.log(this) / Math.log(num)) - 1);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.previousPowerOf(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.previousPowerOf(num); });
+    } else {
+      // optimized version if no function
+      val = this[0];
+      maxValue = val;
+      maxElement = this[0];
+      for (i = 1, imax = this.length; i < imax; ++i) {
+        val = this[i];
+        if (val > maxValue) {
+          maxValue = val;
+          maxElement = this[i];
+        }
       }
     }
-  });
+    return maxElement;
+  }
+});
 
-})(sc);
+sc.define("mean", {
+  Array: function(func) {
+    if (func) { func = sc.func(func); }
+    return this.sum(func) / this.length;
+  }
+});
+
+sc.define("middle", {
+  Array: function() {
+    return this[(this.length - 1) >> 1];
+  }
+});
+
+sc.define("middleIndex", {
+  Array: function() {
+    return (this.length - 1) >> 1;
+  }
+});
+
+/**
+ * Convert MIDI note to cycles per second
+ * @returns cycles per second
+ * @example
+ *  (69).midicps(); // => 440
+ *  Array.range("69..81").midicps(); // => [ 440, 466.1637, ... , 830.6093, 880 ]
+ */
+sc.define("midicps", {
+  Number: function() {
+    return 440 * Math.pow(2, (this - 69) * 1/12);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.midicps(); });
+  },
+  Function: function() {
+    var func = this;
+    return function() {
+      return func.apply(func, arguments).midicps();
+    };
+  }
+});
+
+/**
+ * Convert an interval in semitones to a ratio.
+ * @arguments _none_
+ * @returns a ratio
+ * @example
+ *  Array.range("0..12").midiratio(); // => [1, 1.0594, ... , 1.8877, 2]
+ */
+sc.define("midiratio", {
+  Number: function() {
+    return Math.pow(2, this * 1/12);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.midiratio(); });
+  }
+});
+
+/**
+ * Minumum
+ * @arguments _(number)_
+ */
+sc.define("min", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.min(num); }, this);
+    }
+    return Math.min(this, num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.min(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.min(num); });
+    }
+  }
+});
+
+/**
+ * Answer the index of the minimum of the results of *function* evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index. If function is nil, then answer the minimum of all items in the receiver.
+ * @arguments _([function=nil])_
+ * @example
+ *  [3.2, 12.2, 13, 0.4].minIndex(); // => 3
+ */
+sc.define("minIndex", {
+  Array: function(func) {
+    var i, imax, minValue, minIndex, val;
+    minIndex = -1;
+    if (func) {
+      func = sc.func(func);
+      for (i = 0, imax = this.length; i < imax; ++i) {
+        val = func(this[i], i);
+        if (i === 0) {
+          minValue = val;
+          minIndex = 0;
+        } else if (val < minValue) {
+          minValue = val;
+          minIndex = i;
+        }
+      }
+    } else {
+      // optimized version if no function
+      val = this[0];
+      minValue = val;
+      minIndex = 0;
+      for (i = 1, imax = this.length; i < imax; ++i) {
+        val = this[i];
+        if (val < minValue) {
+          minValue = val;
+          minIndex = i;
+        }
+      }
+    }
+    return minIndex;
+  }
+});
+
+/**
+ * Answer the minimum of the results of *function* evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index.
+ * @arguments _([function=nil])_
+ * @example
+ *  [ -1, -5, -2, -4, -3 ].minValue("abs"); // => -1
+ */
+sc.define(["minValue", "minItem"], {
+  Array: function(func) {
+    var i, imax, minValue, minElement, val;
+    if (func) {
+      func = sc.func(func);
+      for (i = 0, imax = this.length; i < imax; ++i) {
+        val = func(this[i], i);
+        if (i === 0) {
+          minValue = val;
+          minElement = this[i];
+        } else if (val < minValue) {
+          minValue = val;
+          minElement = this[i];
+        }
+      }
+    } else {
+      // optimized version if no function
+      minElement = this[0];
+      for (i = 1, imax = this.length; i < imax; ++i) {
+        if (this[i] < minElement) {
+          minElement = this[i];
+        }
+      }
+    }
+    return minElement;
+  }
+});
+
+/**
+ * Return a new Array which is the receiver made into a palindrome. The receiver is unchanged.
+ * @arguments _none_
+ * @example
+ *  [1, 2, 3, 4].mirror(); // => [1, 2, 3, 4, 3, 2, 1]
+ */
+sc.define("mirror", {
+  Array: function() {
+    var size = this.length * 2 - 1;
+    if (size < 2) {
+      return this.slice(0);
+    }
+    var i, j, imax, a = new Array(size);
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      a[i] = this[i];
+    }
+    for (j = imax - 2, imax = size; i < imax; ++i, --j) {
+      a[i] = this[j];
+    }
+    return a;
+  }
+});
+
+/**
+ * Return a new Array which is the receiver made into a palindrome with the last element removed. This is useful if the list will be repeated cyclically, the first element will not get played twice. The receiver is unchanged.
+ * @arguments _none_
+ * @example
+ *  [1, 2, 3, 4].mirror1(); // => [1, 2, 3, 4, 3, 2]
+ */
+sc.define("mirror1", {
+  Array: function() {
+    var size = this.length * 2 - 2;
+    if (size < 2) {
+      return this.slice(0);
+    }
+    var i, j, imax, a = new Array(size);
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      a[i] = this[i];
+    }
+    for (j = imax - 2, imax = size; i < imax; ++i, --j) {
+      a[i] = this[j];
+    }
+    return a;
+  }
+});
+
+/**
+ * Return a new Array which is the receiver concatenated with a reversal of itself. The center element is duplicated. The receiver is unchanged.
+ * @arguments _none_
+ * @example
+ *  [1, 2, 3, 4].mirror2(); // => [1, 2, 3, 4, 4, 3, 2, 1]
+ */
+sc.define("mirror2", {
+  Array: function() {
+    var size = this.length * 2;
+    if (size < 2) {
+      return this.slice(0);
+    }
+    var i, j, imax, a = new Array(size);
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      a[i] = this[i];
+    }
+    for (j = imax - 1, imax = size; i < imax; ++i, --j) {
+      a[i] = this[j];
+    }
+    return a;
+  }
+});
+
+/**
+ * Integer Modulo
+ * @arguments _(number)_
+ * @example
+ *  (10).mod(3); // => 1
+ *  [10,20,30].mod(3); // => [ 1, 2, 0 ]
+ */
+sc.define("mod", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.mod(num); }, this);
+    }
+    if (this <= 0) {
+      return num + Math.floor(this % num);
+    } else {
+      return Math.floor(this % num);
+    }
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.mod(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.mod(num); });
+    }
+  }
+});
+
+sc.define("mode", {
+  Array: function(degree, octave) {
+    octave = octave === void 0 ? 12 : octave;
+    return this.rotate(degree.neg()).opSub(this.wrapAt(degree)).opMod(octave);
+  }
+});
+
+/**
+ * the value in the list closest to this
+ * @arguments _(list)_
+ * @example
+ *  l = [0, 0.5, 0.9, 1];
+ *  Array.range("0, 0.1..1").collect(function(i) { return i.nearestInList(l); });
+ *  // => [ 0, 0, 0, 0.5, 0.5, 0.5, 0.5, 0.9, 0.9, 0.9, 1 ]
+ */
+sc.define("nearestInList", {
+  Number: function(list) {
+    return list.performNearestInList(this);
+  },
+  Array: function(list) {
+    // collection is sorted
+    return this.map(function(item) {
+      return list.at(list.indexIn(item));
+    });
+  }
+});
+
+/**
+ * the value in the collection closest to this, assuming an octave repeating table of note values.
+ * @arguments _(scale [, stepsPerOctave=12])_
+ * @example
+ *  l = [0, 1, 5, 9, 11]; // pentatonic scale
+ *  Array.range("60, 61..76").collect(function(i) { return i.nearestInScale(l, 12); });
+ *  // => [ 60, 61, 61, 65, 65, 65, 65, 69, 69, 69, 71, 71, 72, 73, 73, 77, 77 ]
+ */
+sc.define("nearestInScale", {
+  Number: function(scale, stepsPerOctave) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    return scale.performNearestInScale(this, stepsPerOctave);
+  },
+  Array: function(scale, stepsPerOctave) {
+    // collection is sorted
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    var root = this.trunc(stepsPerOctave);
+    var key  = this.opMod(stepsPerOctave);
+    return key.nearestInScale(scale).opAdd(root);
+  }
+});
+
+/**
+ * negation
+ * @arguments _none_
+ */
+sc.define("neg", {
+  Number: function() {
+    return -this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.neg(); });
+  }
+});
+
+sc.define("*new", {
+  Array: function(size) {
+    return new Array(size|0);
+  }
+});
+
+/**
+ * Creates a new instance with indexedSize indexable slots.
+ * @arguments _(size)_
+ */
+sc.define("*newClear", {
+  Array: function(size) {
+    var a = new Array(size|0);
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = 0;
+    }
+    return a;
+  }
+});
+
+/**
+ * Creates a new Collection from another collection.
+ * @arguments _(array)_
+ */
+sc.define("*newFrom", {
+  Array: function(item) {
+    return item.slice();
+  }
+});
+
+/**
+ * the next power of aNumber
+ * @arguments _(base)_
+ */
+sc.define("nextPowerOf", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.nextPowerOf(num); }, this);
+    }
+    return Math.pow(num, Math.ceil(Math.log(this) / Math.log(num)));
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.nextPowerOf(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.nextPowerOf(num); });
+    }
+  }
+});
+
+/**
+ * the next power of three
+ * @arguments _none_
+ */
+sc.define("nextPowerOfThree", {
+  Number: function() {
+    return Math.pow(3, Math.ceil(Math.log(this) / Math.log(3)));
+  },
+  Array: function() {
+    return this.map(function(x) { return x.nextPowerOfThree(); });
+  }
+});
+
+/**
+ * the number relative to this that is the next power of 2
+ * @arguments _none_
+ */
+sc.define("nextPowerOfTwo", {
+  Number: function() {
+    if (this <= 0) {
+      return 1;
+    } else {
+      return Math.pow(2, Math.ceil(Math.log(this) / Math.log(2)));
+    }
+  },
+  Array: function() {
+    return this.map(function(x) { return x.nextPowerOfTwo(); });
+  }
+});
+
+/**
+ * Returns a new *Array* with the receiver items normalized between *min* and *max*.
+ * @arguments _([min=0, max=1])_
+ * @example
+ *  [1, 2, 3].normalize(-20, 10); // => [ -20, -5, 10 ]
+ */
+sc.define("normalize", {
+  Array: function(min, max) {
+    min = min === void 0 ? 0 : min;
+    max = max === void 0 ? 1 : max;
+    var minItem = this.minItem();
+    var maxItem = this.maxItem();
+    return this.map(function(el) {
+      return el.linlin(minItem, maxItem, min, max);
+    });
+  }
+});
+
+/**
+ * Returns the Array resulting from `this[i] / this.sum()`, so that the array will sum to 1.0.
+ * @arguments _none_
+ * @example
+ *  [1, 2, 3].normalizeSum(); // => [ 0.1666, 0.3333, 0.5 ]
+ */
+sc.define("normalizeSum", {
+  Array: function() {
+    return this.opDiv(this.sum());
+  }
+});
+
+/**
+ * Checks is the receiver is not empty.
+ */
+sc.define("notEmpty", {
+  Array: function() {
+    return this.length !== 0;
+  }
+});
+
+sc.define(["notEquals", "!="], {
+  Number: function(arg) {
+    return this !== arg;
+  },
+  Array: function(arg) {
+    return !this.equals(arg);
+  },
+  String: function(arg) {
+    return this !== arg;
+  },
+  Function: function(arg) {
+    return this !== arg;
+  }
+});
+
+/**
+ * number of required bits
+ * @arguments _none_
+ */
+sc.define("numBits", {
+  Number: function() {
+    if (this <= 0) {
+      return Math.floor(Math.log(0x100000000 + (this|0)) / Math.log(2)) + 1;
+    } else if (this > 0) {
+      return Math.floor(Math.log(this|0) / Math.log(2)) + 1;
+    }
+  },
+  Array: function() {
+    return this.map(function(x) { return x.numBits(); });
+  }
+});
+
+sc.define("obtain", {
+  Array: function(index, defaultValue) {
+    if (Array.isArray(index)) {
+      return index.map(function(index) {
+        return this.obtain(index, defaultValue);
+      }, this);
+    }
+    index = Math.max(0, index|0);
+    if (index < this.length) {
+      return this[index|0];
+    }
+    return defaultValue;
+  }
+});
+
+/**
+ * Answer the number of items in the receiver which are equal to anObject.
+ * @arguments _(item)_
+ * @example
+ *  [1, 2, 3, 3, 4, 3, 4, 3].occurrencesOf(3); // => 4
+ */
+sc.define("occurrencesOf", {
+  Array: function(item) {
+    var sum = 0;
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      if (this[i] === item || this[i].equals(item)) { ++sum; }
+    }
+    return sum;
+  }
+});
+
+/**
+ * Convert decimal octaves to cycles per second.
+ * @arguments _none_
+ */
+sc.define("octcps", {
+  Number: function() {
+    return 440 * Math.pow(2, this - 4.75);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.octcps(); });
+  }
+});
+
+/**
+ * true if not dividable by 2 with no rest
+ * @arguments _none_
+ */
+sc.define("odd", {
+  Number: function() {
+    return (this & 1) === 1;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.odd(); });
+  }
+});
+
+/**
+ * Addition
+ * @example
+ *  (10).opAdd(2); // => 12
+ *  [10,20,30].sc("+")(10); // => [ 20, 30, 40 ]
+ */
+sc.define(["opAdd", "+"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.opAdd(num); }, this);
+    }
+    return this + num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.opAdd(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.opAdd(num); });
+    }
+  }
+});
+
+/**
+ * Division
+ * @example
+ *  (10).opDiv(2); // => 5
+ *  [10,20,30].sc("/")(10); // => [ 1, 2, 3 ]
+ */
+sc.define(["opDiv", "/"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.opDiv(num); }, this);
+    }
+    return this / num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.opDiv(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.opDiv(num); });
+    }
+  }
+});
+
+/**
+ * Modulo
+ * @example
+ *  (10).opMod(3); // => 1
+ *  [10,20,30].sc("%")(3); // => [ 1, 2, 0 ]
+ */
+sc.define(["opMod", "%"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.opMod(num); }, this);
+    }
+    return this % num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.opMod(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.opMod(num); });
+    }
+  }
+});
+
+/**
+ * Multiplication  
+ * @example
+ *  (10).opMul(2); // => 20
+ *  [10,20,30].sc("*")(10); // => [ 100, 200, 300 ]
+ */
+sc.define(["opMul", "*"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.opMul(num); }, this);
+    }
+    return this * num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.opMul(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.opMul(num); });
+    }
+  }
+});
+
+/**
+ * Subtraction
+ * @example
+ *  (10).opSub(2); // => 8
+ *  [10,20,30].sc("-")(10); // => [ 0, 10, 20 ]
+ */
+sc.define(["opSub", "-"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.opSub(num); }, this);
+    }
+    return this - num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.opSub(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.opSub(num); });
+    }
+  }
+});
+
+/**
+ * Calls function for each subsequent pair of elements in the SequentialCollection. The function is passed the two elements and an index.
+ * @arguments _(function)_
+ */
+sc.define(["pairsDo", "keyValuesDo"], {
+  Array: function(func) {
+    func = sc.func(func);
+    for (var i = 0, imax = this.length; i < imax; i += 2) {
+      func(this[i], this[i+1], i);
+    }
+    return this;
+  }
+});
+
+/**
+ * randomly partition a number into parts of at least min size.
+ * @arguments _([parts=2, min=1])_
+ * @example
+ *  (75).partition(8, 3);
+ */
+sc.define("partition", {
+  Number: function(parts, min) {
+    parts = typeof parts === "undefined" ? 2 : parts;
+    min = typeof min === "undefined" ? 1 : min;
+    var n = this - ((min - 1) * parts);
+    var a = new Array(n-1);
+    for (var i = 1; i <= n-1; ++i) {
+      a[i-1] = i;
+    }
+    return a.scramble().keep(parts-1).sort(function(a, b) {
+      return a - b;
+    }).add(n).differentiate().opAdd(min-1);
+  }
+});
+
+sc.define("performDegreeToKey", {
+  Array: function(scaleDegree, stepsPerOctave, accidental) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    accidental     = accidental     === void 0 ?  0 : accidental;
+    var baseKey = (stepsPerOctave * ((scaleDegree / this.length)|0)) + this.wrapAt(scaleDegree);
+    return accidental === 0 ? baseKey : baseKey + (accidental * (stepsPerOctave / 12));
+  }
+});
+
+sc.define("performKeyToDegree", {
+  Array: function(degree, stepsPerOctave) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    var n = ((degree / stepsPerOctave)|0) * this.length;
+    var key = degree % stepsPerOctave;
+    return this.indexInBetween(key) + n;
+  }
+});
+
+sc.define("performNearestInList", {
+  Array: function(degree) {
+    return this[this.indexIn(degree)];
+  }
+});
+
+sc.define("performNearestInScale", {
+  Array: function(degree, stepsPerOctave) {
+    stepsPerOctave = stepsPerOctave === void 0 ? 12 : stepsPerOctave;
+    var root = degree.trunc(stepsPerOctave);
+    var key  = degree % stepsPerOctave;
+    return this.performNearestInList(key) + root;
+  }
+});
+
+/**
+ * Returns a new Array whose elements are the nthPermutation of the elements of the receiver.
+ * @arguments _(nthPermutation)_
+ */
+sc.define("permute", {
+  Array: function(nthPermutation) {
+    var obj1, obj2, i, j, z, size, t;
+    if (Array.isArray(nthPermutation)) {
+      return nthPermutation.map(function(nthPermutation) {
+        return this.permute(nthPermutation);
+      }, this);
+    }
+    obj1 = this;
+    obj2 = this.slice();
+    size = this.length;
+    z = nthPermutation|0;
+    for (i = 0; i < size-1; ++i) {
+      j = i + z % (size-i);
+      z = (z / (size-i))|0;
+      t = obj2[i];
+      obj2[i] = obj2[j];
+      obj2[j] = t;
+    }
+    return obj2;
+  }
+});
+
+/**
+ * Remove and return the last element of the Array.
+ * @arguments _none_
+ * @example
+ *  [1, 2, 3].pop(); // 3
+ */
+sc.define("pop", {
+  Array: function() {
+    return this.pop();
+  }
+});
+
+sc.define("postln", {
+  Number: function() {
+    console.log(this);
+    return this;
+  },
+  Boolean: function() {
+    console.log(this);
+    return this;
+  },
+  Array: function() {
+    console.log(JSON.stringify(this));
+    return this;
+  },
+  String: function() {
+    console.log(this);
+    return this;
+  },
+  Function: function() {
+    console.log(this);
+    return this;
+  }
+});
+
+/**
+ * this to the power of aNumber
+ * @arguments _(number)_
+ */
+sc.define(["pow", "**"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.pow(num); }, this);
+    }
+    return Math.pow(this ,num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.pow(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.pow(num); });
+    }
+  }
+});
+
+/**
+ * the number relative to this that is the previous power of aNumber
+ */
+sc.define("previousPowerOf", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.previousPowerOf(num); }, this);
+    }
+    return Math.pow(num, Math.ceil(Math.log(this) / Math.log(num)) - 1);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.previousPowerOf(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.previousPowerOf(num); });
+    }
+  }
+});
 
 (function(sc) {
   "use strict";
@@ -4884,7 +4358,13 @@
     }
   })();
 
-  sc.register("nthPrime", {
+  /**
+   * the nth prime number. The receiver must be from 0 to 6541.
+   * @arguments _none_
+   * @example
+   * [0, 1, 2, 3, 4, 5].nthPrime(); // => [ 2, 3, 5, 7, 11, 13 ]
+   */
+  sc.define("nthPrime", {
     Number: function() {
       return primelist[this|0];
     },
@@ -4892,7 +4372,14 @@
       return this.map(function(x) { return x.nthPrime(); });
     }
   });
-  sc.register("prevPrime", {
+
+  /**
+   * the next prime less than or equal to the receiver up to 65521.
+   * @arguments _none_
+   * @example
+   *  (25).prevPrime(); // => 23
+   */
+  sc.define("prevPrime", {
     Number: function() {
       var i, p, lo = 0, hi = primelist.length;
       var num = this|0;
@@ -4912,7 +4399,14 @@
       return this.map(function(x) { return x.prevPrime(); });
     }
   });
-  sc.register("nextPrime", {
+
+  /**
+   * the next prime less than or equal to the receiver up to 65521.
+   * @arguments _none_
+   * @example
+   *  (25).nextPrime(); // => 27
+   */
+  sc.define("nextPrime", {
     Number: function() {
       var i, p, lo = 0, hi = primelist.length;
       var num = this|0;
@@ -4932,7 +4426,14 @@
       return this.map(function(x) { return x.nextPrime(); });
     }
   });
-  sc.register("isPrime", {
+
+  /**
+   * whether the receiver is prime.
+   * @arguments _none_
+   * @example
+   *  (13).isPrime(); // => true
+   */
+  sc.define("isPrime", {
     Number: function() {
       return primelist.indexOf(this|0) !== -1;
     },
@@ -4940,7 +4441,12 @@
       return this.map(function(x) { return x.isPrime(); });
     }
   });
-  sc.register("indexOfPrime", {
+
+  /**
+   * the index of a prime number less than or equal to the receiver up to 65521. If the receiver is not a prime, the answer is -1.
+   * @arguments _none_
+   */
+  sc.define("indexOfPrime", {
     Number: function() {
       return primelist.indexOf(this|0);
     },
@@ -4949,7 +4455,13 @@
     }
   });
 
-  sc.register("factors", {
+  /**
+   * the prime factors as array.
+   * @arguments _none_
+   * @example
+   *  (2000).factors(); // => [ 2, 2, 2, 2, 5, 5, 5 ]
+   */
+  sc.define("factors", {
     Number: function() {
       if (this <= 1) { return []; }
       var a = [];
@@ -4976,1711 +4488,1574 @@
 
 })(sc);
 
-(function(sc) {
-  "use strict";
-
-  sc.register("product", {
-    Array: function(func) {
-      var product = 1, i, imax;
-      if (func) {
-        func = sc.func(func);
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          product = product.opMul(func(this[i], i));
-        }
-      } else {
-        // optimized version if no function
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          product = product.opMul(this[i]);
-        }
-      }
-      return product;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("put", {
-    Array: function(index, item) {
-      if (typeof index === "number") {
-        if (0 <= index && index < this.length) {
-          this[index|0] = item;
-        }
-      } else if (Array.isArray(index)) {
-        index.forEach(function(index) {
-          this.put(index, item);
-        }, this);
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("putEach", {
-    Array: function(keys, values) {
-      keys = keys.asArray();
-      values = values.asArray();
-      keys.map(function(key, i) {
-        this[key] = values.wrapAt(i);
-      }, this);
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Place *item* at the first index in the collection. Note that if the collection is empty (and therefore has no indexed slots) the item will not be added.
-   * @arguments _(item)_
-   * @example
-   *  [3, 4, 5].putFirst(100); // => [ 100, 4, 5 ]
-   *  [].putFirst(100); // => []
-   */
-  sc.register("putFirst", {
-    Array: function(item) {
-      if (this.length > 0) { this[0] = item; }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Place *item* at the last index in the collection. Note that if the collection is empty (and therefore has no indexed slots) the item will not be added.
-   * @arguments _(item)_
-   * @example
-   *  [3, 4, 5].putLast(100); // => [ 3, 4, 100 ]
-   *  [].putLast(100); // => []
-   */
-  sc.register("putLast", {
-    Array: function(item) {
-      if (this.length > 0) { this[this.length-1] = item; }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("pyramid", {
-    Array: function(patternType) {
-      patternType = patternType === void 0 ? 1 : patternType;
-      var obj1, obj2, i, j, k, n, m, numslots, x;
-      obj1 = this;
-      obj2 = [];
-      m = Math.max(1, Math.min(patternType, 10))|0;
-      x = numslots = this.length;
-      switch (patternType) {
-      case 1:
-        n = n = (x * x + x) >> 1;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = 0; j <= i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 2:
-        n = (x * x + x) >> 1;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 3:
-        n = (x * x + x) >> 1;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = 0; j <= numslots - 1 - i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 4:
-        n = (x * x + x) >> 1;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = i; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 5:
-        n = x * x;
-        for (i = k = 0; i < numslots; ++i) {
-          for (j = 0; j <= i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        for (i = 0; i < numslots - 1; ++i) {
-          for (j = 0; j <= numslots - 2 - i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 6:
-        n = x * x;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        for (i = 0; i < numslots - 1; ++i) {
-          for (j = i + 1; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 7:
-        n = x * x + x - 1;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = 0; j <= numslots - 1 - i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        for (i = 1; i < numslots; ++i) {
-          for (j = 0; j <= i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 8:
-        n = x * x + x - 1;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = i; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        for (i = 1; i < numslots; ++i) {
-          for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 9:
-        n = x * x;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = 0; j <= i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        for (i = 0; i < numslots - 1; ++i) {
-          for (j = i + 1; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      case 10:
-        n = x * x;
-        for (i = 0, k = 0; i < numslots; ++i) {
-          for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        for (i = 0; i < numslots - 1; ++i) {
-          for (j = 0; j <= numslots - 2 - i; ++j, ++k) {
-            obj2[k] = obj1[j];
-          }
-        }
-        break;
-      }
-      return obj2;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("pyramidg", {
-    Array: function(patternType) {
-      var list = [], lastIndex, i;
-      patternType = patternType === void 0 ? 1 : patternType;
-      patternType = Math.max(1, Math.min(patternType, 10))|0;
-      lastIndex = this.length - 1;
-      switch (patternType) {
-      case 1:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(0, i+1));
-        }
-        break;
-      case 2:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(lastIndex-i, lastIndex+1));
-        }
-        break;
-      case 3:
-        for (i = lastIndex; i >= 0; --i) {
-          list.push(this.slice(0, i+1));
-        }
-        break;
-      case 4:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(i, lastIndex+1));
-        }
-        break;
-      case 5:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(0, i+1));
-        }
-        for (i = lastIndex-1; i >= 0; --i) {
-          list.push(this.slice(0, i+1));
-        }
-        break;
-      case 6:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(lastIndex-i, lastIndex+1));
-        }
-        for (i = lastIndex-1; i >= 0; --i) {
-          list.push(this.slice(lastIndex-i, lastIndex+1));
-        }
-        break;
-      case 7:
-        for (i = lastIndex; i >= 0; --i) {
-          list.push(this.slice(0, i+1));
-        }
-        for (i = 1; i <= lastIndex; ++i) {
-          list.push(this.slice(0, i+1));
-        }
-        break;
-      case 8:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(i, lastIndex+1));
-        }
-        for (i = lastIndex - 1; i >= 0; --i) {
-          list.push(this.slice(i, lastIndex+1));
-        }
-        break;
-      case 9:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(0, i+1));
-        }
-        for (i = 1; i <= lastIndex; ++i) {
-          list.push(this.slice(i, lastIndex+1));
-        }
-        break;
-      case 10:
-        for (i = 0; i <= lastIndex; ++i) {
-          list.push(this.slice(lastIndex-i, lastIndex+1));
-        }
-        for (i = lastIndex-1; i >= 0; --i) {
-          list.push(this.slice(0, i+1));
-        }
-        break;
-      }
-      return list;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("quantize", {
-    Number: function(quantum, tolerance, strength) {
-      if (Array.isArray(quantum) || Array.isArray(tolerance) || Array.isArray(strength)) {
-        return [this,quantum,tolerance,strength].flop().map(function(items) {
-          return items[0].quantize(items[1],items[2],items[3]);
-        });
-      }
-      quantum = typeof quantum === "undefined" ? 1 : quantum;
-      tolerance = typeof tolerance === "undefined" ? 0.05 : tolerance;
-      strength = typeof strength === "undefined" ? 1 : strength;
-      var round = this.round(quantum);
-      var diff = round - this;
-      if (Math.abs(diff) < tolerance) {
-        return this + (strength * diff);
-      }
-      return this;
-    },
-    Array: function(quantum, tolerance, strength) {
-      return this.map(function(x) { return x.quantize(quantum, tolerance, strength); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("raddeg", {
-    Number: function() {
-      return this * 180 / Math.PI;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.raddeg(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("ramp", {
-    Number: function() {
-      if (this <= 0) { return 0; }
-      if (this >= 1) { return 1; }
-      return this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.ramp(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill a Array with random values in the range *minVal* to *maxVal*.
-   * @arguments _(size [, minVal=0, maxVal=1])_
-   * @example
-   *  Array.rand(8, 1, 100);
-   */
-  sc.register("*rand", {
-    Array: function(size, minVal, maxVal) {
-      minVal = minVal === void 0 ? 0 : minVal;
-      maxVal = maxVal === void 0 ? 1 : maxVal;
-      var a = new Array(size|0);
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = minVal.rrand(maxVal);
-      }
-      return a;
-    }
-  });
-
-  /**
-   * @returns Random number from zero up to the receiver, exclusive.
-   */
-  sc.register("rand", {
-    Number: function() {
-      return Math.random() * this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.rand(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill an Array with random values in the range -*val* to +*val*.
-   * @arguments _(size [, val=1])_
-   * @example
-   *  Array.rand2(8, 100);
-   */
-  sc.register("*rand2", {
-    Array: function(size, val) {
-      val = val === void 0 ? 1 : val;
-      var a = new Array(size|0);
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = val.rand2(val);
-      }
-      return a;
-    }
-  });
-
-  /**
-   * @returns a random number from -*this* to +*this*.
-   */
-  sc.register("rand2", {
-    Number: function() {
-      return (Math.random() * 2 - 1) * this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.rand2(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Creates an array of numbers progressing from *start* up to but not including *end*.
-   * @arguments _([start=0], end [, step=1])_
-   * @example
-   *  Array.range(10); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-   *  Array.range(0, 30, 5); // [0, 5, 10, 15, 20, 25]
-   */
-  sc.register("*range", {
-    Array: function(start, end, step) {
-      start = +start || 0;
-      step  = +step  || 1;
-      if (end === void 0) {
-        end   = start;
-        start = 0;
-      }
-      var length = Math.max(0, Math.ceil((end - start) / step));
-      var index  = -1;
-      var result = new Array(length);
-      while (++index < length) {
-        result[index] = start;
-        start += step;
-      }
-      return result;
-    }
-  });
-
-  /**
-   * @arguments _(end, step:1)_
-   * @example
-   *  (10).range(); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-   *  (10).range(30, 5); // [0, 5, 10, 15, 20, 25]
-   */
-  sc.register("range", {
-    Number: function(end, step) {
-      if (end === void 0) {
-        return Array.series(this, 0, 1);
-      }
-      step = step === void 0 ? (this < end) ? +1 : -1 : step;
-      return Array.range(this, end, step);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("ratiomidi", {
-    Number: function() {
-      return Math.log(Math.abs(this)) * Math.LOG2E * 12;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.ratiomidi(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * 1 / this
-   */
-  sc.register("reciprocal", {
-    Number: function() {
-      return 1 / this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.reciprocal(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("rectWindow", {
-    Number: function() {
-      if (this < 0 || this > 1) { return 0; }
-      return 1;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.rectWindow(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("reject", {
-    Array: function(func) {
+sc.define("product", {
+  Array: function(func) {
+    var product = 1, i, imax;
+    if (func) {
       func = sc.func(func);
-      return this.filter(function(x, i) { return !func(x, i); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("remove", {
-    Array: function(item) {
-      var index = this.indexOf(item);
-      if (index !== -1) {
-        return this.splice(index, 1)[0];
+      for (i = 0, imax = this.length; i < imax; ++i) {
+        product = product.opMul(func(this[i], i));
       }
-      return null;
+    } else {
+      // optimized version if no function
+      for (i = 0, imax = this.length; i < imax; ++i) {
+        product = product.opMul(this[i]);
+      }
     }
-  });
+    return product;
+  }
+});
 
-})(sc);
+/**
+ * Put *item* at *index*, replacing what is there.
+ * @arguments _(index, item)_
+ */
+sc.define("put", {
+  Array: function(index, item) {
+    if (typeof index === "number") {
+      if (0 <= index && index < this.length) {
+        this[index|0] = item;
+      }
+    } else if (Array.isArray(index)) {
+      index.forEach(function(index) {
+        this.put(index, item);
+      }, this);
+    }
+    return this;
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Put the *values* in the corresponding indices given by *keys*. If one of the two argument arrays is longer then it will wrap.
+ * @arguments _(keys, values)_
+ */
+sc.define("putEach", {
+  Array: function(keys, values) {
+    keys = keys.asArray();
+    values = values.asArray();
+    keys.map(function(key, i) {
+      this[key] = values.wrapAt(i);
+    }, this);
+    return this;
+  }
+});
 
-  sc.register("removeAll", {
-    Array: function(list) {
-      for (var i = 0, imax = list.length; i < imax; ++i) {
-        var index = this.indexOf(list[i]);
+/**
+ * Place *item* at the first index in the collection. Note that if the collection is empty (and therefore has no indexed slots) the item will not be added.
+ * @arguments _(item)_
+ * @example
+ *  [3, 4, 5].putFirst(100); // => [ 100, 4, 5 ]
+ *  [].putFirst(100); // => []
+ */
+sc.define("putFirst", {
+  Array: function(item) {
+    if (this.length > 0) { this[0] = item; }
+    return this;
+  }
+});
+
+/**
+ * Place *item* at the last index in the collection. Note that if the collection is empty (and therefore has no indexed slots) the item will not be added.
+ * @arguments _(item)_
+ * @example
+ *  [3, 4, 5].putLast(100); // => [ 3, 4, 100 ]
+ *  [].putLast(100); // => []
+ */
+sc.define("putLast", {
+  Array: function(item) {
+    if (this.length > 0) { this[this.length-1] = item; }
+    return this;
+  }
+});
+
+/**
+ * Return a new Array whose elements have been reordered via one of 10 "counting" algorithms.
+ * @arguments _(patternType)_
+ * @example
+ *  [1, 2, 3, 4].pyramid(0);
+ *  // => [ 1, 1, 2, 1, 2, 3, 1, 2, 3, 4 ]
+ */
+sc.define("pyramid", {
+  Array: function(patternType) {
+    patternType = patternType === void 0 ? 1 : patternType;
+    var obj1, obj2, i, j, k, n, m, numslots, x;
+    obj1 = this;
+    obj2 = [];
+    m = Math.max(1, Math.min(patternType, 10))|0;
+    x = numslots = this.length;
+    switch (patternType) {
+    case 1:
+      n = n = (x * x + x) >> 1;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = 0; j <= i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 2:
+      n = (x * x + x) >> 1;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 3:
+      n = (x * x + x) >> 1;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = 0; j <= numslots - 1 - i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 4:
+      n = (x * x + x) >> 1;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = i; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 5:
+      n = x * x;
+      for (i = k = 0; i < numslots; ++i) {
+        for (j = 0; j <= i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      for (i = 0; i < numslots - 1; ++i) {
+        for (j = 0; j <= numslots - 2 - i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 6:
+      n = x * x;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      for (i = 0; i < numslots - 1; ++i) {
+        for (j = i + 1; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 7:
+      n = x * x + x - 1;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = 0; j <= numslots - 1 - i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      for (i = 1; i < numslots; ++i) {
+        for (j = 0; j <= i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 8:
+      n = x * x + x - 1;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = i; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      for (i = 1; i < numslots; ++i) {
+        for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 9:
+      n = x * x;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = 0; j <= i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      for (i = 0; i < numslots - 1; ++i) {
+        for (j = i + 1; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    case 10:
+      n = x * x;
+      for (i = 0, k = 0; i < numslots; ++i) {
+        for (j = numslots - 1 - i; j <= numslots - 1; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      for (i = 0; i < numslots - 1; ++i) {
+        for (j = 0; j <= numslots - 2 - i; ++j, ++k) {
+          obj2[k] = obj1[j];
+        }
+      }
+      break;
+    }
+    return obj2;
+  }
+});
+
+/**
+ * Like `pyramid`, but keep the resulting values grouped in subarrays.
+ * @arguments _(patternType)_
+ * @example
+ *  [1, 2, 3, 4].pyramidg(0);
+ *  => [ [ 1 ], [ 1, 2 ], [ 1, 2, 3 ], [ 1, 2, 3, 4 ] ]
+ */
+sc.define("pyramidg", {
+  Array: function(patternType) {
+    var list = [], lastIndex, i;
+    patternType = patternType === void 0 ? 1 : patternType;
+    patternType = Math.max(1, Math.min(patternType, 10))|0;
+    lastIndex = this.length - 1;
+    switch (patternType) {
+    case 1:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(0, i+1));
+      }
+      break;
+    case 2:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(lastIndex-i, lastIndex+1));
+      }
+      break;
+    case 3:
+      for (i = lastIndex; i >= 0; --i) {
+        list.push(this.slice(0, i+1));
+      }
+      break;
+    case 4:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(i, lastIndex+1));
+      }
+      break;
+    case 5:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(0, i+1));
+      }
+      for (i = lastIndex-1; i >= 0; --i) {
+        list.push(this.slice(0, i+1));
+      }
+      break;
+    case 6:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(lastIndex-i, lastIndex+1));
+      }
+      for (i = lastIndex-1; i >= 0; --i) {
+        list.push(this.slice(lastIndex-i, lastIndex+1));
+      }
+      break;
+    case 7:
+      for (i = lastIndex; i >= 0; --i) {
+        list.push(this.slice(0, i+1));
+      }
+      for (i = 1; i <= lastIndex; ++i) {
+        list.push(this.slice(0, i+1));
+      }
+      break;
+    case 8:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(i, lastIndex+1));
+      }
+      for (i = lastIndex - 1; i >= 0; --i) {
+        list.push(this.slice(i, lastIndex+1));
+      }
+      break;
+    case 9:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(0, i+1));
+      }
+      for (i = 1; i <= lastIndex; ++i) {
+        list.push(this.slice(i, lastIndex+1));
+      }
+      break;
+    case 10:
+      for (i = 0; i <= lastIndex; ++i) {
+        list.push(this.slice(lastIndex-i, lastIndex+1));
+      }
+      for (i = lastIndex-1; i >= 0; --i) {
+        list.push(this.slice(0, i+1));
+      }
+      break;
+    }
+    return list;
+  }
+});
+
+/**
+ * round the receiver to the quantum.
+ * @arguments _([quantum=1, tolerance=0.05, strength=1])_
+ * @example
+ *  Array.range("0,0.1..1").quantize(1, 0.3, 0.5)
+ *  // => [ 0, 0.05, 0.1, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 0.95, 1 ]
+ */
+sc.define("quantize", {
+  Number: function(quantum, tolerance, strength) {
+    if (Array.isArray(quantum) || Array.isArray(tolerance) || Array.isArray(strength)) {
+      return [this,quantum,tolerance,strength].flop().map(function(items) {
+        return items[0].quantize(items[1],items[2],items[3]);
+      });
+    }
+    quantum = typeof quantum === "undefined" ? 1 : quantum;
+    tolerance = typeof tolerance === "undefined" ? 0.05 : tolerance;
+    strength = typeof strength === "undefined" ? 1 : strength;
+    var round = this.round(quantum);
+    var diff = round - this;
+    if (Math.abs(diff) < tolerance) {
+      return this + (strength * diff);
+    }
+    return this;
+  },
+  Array: function(quantum, tolerance, strength) {
+    return this.map(function(x) { return x.quantize(quantum, tolerance, strength); });
+  }
+});
+
+/**
+ * converts radian to degree
+ * @arguments _none_
+ */
+sc.define("raddeg", {
+  Number: function() {
+    return this * 180 / Math.PI;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.raddeg(); });
+  }
+});
+
+/**
+ * Map receiver onto a ramp starting at 0.
+ * @arguments _none_
+ */
+sc.define("ramp", {
+  Number: function() {
+    if (this <= 0) { return 0; }
+    if (this >= 1) { return 1; }
+    return this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.ramp(); });
+  }
+});
+
+/**
+ * Fill a Array with random values in the range *minVal* to *maxVal*.
+ * @arguments _(size [, minVal=0, maxVal=1])_
+ * @example
+ *  Array.rand(8, 1, 100);
+ */
+sc.define("*rand", {
+  Array: function(size, minVal, maxVal) {
+    minVal = minVal === void 0 ? 0 : minVal;
+    maxVal = maxVal === void 0 ? 1 : maxVal;
+    var a = new Array(size|0);
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = minVal.rrand(maxVal);
+    }
+    return a;
+  }
+});
+
+/**
+ * Random number from zero up to the receiver, exclusive.
+ * @arguments _none_
+ */
+sc.define("rand", {
+  Number: function() {
+    return Math.random() * this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.rand(); });
+  }
+});
+
+/**
+ * Fill an Array with random values in the range -*val* to +*val*.
+ * @arguments _(size [, val=1])_
+ * @example
+ *  Array.rand2(8, 100);
+ */
+sc.define("*rand2", {
+  Array: function(size, val) {
+    val = val === void 0 ? 1 : val;
+    var a = new Array(size|0);
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = val.rand2(val);
+    }
+    return a;
+  }
+});
+
+/**
+ * @returns a random number from -*this* to +*this*.
+ */
+sc.define("rand2", {
+  Number: function() {
+    return (Math.random() * 2 - 1) * this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.rand2(); });
+  }
+});
+
+/**
+ * @example
+ *  Array.r(5); // => [ 0, 1, 2, 3, 4, 5 ]
+ *  Array.r("2..5"); // => [ 2, 3, 4, 5 ]
+ *  Array.r("1, 3..5"); // => [ 1, 3, 5 ]
+ */
+sc.define(["*range", "*r"], {
+  Array: function(cmd) {
+    if (typeof cmd === "string") {
+      var items = cmd.split(/(?:\.\.|,)/);
+      var first, second, last;
+      if (items.length === 3) {
+        first  = +items[0];
+        second = +items[1];
+        last   = +items[2];
+        return (first).series(second, last);
+      } else if (items.length === 2) {
+        first  = +items[0];
+        last   = +items[1];
+        second = first + ((first < +last) ? 1 : -1);
+        return (first).series(second, last);
+      } else if (items.length === 1) {
+        return Array.series((+items[0]) + 1);
+      } else {
+        return [];
+      }
+    } else if (typeof cmd === "number") {
+      return Array.series(cmd + 1);
+    }
+  }
+});
+
+/**
+ * Convert a ratio to an interval in semitones.
+ * @arguments _none_
+ * @returns an interval in semitones
+ * @example
+ *  Array.range("1, 1.2..2").ratiomidi();
+ *  // => [ 0, 3.1564, 5.8251, 8.1368, 10.1759, 11.9999 ]
+ */
+sc.define("ratiomidi", {
+  Number: function() {
+    return Math.log(Math.abs(this)) * Math.LOG2E * 12;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.ratiomidi(); });
+  }
+});
+
+/**
+ * 1 / this
+ * @arguments _none_
+ */
+sc.define("reciprocal", {
+  Number: function() {
+    return 1 / this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.reciprocal(); });
+  }
+});
+
+/**
+ * a value for a rectangular window function between 0 and 1.
+ * @arguments _none_
+ */
+sc.define("rectWindow", {
+  Number: function() {
+    if (this < 0 || this > 1) { return 0; }
+    return 1;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.rectWindow(); });
+  }
+});
+
+/**
+ * Answer a new collection which consists of all items in the receiver for which *function* answers False. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ */
+sc.define("reject", {
+  Array: function(func) {
+    func = sc.func(func);
+    return this.filter(function(x, i) { return !func(x, i); });
+  }
+});
+
+/**
+ * Remove *item* from the receiver.
+ * @arguments _(item)_
+ */
+sc.define("remove", {
+  Array: function(item) {
+    var index = this.indexOf(item);
+    if (index !== -1) {
+      return this.splice(index, 1)[0];
+    }
+    return null;
+  }
+});
+
+/**
+ * Remove all items in array from the receiver.
+ * @arguments _(list)_
+ */
+sc.define("removeAll", {
+  Array: function(list) {
+    for (var i = 0, imax = list.length; i < imax; ++i) {
+      var index = this.indexOf(list[i]);
+      if (index !== -1) {
+        this.splice(index, 1);
+      }
+    }
+    return this;
+  }
+});
+
+/**
+ * Remove all items in the receiver for which function answers True. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ */
+sc.define("removeAllSuchThat", {
+  Array: function(func) {
+    func = sc.func(func);
+    var remIndices = [], results = [], i, imax;
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      if (func(this[i], i)) {
+        remIndices.push(i);
+        results.push(this[i]);
+      }
+    }
+    for (i = remIndices.length; i--; ) {
+      this.splice(remIndices[i], 1);
+    }
+    return results;
+  }
+});
+
+/**
+ * Remove and return the element at *index*, shrinking the size of the Array.
+ * @arguments _(index)_
+ */
+sc.define("removeAt", {
+  Array: function(index) {
+    if (index >= 0) {
+      return this.splice(index|0, 1)[0];
+    }
+  }
+});
+
+/**
+ * Remove all occurrences of the items in array from the receiver.
+ * @arguments _(list)_
+ */
+sc.define("removeEvery", {
+  Array: function(list) {
+    var index;
+    for (var i = 0, imax = list.length; i < imax; ++i) {
+      do {
+        index = this.indexOf(list[i]);
         if (index !== -1) {
           this.splice(index, 1);
         }
-      }
-      return this;
+      } while (index !== -1);
     }
-  });
+    return this;
+  }
+});
 
-})(sc);
+sc.define("removing", {
+  Array: function(item) {
+    var a = this.slice();
+    a.remove(item);
+    return a;
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("removeAllSuchThat", {
-    Array: function(func) {
-      func = sc.func(func);
-      var remIndices = [], results = [], i, imax;
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (func(this[i], i)) {
-          remIndices.push(i);
-          results.push(this[i]);
-        }
-      }
-      for (i = remIndices.length; i--; ) {
-        this.splice(remIndices[i], 1);
-      }
-      return results;
+/**
+ * Return a new array in which a number of elements have been replaced by another.
+ * @arguments _(find, replace)_
+ */
+sc.define("replace", {
+  Array: function(find, replace) {
+    var index, out = [], array = this;
+    find = find.asArray();
+    replace = replace.asArray();
+    while ((index = array.find(find)) !== -1) {
+      out = out.concat(array.keep(index), replace);
+      array = array.drop(index + find.length);
     }
-  });
+    return out.concat(array);
+  }
+});
 
-})(sc);
+/**
+ * Returns a new Array of the desired length, with values resampled evenly-spaced from the receiver without interpolation.
+ * @arguments _(newSize)_
+ * @example
+ *  [1, 2, 3, 4].resamp0(12); // => [ 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4 ]
+ *  [1, 2, 3, 4].resamp0( 2); // => [ 1, 4 ]
+ */
+sc.define("resamp0", {
+  Array: function(newSize) {
+    var factor = (this.length - 1) / (newSize - 1);
+    var a = new Array(newSize);
+    for (var i = 0; i < newSize; ++i) {
+      a[i] = this[Math.round(i * factor)];
+    }
+    return a;
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Returns a new Collection of the desired length, with values resampled evenly-spaced from the receiver with linear interpolation.
+ * @arguments _(newSize)_
+ * @example
+ *  [1, 2, 3, 4].resamp1(12); // => [ 1, 1.2727, 1.5454, ... , 3.7272, 4 ]
+ *  [1, 2, 3, 4].resamp1( 3); // => [ 1, 2.5, 4 ]
+ */
+sc.define("resamp1", {
+  Array: function(newSize) {
+    var factor = (this.length - 1) / (newSize - 1);
+    var a = new Array(newSize);
+    for (var i = 0; i < newSize; ++i) {
+      a[i] = this.blendAt(i * factor);
+    }
+    return a;
+  }
+});
 
-  sc.register("removeAt", {
-    Array: function(index) {
-      if (index >= 0) {
-        return this.splice(index|0, 1)[0];
+/**
+ * Return a new Array whose elements are reversed.
+ * @arguments _none_
+ */
+sc.define(["reverse", "sc_reverse"], {
+  Array: function() {
+    return this.slice().reverse();
+  }
+});
+
+/**
+ * Iterate over the elements in reverse order, calling the function for each element. The function is passed two arguments, the element and an index.
+ * @arguments _(function)_
+ */
+sc.define("reverseDo", {
+  Number: function(func) {
+    func = sc.func(func);
+    var i = this|0, j = 0;
+    while (--i >= 0) {
+      func(i, j++);
+    }
+    return this;
+  }
+});
+
+sc.define(["rightShift", ">>"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.rightShift(num); }, this);
+    }
+    return this >> num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.rightShift(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.rightShift(num); });
+    }
+  }
+});
+
+/**
+ * (a * b) + a
+ * @arguments _(number)_
+ */
+sc.define("ring1", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.ring1(num); }, this);
+    }
+    return this * num + this;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.ring1(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.ring1(num); });
+    }
+  }
+});
+
+/**
+ * ((a*b) + a + b)
+ * @arguments _(number)_
+ */
+sc.define("ring2", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.ring2(num); }, this);
+    }
+    return this * num + this + num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.ring2(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.ring2(num); });
+    }
+  }
+});
+
+/**
+ * (a * a *b)
+ * @arguments _(number)_
+ */
+sc.define("ring3", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.ring3(num); }, this);
+    }
+    return this * this * +num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.ring3(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.ring3(num); });
+    }
+  }
+});
+
+/**
+ * ((a * a * b) - (a * b * b))
+ * @arguments _(number)_
+ */
+sc.define("ring4", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.ring4(num); }, this);
+    }
+    return this * this * num - this * num * num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.ring4(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.ring4(num); });
+    }
+  }
+});
+
+/**
+ * Return a new Array whose elements are in rotated order. The receiver is unchanged.
+ * @arguments _(n)_
+ * @example
+ *  [1, 2, 3, 4].rotate( 1); // => [ 4, 1, 2, 3 ]
+ *  [1, 2, 3, 4].rotate(-1); // => [ 2, 3, 4, 1 ]
+ */
+sc.define("rotate", {
+  Array: function(n) {
+    n = n === void 0 ? 1 : n|0;
+    var a = new Array(this.length);
+    var size = a.length;
+    n %= size;
+    if (n < 0) { n = size + n; }
+    for (var i = 0, j = n; i < size; ++i) {
+      a[j] = this[i];
+      if (++j >= size) { j = 0; }
+    }
+    return a;
+  }
+});
+
+/**
+ * Round to multiple of aNumber
+ * @arguments _(number)_
+ */
+sc.define("round", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.round(num); }, this);
+    }
+    return num === 0 ? 0 : Math.round(this / num) * num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.round(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.round(num); });
+    }
+  }
+});
+
+/**
+ * round up to a multiply of aNumber
+ * @arguments _(number)_
+ */
+sc.define("roundUp", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.roundUp(num); }, this);
+    }
+    return num === 0 ? 0 : Math.ceil(this / num) * num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.roundUp(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.roundUp(num); });
+    }
+  }
+});
+
+/**
+ * a random number in the interval ]a, b[.
+ * @arguments _(number)_
+ */
+sc.define("rrand", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.rrand(num); }, this);
+    }
+    return this > num ?
+      Math.random() * (num - this) + this :
+      Math.random() * (this - num) + num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.rrand(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.rrand(num); });
+    }
+  }
+});
+
+/**
+ * a * b when a < 0, otherwise a.
+ * @arguments _(number)_
+ */
+sc.define("scaleneg", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.scaleneg(num); }, this);
+    }
+    num = 0.5 * num + 0.5;
+    return (Math.abs(this) - this) * num + this;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.scaleneg(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.scaleneg(num); });
+    }
+  }
+});
+
+/**
+ * Returns a new Array whose elements have been scrambled. The receiver is unchanged.
+ * @arguments _none_
+ */
+sc.define(["scramble", "shuffle"], {
+  Array: function() {
+    var a = this.slice(0);
+    var i, j, t, m, k = a.length;
+    for (i = 0, m = k; i < k - 1; i++, m--) {
+      j = i + ((Math.random() * m)|0);
+      t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+});
+
+/**
+ * Map receiver in the onto an S-curve.
+ * @arguments _none_
+ */
+sc.define("scurve", {
+  Number: function() {
+    if (this <= 0) { return 0; }
+    if (this >= 1) { return 1; }
+    return this * this * (3 - 2 * this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.scurve(); });
+  }
+});
+
+/**
+ * Return the set theoretical intersection of this and *that*.
+ * @arguments _(that)_
+ * @example
+ *  [1, 2, 3].sect([2, 3, 4, 5]); // => [ 2, 3 ]
+ */
+sc.define("sect", {
+  Array: function(that) {
+    var result = [], i, imax;
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      if (that.indexOf(this[i]) !== -1) {
+        result.push(this[i]);
       }
     }
-  });
+    return result;
+  }
+});
 
-})(sc);
+/**
+ * Answer a new collection which consists of all items in the receiver for which function answers True. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ */
+sc.define("select", {
+  Array: function(func) {
+    return this.filter(sc.func(func));
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("removeEvery", {
-    Array: function(list) {
-      var index;
-      for (var i = 0, imax = list.length; i < imax; ++i) {
-        do {
-          index = this.indexOf(list[i]);
-          if (index !== -1) {
-            this.splice(index, 1);
-          }
-        } while (index !== -1);
+/**
+ * Separates the collection into sub-collections by calling the function for each adjacent pair of elements. If the function returns true, then a separation is made between the elements.
+ * @arguments _(function)_
+ * @example
+ *  Array.range("0..10").separate("isPrime");
+ *  // => [ [0,1,2] , [3], [4,5], [6,7], [8,9,10] ]
+ */
+sc.define("separate", {
+  Array: function(func) {
+    var list, sublist;
+    func = func === void 0 ? sc.func(true) : sc.func(func);
+    list = [];
+    sublist = [];
+    this.doAdjacentPairs(function(a, b, i) {
+      sublist.push(a);
+      if (func(a, b, i)) {
+        list.push(sublist);
+        sublist = [];
       }
-      return this;
+    });
+    if (this.length > 0) {
+      sublist.push(this[this.length-1]);
     }
-  });
+    list.push(sublist);
+    return list;
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("removing", {
-    Array: function(item) {
-      var a = this.slice();
-      a.remove(item);
-      return a;
+/**
+ * Fill an Array with an arithmetic series.
+ * @arguments (size [, start=0, step=1])
+ * @example
+ *  Array.series(5, 10, 2); // => [ 10, 12, 14, 16, 18 ]
+ */
+sc.define("*series", {
+  Array: function(size, start, step) {
+    start = start === void 0 ? 0 : start;
+    step  = step  === void 0 ? 1 : step;
+    var a = new Array(size|0);
+    for (var i = 0, imax = a.length; i < imax; i++) {
+      a[i] = start + (step * i);
     }
-  });
+    return a;
+  }
+});
 
-})(sc);
+/**
+ * return an artithmetic series from this over second to last.
+ * @arguments (second, last)
+ * @example
+ *  (5).series(7, 10); // => [ 5, 7, 9 ]
+ */
+sc.define("series", {
+  Number: function(second, last) {
+    var step = second - this;
+    var size = (Math.floor((last - this) / step + 0.001)|0) + 1;
+    return Array.series(size, this, step);
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("replace", {
-    Array: function(find, replace) {
-      var index, out = [], array = this;
-      find = find.asArray();
-      replace = replace.asArray();
-      while ((index = array.find(find)) !== -1) {
-        out = out.concat(array.keep(index), replace);
-        array = array.drop(index + find.length);
+/**
+ * set nth bit to zero (bool = false) or one (bool = true)
+ * @arguments _(number, bool)_
+ */
+sc.define("setBit", {
+  Number: function(num, bool) {
+    if (Array.isArray(num)) {
+      var that = this;
+      for (var i = 0, imax = num.length; i < imax; ++i) {
+        that = that.setBit(num[i], bool);
       }
-      return out.concat(array);
+      return that;
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("resamp0", {
-    Array: function(newSize) {
-      var factor = (this.length - 1) / (newSize - 1);
-      var a = new Array(newSize);
-      for (var i = 0; i < newSize; ++i) {
-        a[i] = this[Math.round(i * factor)];
-      }
-      return a;
+    bool = bool === void 0 ? true : !!bool;
+    if (bool) {
+      return this | (1 << num);
+    } else {
+      return this & ~(1 << num);
     }
-  });
+  },
+  Array: function(num, bool) {
+    return this.map(function(x) { return x.setBit(num, bool); });
+  }
+});
 
-})(sc);
+/**
+ * Answer -1 if negative, +1 if positive or 0 if zero.
+ * @arguments _none_
+ */
+sc.define("sign", {
+  Number: function() {
+    return this > 0 ? +1 : this === 0 ? 0 : -1;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.sign(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Sine
+ * @arguments _none_
+ */
+sc.define("sin", {
+  Number: function() {
+    return Math.sin(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.sin(); });
+  }
+});
 
-  sc.register("resamp1", {
-    Array: function(newSize) {
-      var factor = (this.length - 1) / (newSize - 1);
-      var a = new Array(newSize);
-      for (var i = 0; i < newSize; ++i) {
-        a[i] = this.blendAt(i * factor);
-      }
-      return a;
-    }
-  });
+/**
+ * Hyperbolic sine
+ * @arguments _none_
+ */
+sc.define("sinh", {
+  Number: function() {
+    return (Math.pow(Math.E, this) - Math.pow(Math.E, -this)) * 0.5;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.sinh(); });
+  }
+});
 
-})(sc);
+/**
+ * Return the number of elements the ArrayedCollection.
+ * @arguments _none_
+ */
+sc.define("size", {
+  Number: function() {
+    return 0;
+  },
+  Boolean: function() {
+    return 0;
+  },
+  Array: function() {
+    return this.length;
+  },
+  String: function() {
+    return this.length;
+  },
+  Function: function() {
+    return 0;
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register(["reverse", "sc_reverse"], {
-    Array: function() {
-      return this.slice().reverse();
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("reverseDo", {
-    Number: function(func) {
-      func = sc.func(func);
-      var i = this|0, j = 0;
-      while (--i >= 0) {
-        func(i, j++);
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["rightShift", ">>"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.rightShift(num); }, this);
-      }
-      return this >> num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.rightShift(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.rightShift(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("ring1", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.ring1(num); }, this);
-      }
-      return this * num + this;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.ring1(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.ring1(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("ring2", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.ring2(num); }, this);
-      }
-      return this * num + this + num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.ring2(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.ring2(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("ring3", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.ring3(num); }, this);
-      }
-      return this * this * +num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.ring3(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.ring3(num); });
+/**
+ * Return a new Array whose elements are repeated subsequences from the receiver. Easier to demonstrate than explain.
+ * @arguments _([windowLength=3, stepSize=1])_
+ * @example
+ *  [1, 2, 3, 4, 5, 6].slide(3, 1); // => [ 1, 2, 3, 2, 3, 4, 3, 4, 5, 4, 5, 6 ]
+ */
+sc.define("slide", {
+  Array: function(windowLength, stepSize) {
+    var obj1, obj2, numslots, numwin, h, i, j, k, m, n;
+    windowLength = windowLength === void 0 ? 3 : windowLength;
+    stepSize     = stepSize     === void 0 ? 1 : stepSize;
+    obj1 = this;
+    obj2 = [];
+    m = windowLength;
+    n = stepSize;
+    numwin = ((this.length + n - m) / n)|0;
+    numslots = numwin * m;
+    for (i=h=k=0; i<numwin; ++i,h+=n) {
+      for (j=h; j<m+h; ++j) {
+        obj2[k++] = obj1[j];
       }
     }
-  });
+    return obj2;
+  }
+});
 
-})(sc);
+/**
+ * Distortion with a perfectly linear region from -0.5 to +0.5
+ * @arguments _none_
+ */
+sc.define("softclip", {
+  Number: function() {
+    var absx = Math.abs(this);
+    return absx <= 0.5 ? this : (absx - 0.25) / this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.softclip(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("ring4", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.ring4(num); }, this);
-      }
-      return this * this * num - this * num * num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.ring4(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.ring4(num); });
-      }
+/**
+ * Return a new Array of length maxlen with the items partly repeated (random choice of given probability).
+ * @arguments _([probability=0.25, maxlen=100])_
+ */
+sc.define("sputter", {
+  Array: function(probability, maxlen) {
+    probability = probability === void 0 ? 0.25 : probability;
+    maxlen      = maxlen      === void 0 ? 100  : maxlen|0;
+    var a = [], i = 0, j = 0, size = this.length;
+    while (i < size && j < maxlen) {
+      a[j++] = this[i];
+      if (probability < Math.random()) { i += 1; }
     }
-  });
+    return a;
+  }
+});
 
-})(sc);
+/**
+ * (a - b) ** 2
+ * @arguments _(number)_
+ */
+sc.define("sqrdif", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.sqrdif(num); }, this);
+    }
+    var z = this - num;
+    return z * z;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.sqrdif(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.sqrdif(num); });
+    }
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * (a + b) ** 2
+ * @arguments _(number)_
+ */
+sc.define("sqrsum", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.sqrsum(num); }, this);
+    }
+    var z = this + num;
+    return z * z;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.sqrsum(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.sqrsum(num); });
+    }
+  }
+});
 
-  sc.register("rotate", {
-    Array: function(n) {
-      n = n === void 0 ? 1 : n|0;
-      var a = new Array(this.length);
-      var size = a.length;
-      n %= size;
-      if (n < 0) { n = size + n; }
-      for (var i = 0, j = n; i < size; ++i) {
+/**
+ * the square root of the number.
+ * @arguments _none_
+ */
+sc.define("sqrt", {
+  Number: function() {
+    return Math.sqrt(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.sqrt(); });
+  }
+});
+
+/**
+ * the square of the number
+ * @arguments _none_
+ */
+sc.define("squared", {
+  Number: function() {
+    return this * this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.squared(); });
+  }
+});
+
+/**
+ * Return a new Array whose elements are repeated n times.
+ * @arguments _(n)_
+ * @example
+ *  [1, 2, 3].stutter(2); // => [ 1, 1, 2, 2, 3, 3 ]
+ */
+sc.define("stutter", {
+  Array: function(n) {
+    n = n === void 0 ? 2 : Math.max(0, n|0);
+    var a = new Array(this.length * n);
+    for (var i = 0, j = 0, imax = this.length; i < imax; ++i) {
+      for (var k = 0; k < n; ++k, ++j) {
         a[j] = this[i];
-        if (++j >= size) { j = 0; }
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("round", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.round(num); }, this);
-      }
-      return num === 0 ? 0 : Math.round(this / num) * num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.round(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.round(num); });
       }
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("roundUp", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.roundUp(num); }, this);
-      }
-      return num === 0 ? 0 : Math.ceil(this / num) * num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.roundUp(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.roundUp(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("rrand", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.rrand(num); }, this);
-      }
-      return this > num ?
-        Math.random() * (num - this) + this :
-        Math.random() * (this - num) + num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.rrand(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.rrand(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("scaleneg", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.scaleneg(num); }, this);
-      }
-      num = 0.5 * num + 0.5;
-      return (Math.abs(this) - this) * num + this;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.scaleneg(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.scaleneg(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register(["scramble", "shuffle"], {
-    Array: function() {
-      var a = this.slice(0);
-      var i, j, t, m, k = a.length;
-      for (i = 0, m = k; i < k - 1; i++, m--) {
-        j = i + ((Math.random() * m)|0);
-        t = a[i];
-        a[i] = a[j];
-        a[j] = t;
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("scurve", {
-    Number: function() {
-      if (this <= 0) { return 0; }
-      if (this >= 1) { return 1; }
-      return this * this * (3 - 2 * this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.scurve(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sect", {
-    Array: function(that) {
-      var result = [], i, imax;
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (that.indexOf(this[i]) !== -1) {
-          result.push(this[i]);
-        }
-      }
-      return result;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("select", {
-    Array: function(func) {
-      return this.filter(sc.func(func));
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("separate", {
-    Array: function(func) {
-      var list, sublist;
-      func = func === void 0 ? sc.func(true) : sc.func(func);
-      list = [];
-      sublist = [];
-      this.doAdjacentPairs(function(a, b, i) {
-        sublist.push(a);
-        if (func(a, b, i)) {
-          list.push(sublist);
-          sublist = [];
-        }
-      });
-      if (this.length > 0) {
-        sublist.push(this[this.length-1]);
-      }
-      list.push(sublist);
-      return list;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Fill an Array with an arithmetic series.
-   * @arguments (size [, start=0, step=1])
-   * @example
-   *  Array.series(5, 10, 2); // => [ 10, 12, 14, 16, 18 ]
-   */
-  sc.register("*series", {
-    Array: function(size, start, step) {
-      start = start === void 0 ? 0 : start;
-      step  = step  === void 0 ? 1 : step;
-      var a = new Array(size|0);
-      for (var i = 0, imax = a.length; i < imax; i++) {
-        a[i] = start + (step * i);
-      }
-      return a;
-    }
-  });
-
-  /**
-   * return an artithmetic series from this over second to last.
-   * @arguments (second, last)
-   * @example
-   *  (5).series(7, 10); // => [ 5, 7, 9 ]
-   */
-  sc.register("series", {
-    Number: function(second, last) {
-      var step = second - this;
-      var size = (Math.floor((last - this) / step + 0.001)|0) + 1;
-      return Array.series(size, this, step);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("setBit", {
-    Number: function(num, bool) {
-      if (Array.isArray(num)) {
-        var that = this;
-        for (var i = 0, imax = num.length; i < imax; ++i) {
-          that = that.setBit(num[i], bool);
-        }
-        return that;
-      }
-      bool = bool === void 0 ? true : !!bool;
-      if (bool) {
-        return this | (1 << num);
-      } else {
-        return this & ~(1 << num);
-      }
-    },
-    Array: function(num, bool) {
-      return this.map(function(x) { return x.setBit(num, bool); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Answer -1 if negative, +1 if positive or 0 if zero.
-   */
-  sc.register("sign", {
-    Number: function() {
-      return this > 0 ? +1 : this === 0 ? 0 : -1;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.sign(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Sine
-   */
-  sc.register("sin", {
-    Number: function() {
-      return Math.sin(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.sin(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Hyperbolic sine
-   */
-  sc.register("sinh", {
-    Number: function() {
-      return (Math.pow(Math.E, this) - Math.pow(Math.E, -this)) * 0.5;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.sinh(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("size", {
-    Number: function() {
-      return 0;
-    },
-    Boolean: function() {
-      return 0;
-    },
-    Array: function() {
-      return this.length;
-    },
-    String: function() {
-      return this.length;
-    },
-    Function: function() {
-      return 0;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("slide", {
-    Array: function(windowLength, stepSize) {
-      var obj1, obj2, numslots, numwin, h, i, j, k, m, n;
-      windowLength = windowLength === void 0 ? 3 : windowLength;
-      stepSize     = stepSize     === void 0 ? 1 : stepSize;
-      obj1 = this;
-      obj2 = [];
-      m = windowLength;
-      n = stepSize;
-      numwin = ((this.length + n - m) / n)|0;
-      numslots = numwin * m;
-      for (i=h=k=0; i<numwin; ++i,h+=n) {
-        for (j=h; j<m+h; ++j) {
-          obj2[k++] = obj1[j];
-        }
-      }
-      return obj2;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("softclip", {
-    Number: function() {
-      var absx = Math.abs(this);
-      return absx <= 0.5 ? this : (absx - 0.25) / this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.softclip(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sputter", {
-    Array: function(probability, maxlen) {
-      probability = probability === void 0 ? 0.25 : probability;
-      maxlen      = maxlen      === void 0 ? 100  : maxlen|0;
-      var a = [], i = 0, j = 0, size = this.length;
-      while (i < size && j < maxlen) {
-        a[j++] = this[i];
-        if (probability < Math.random()) { i += 1; }
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sqrdif", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.sqrdif(num); }, this);
-      }
-      var z = this - num;
-      return z * z;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.sqrdif(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.sqrdif(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sqrsum", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.sqrsum(num); }, this);
-      }
-      var z = this + num;
-      return z * z;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.sqrsum(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.sqrsum(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * the square root of the number.
-   */
-  sc.register("sqrt", {
-    Number: function() {
-      return Math.sqrt(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.sqrt(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * the square of the number
-   */
-  sc.register("squared", {
-    Number: function() {
-      return this * this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.squared(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("stutter", {
-    Array: function(n) {
-      n = n === void 0 ? 2 : Math.max(0, n|0);
-      var a = new Array(this.length * n);
-      for (var i = 0, j = 0, imax = this.length; i < imax; ++i) {
-        for (var k = 0; k < n; ++k, ++j) {
-          a[j] = this[i];
-        }
-      }
-      return a;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sum", {
-    Array: function(func) {
-      var sum = 0, i, imax;
-      if (func) {
-        func = sc.func(func);
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          sum = sum.opAdd(func(this[i]));
-        }
-      } else {
-        // optimized version if no function
-        for (i = 0, imax = this.length; i < imax; ++i) {
-          sum = sum.opAdd(this[i]);
-        }
-      }
-      return sum;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sum3rand", {
-    Number: function() {
-      return (Math.random() + Math.random() + Math.random() - 1.5) * 0.666666667 * this;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.sum3rand(); });
-    }
-  });
-
-})(sc);
-
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sumabs", {
-    Array: function() {
-      var sum = 0, elem;
-      for (var i = 0, imax = this.length; i < imax; ++i) {
-        elem = Array.isArray(this[i]) ? this[i][0] : this[i];
-        sum = sum + Math.abs(elem);
-      }
-      return sum;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("sumsqr", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.sumsqr(num); }, this);
-      }
-      return this * this + num * num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.sumsqr(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.sumsqr(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Swap two elements in the collection at indices i and j.
-   * @arguments _(i, j)_
-   * @example
-   *  [0,1,2,3,4,5].swap(2, 3); // => [0, 1, 3, 2, 4, 5]
-   */
-  sc.register("swap", {
-    Array: function(i, j) {
-      if (0 <= i && i < this.length && 0 <= j && j < this.length) {
-        var t = this[i|0];
-        this[i|0] = this[j|0];
-        this[j|0] = t;
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("symmetricDifference", {
-    Array: function(that) {
-      var result = [], i, imax;
-      for (i = 0, imax = this.length; i < imax; ++i) {
-        if (that.indexOf(this[i]) === -1) {
-          result.push(this[i]);
-        }
-      }
-      for (i = 0, imax = that.length; i < imax; ++i) {
-        if (this.indexOf(that[i]) === -1) {
-          result.push(that[i]);
-        }
-      }
-      return result;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("take", {
-    Array: function(item) {
-      var index = this.indexOf(item);
-      if (index !== -1) {
-        return this.takeAt(index);
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("takeAt", {
-    Array: function(index) {
-      index |= 0;
-      if (0 <= index && index < this.length) {
-        var retVal = this[index];
-        var instead = this.pop();
-        if (index !== this.length) {
-          this[index] = instead;
-        }
-        return retVal;
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("takeThese", {
-    Array: function(func) {
+    return a;
+  }
+});
+
+/**
+ * Answer the sum of the results of function evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ * @example
+ *  Array.range("0..10").sum(); // => 55
+ */
+sc.define("sum", {
+  Array: function(func) {
+    var sum = 0, i, imax;
+    if (func) {
       func = sc.func(func);
-      var i = 0;
-      while (i < this.length) {
-        if (func(this[i], i)) {
-          this.takeAt(i);
-        } else {
-          ++i;
-        }
-      }
-      return this;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Tangent
-   */
-  sc.register("tan", {
-    Number: function() {
-      return Math.tan(this);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.tan(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Hyperbolic tangent
-   */
-  sc.register("tanh", {
-    Number: function() {
-      return this.sinh() / this.cosh();
-    },
-    Array: function() {
-      return this.map(function(x) { return x.tanh(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("thresh", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.thresh(num); }, this);
-      }
-      return this < num ? 0 : this;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.thresh(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.thresh(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("transposeKey", {
-    Array: function(amout, octave) {
-      octave = octave === void 0 ? 12 : octave;
-      return this.opAdd(amout).opMod(octave).sort();
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("triWindow", {
-    Number: function() {
-      if (this < 0 || this > 1) { return 0; }
-      return (this < 0.5) ? 2 * this : -2 * this + 2;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.triWindow(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("trunc", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.trunc(num); }, this);
-      }
-      return num === 0 ? this : Math.floor(this / num) * num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.trunc(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.trunc(num); });
-      }
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("twice", {
-    Number: function() {
-      return this * 2;
-    },
-    Array: function() {
-      return this.map(function(x) { return x.twice(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("unbubble", {
-    Array: function(depth, levels) {
-      depth  = depth  === void 0 ? 0 : depth;
-      levels = levels === void 0 ? 1 : levels;
-      if (depth <= 0) {
-        // converts a size 1 array to the item.
-        if (this.length > 1) { return this; }
-        if (levels <= 1) { return this[0]; }
-        return this.unbubble(depth, levels-1);
-      }
-      return this.map(function(item) {
-        return item.unbubble(depth-1);
-      });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("union", {
-    Array: function(that) {
-      var result = this.slice(), i, imax;
-      for (i = 0, imax = that.length; i < imax; ++i) {
-        if (result.indexOf(that[i]) === -1) {
-          result.push(that[i]);
-        }
-      }
-      return result;
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("uniq", {
-    Array: function() {
-      var result = [], i, imax;
       for (i = 0, imax = this.length; i < imax; ++i) {
-        if (result.indexOf(this[i]) === -1) {
-          result.push(this[i]);
-        }
+        sum = sum.opAdd(func(this[i]));
       }
-      return result;
+    } else {
+      // optimized version if no function
+      for (i = 0, imax = this.length; i < imax; ++i) {
+        sum = sum.opAdd(this[i]);
+      }
     }
-  });
+    return sum;
+  }
+});
 
-})(sc);
+/**
+ * This was suggested by Larry Polansky as a poor man's gaussian.
+ * @arguments _none_
+ */
+sc.define("sum3rand", {
+  Number: function() {
+    return (Math.random() + Math.random() + Math.random() - 1.5) * 0.666666667 * this;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.sum3rand(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+sc.define("sumabs", {
+  Array: function() {
+    var sum = 0, elem;
+    for (var i = 0, imax = this.length; i < imax; ++i) {
+      elem = Array.isArray(this[i]) ? this[i][0] : this[i];
+      sum = sum + Math.abs(elem);
+    }
+    return sum;
+  }
+});
 
-  sc.register(["unsignedRightShift", ">>>"], {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.unsignedRightShift(num); }, this);
+/**
+ * (a * a) + (b * b)
+ * @arguments _(number)_
+ */
+sc.define("sumsqr", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.sumsqr(num); }, this);
+    }
+    return this * this + num * num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.sumsqr(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.sumsqr(num); });
+    }
+  }
+});
+
+/**
+ * Swap two elements in the collection at indices i and j.
+ * @arguments _(i, j)_
+ * @example
+ *  [0,1,2,3,4,5].swap(2, 3); // => [0, 1, 3, 2, 4, 5]
+ */
+sc.define("swap", {
+  Array: function(i, j) {
+    if (0 <= i && i < this.length && 0 <= j && j < this.length) {
+      var t = this[i|0];
+      this[i|0] = this[j|0];
+      this[j|0] = t;
+    }
+    return this;
+  }
+});
+
+/**
+ * Return the set of all items which are not elements of both this and *that*. this -- that
+ * @arguments _(that)_
+ * @example
+ *  [1, 2, 3].symmetricDifference([2, 3, 4, 5]); // => [ 1, 4, 5 ]
+ */
+sc.define("symmetricDifference", {
+  Array: function(that) {
+    var result = [], i, imax;
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      if (that.indexOf(this[i]) === -1) {
+        result.push(this[i]);
       }
-      return this >>> num;
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.unsignedRightShift(num.wrapAt(i)); });
+    }
+    for (i = 0, imax = that.length; i < imax; ++i) {
+      if (this.indexOf(that[i]) === -1) {
+        result.push(that[i]);
+      }
+    }
+    return result;
+  }
+});
+
+/**
+ * Remove and return *item* from collection. The last item in the collection will move to occupy the vacated slot (and the collection size decreases by one).
+ * @arguments _(item)_
+ * @example
+ *  a =  [11, 12, 13, 14, 15];
+ *  a.take(12); // => 12
+ *  a; => [ 11, 15, 13, 14 ]
+ */
+sc.define("take", {
+  Array: function(item) {
+    var index = this.indexOf(item);
+    if (index !== -1) {
+      return this.takeAt(index);
+    }
+  }
+});
+
+/**
+ * Similar to `removeAt`, but does not maintain the order of the items following the one that was removed. Instead, the last item is placed into the position of the removed item and the array's size decreases by one.
+ * @arguments _(index)_
+ * @example
+ *  y = [ 1, 2, 3, 4, 5 ];
+ *  y.takeAt(1); // => 2
+ *  y; // => [ 1, 5, 3, 4 ]
+ */
+sc.define("takeAt", {
+  Array: function(index) {
+    index |= 0;
+    if (0 <= index && index < this.length) {
+      var retVal = this[index];
+      var instead = this.pop();
+      if (index !== this.length) {
+        this[index] = instead;
+      }
+      return retVal;
+    }
+  }
+});
+
+/**
+ * Removes all items in the receiver for which the *function* answers true. The function is passed two arguments, the item and an integer index.
+ * @arguments _(function)_
+ * @example
+ *  y = [1, 2, 3, 4];
+ *  y.takeThese("odd"); // => [ 4, 2 ]
+ *  y; // => [ 4, 2 ]
+ */
+sc.define("takeThese", {
+  Array: function(func) {
+    func = sc.func(func);
+    var i = 0;
+    while (i < this.length) {
+      if (func(this[i], i)) {
+        this.takeAt(i);
       } else {
-        return this.map(function(x) { return x.unsignedRightShift(num); });
+        ++i;
       }
     }
-  });
+    return this;
+  }
+});
 
-})(sc);
+/**
+ * Tangent
+ * @arguments _none_
+ */
+sc.define("tan", {
+  Number: function() {
+    return Math.tan(this);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.tan(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Hyperbolic tangent
+ * @arguments _none_
+ */
+sc.define("tanh", {
+  Number: function() {
+    return this.sinh() / this.cosh();
+  },
+  Array: function() {
+    return this.map(function(x) { return x.tanh(); });
+  }
+});
 
-  sc.register("value", {
-    Number: function() {
-      return this;
-    },
-    Boolean: function() {
-      return this;
-    },
-    Array: function() {
-      return this;
-    },
-    String: function() {
-      return this;
-    },
-    Function: function() {
-      return this.apply(this, arguments);
+
+sc.define("thresh", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.thresh(num); }, this);
     }
-  });
+    return this < num ? 0 : this;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.thresh(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.thresh(num); });
+    }
+  }
+});
 
-})(sc);
+sc.define("transposeKey", {
+  Array: function(amout, octave) {
+    octave = octave === void 0 ? 12 : octave;
+    return this.opAdd(amout).opMod(octave).sort();
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * a value for a triangle window function between 0 and 1.
+ * @arguments _none_
+ */
+sc.define("triWindow", {
+  Number: function() {
+    if (this < 0 || this > 1) { return 0; }
+    return (this < 0.5) ? 2 * this : -2 * this + 2;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.triWindow(); });
+  }
+});
 
+/**
+ * Truncate to multiple of aNumber
+ * @arguments _(number)_
+ */
+sc.define("trunc", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.trunc(num); }, this);
+    }
+    return num === 0 ? this : Math.floor(this / num) * num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.trunc(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.trunc(num); });
+    }
+  }
+});
+
+sc.define("twice", {
+  Number: function() {
+    return this * 2;
+  },
+  Array: function() {
+    return this.map(function(x) { return x.twice(); });
+  }
+});
+
+sc.define("unbubble", {
+  Array: function(depth, levels) {
+    depth  = depth  === void 0 ? 0 : depth;
+    levels = levels === void 0 ? 1 : levels;
+    if (depth <= 0) {
+      // converts a size 1 array to the item.
+      if (this.length > 1) { return this; }
+      if (levels <= 1) { return this[0]; }
+      return this.unbubble(depth, levels-1);
+    }
+    return this.map(function(item) {
+      return item.unbubble(depth-1);
+    });
+  }
+});
+
+/**
+ * Return the set theoretical union of this and *that*.
+ * @arguments _(that)_
+ * @example
+ *  [1, 2, 3].union([2, 3, 4, 5]); // => [ 1, 2, 3, 4, 5 ]
+ */
+sc.define("union", {
+  Array: function(that) {
+    var result = this.slice(), i, imax;
+    for (i = 0, imax = that.length; i < imax; ++i) {
+      if (result.indexOf(that[i]) === -1) {
+        result.push(that[i]);
+      }
+    }
+    return result;
+  }
+});
+
+sc.define("uniq", {
+  Array: function() {
+    var result = [], i, imax;
+    for (i = 0, imax = this.length; i < imax; ++i) {
+      if (result.indexOf(this[i]) === -1) {
+        result.push(this[i]);
+      }
+    }
+    return result;
+  }
+});
+
+sc.define(["unsignedRightShift", ">>>"], {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.unsignedRightShift(num); }, this);
+    }
+    return this >>> num;
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.unsignedRightShift(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.unsignedRightShift(num); });
+    }
+  }
+});
+
+sc.define("value", {
+  Number: function() {
+    return this;
+  },
+  Boolean: function() {
+    return this;
+  },
+  Array: function() {
+    return this;
+  },
+  String: function() {
+    return this;
+  },
+  Function: function() {
+    return this.apply(this, arguments);
+  }
+});
+
+sc.define("valueArray", function() {
   var slice = [].slice;
-
-  sc.register("valueArray", {
+  return {
     Number: function() {
       return this;
     },
@@ -6708,221 +6083,185 @@
         }, this);
       }
     }
-  });
+  };
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Choose an element from the collection at random using a list of probabilities or weights. The weights must sum to 1.0.
-   * @arguments _(weights)_
-   * @example
-   *  [1, 2, 3, 4].wchoose([0.1, 0.2, 0.3, 0.4]);
-   */
-  sc.register("wchoose", {
-    Array: function(weights) {
-      var sum = 0;
-      for (var i = 0, imax = weights.length; i < imax; ++i) {
-        sum += weights[i];
-        if (sum >= Math.random()) {
-          return this[i];
-        }
-      }
-      return this[weights.length - 1];
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("welWindow", {
-    Number: function() {
-      if (this < 0 || this > 1) { return 0; }
-      return Math.sin(this * Math.PI);
-    },
-    Array: function() {
-      return this.map(function(x) { return x.welWindow(); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("*with", {
-    Array: function() {
-      return Array.apply(null, arguments);
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("wrap", {
-    Number: function(lo, hi) {
-      if (Array.isArray(lo) || Array.isArray(hi)) {
-        return [this,lo,hi].flop().map(function(items) {
-          return items[0].wrap(items[1], items[2]);
-        });
-      }
-      if (lo > hi) {
-        return this.wrap(hi, lo);
-      }
-      var _in = this, range;
-      if (_in >= hi) {
-        range = hi - lo;
-        _in -= range;
-        if (_in < hi) { return _in; }
-      } else if (_in < lo) {
-        range = hi - lo;
-        _in += range;
-        if (_in >= lo) { return _in; }
-      } else { return _in; }
-
-      if (hi === lo) { return lo; }
-      return _in - range * Math.floor((_in - lo) / range);
-    },
-    Array: function(lo, hi) {
-      return this.map(function(x) { return x.wrap(lo, hi); });
-    }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("wrap2", {
-    Number: function(num) {
-      if (Array.isArray(num)) {
-        return num.map(function(num) { return this.wrap2(num); }, this);
-      }
-      return this.wrap(-num, +num);
-    },
-    Array: function(num) {
-      if (Array.isArray(num)) {
-        return this.map(function(x, i) { return x.wrap2(num.wrapAt(i)); });
-      } else {
-        return this.map(function(x) { return x.wrap2(num); });
+/**
+ * Choose an element from the collection at random using a list of probabilities or weights. The weights must sum to 1.0.
+ * @arguments _(weights)_
+ * @example
+ *  [1, 2, 3, 4].wchoose([0.1, 0.2, 0.3, 0.4]);
+ */
+sc.define("wchoose", {
+  Array: function(weights) {
+    var sum = 0;
+    for (var i = 0, imax = weights.length; i < imax; ++i) {
+      sum += weights[i];
+      if (sum >= Math.random()) {
+        return this[i];
       }
     }
-  });
+    return this[weights.length - 1];
+  }
+});
 
-})(sc);
+/**
+ * a value for a welsh window function between 0 and 1.
+ * @arguments _none_
+ */
+sc.define("welWindow", {
+  Number: function() {
+    if (this < 0 || this > 1) { return 0; }
+    return Math.sin(this * Math.PI);
+  },
+  Array: function() {
+    return this.map(function(x) { return x.welWindow(); });
+  }
+});
 
-(function(sc) {
-  "use strict";
+/**
+ * Create a new Array whose slots are filled with the given arguments.
+ * @arguments _(... args)_
+ */
+sc.define("*with", {
+  Array: function() {
+    return Array.apply(null, arguments);
+  }
+});
 
-  /**
-   * Same as `at`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
-   * @example
-   *  [ 1, 2, 3 ].wrapAt(13); // => 2
-   *  [ 1, 2, 3 ].wrapAt([ 0, 1, 2, 3 ]); // => [ 1, 2, 3, 1 ]
-   */
-  sc.register(["wrapAt", "@@"], {
-    Array: function(index) {
-      if (Array.isArray(index)) {
-        return index.map(function(index) {
-          return this.wrapAt(index);
-        }, this);
-      }
-      return this[(index|0).iwrap(0, this.length-1)];
+/**
+ * Wrapping at *lo* and *hi*.
+ * @arguments _(lo, hi)_
+ */
+sc.define("wrap", {
+  Number: function(lo, hi) {
+    if (Array.isArray(lo) || Array.isArray(hi)) {
+      return [this,lo,hi].flop().map(function(items) {
+        return items[0].wrap(items[1], items[2]);
+      });
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * Returns a new Array whose elements are repeated sequences of the receiver, up to size length. The receiver is unchanged.
-   * @arguments _(size)_
-   * @example
-   *  [ 1, 2, 3 ].wrapExtend(9); // => [ 1, 2, 3, 1, 2, 3, 1, 2, 3 ]
-   */
-  sc.register("wrapExtend", {
-    Array: function(size) {
-      size = Math.max(0, size|0);
-      var a = new Array(size);
-      for (var i = 0; i < size; ++i) {
-        a[i] = this[i % this.length];
-      }
-      return a;
+    if (lo > hi) {
+      return this.wrap(hi, lo);
     }
-  });
+    var _in = this, range;
+    if (_in >= hi) {
+      range = hi - lo;
+      _in -= range;
+      if (_in < hi) { return _in; }
+    } else if (_in < lo) {
+      range = hi - lo;
+      _in += range;
+      if (_in >= lo) { return _in; }
+    } else { return _in; }
 
-})(sc);
+    if (hi === lo) { return lo; }
+    return _in - range * Math.floor((_in - lo) / range);
+  },
+  Array: function(lo, hi) {
+    return this.map(function(x) { return x.wrap(lo, hi); });
+  }
+});
 
-(function(sc) {
-  "use strict";
-
-  sc.register("wrapPut", {
-    Array: function(index, item) {
-      if (typeof index === "number") {
-        this[index.iwrap(0, this.length-1)] = item;
-      } else if (Array.isArray(index)) {
-        index.forEach(function(index) {
-          this.wrapPut(index, item);
-        }, this);
-      }
-      return this;
+sc.define("wrap2", {
+  Number: function(num) {
+    if (Array.isArray(num)) {
+      return num.map(function(num) { return this.wrap2(num); }, this);
     }
-  });
-
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("wrapSwap", {
-    Array: function(i, j) {
-      i = (i|0).iwrap(0, this.length-1);
-      j = (j|0).iwrap(0, this.length-1);
-      var t = this[i];
-      this[i] = this[j];
-      this[j] = t;
-      return this;
+    return this.wrap(-num, +num);
+  },
+  Array: function(num) {
+    if (Array.isArray(num)) {
+      return this.map(function(x, i) { return x.wrap2(num.wrapAt(i)); });
+    } else {
+      return this.map(function(x) { return x.wrap2(num); });
     }
-  });
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  sc.register("xrand", {
-    Number: function(exclude) {
-      exclude = exclude === void 0 ? 0 : exclude;
-      return (exclude + (this - 1).rand() + 1) % this;
+/**
+ * Same as `at`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
+ * @example
+ *  [ 1, 2, 3 ].wrapAt(13); // => 2
+ *  [ 1, 2, 3 ].wrapAt([ 0, 1, 2, 3 ]); // => [ 1, 2, 3, 1 ]
+ */
+sc.define(["wrapAt", "@@"], {
+  Array: function(index) {
+    if (Array.isArray(index)) {
+      return index.map(function(index) {
+        return this.wrapAt(index);
+      }, this);
     }
-  });
+    return this[(index|0).iwrap(0, this.length-1)];
+  }
+});
 
-})(sc);
-
-(function(sc) {
-  "use strict";
-
-  /**
-   * @arguments exclude	an Integer.
-   * @returns a random value from this.neg to this, excluding the value exclude.
-   */
-  sc.register("xrand2", {
-    Number: function(exclude) {
-      exclude = exclude === void 0 ? 0 : exclude;
-      var res = (2 * this).rand() - this;
-      return (res === exclude) ? this : res;
+/**
+ * Returns a new Array whose elements are repeated sequences of the receiver, up to size length. The receiver is unchanged.
+ * @arguments _(size)_
+ * @example
+ *  [ 1, 2, 3 ].wrapExtend(9); // => [ 1, 2, 3, 1, 2, 3, 1, 2, 3 ]
+ */
+sc.define("wrapExtend", {
+  Array: function(size) {
+    size = Math.max(0, size|0);
+    var a = new Array(size);
+    for (var i = 0; i < size; ++i) {
+      a[i] = this[i % this.length];
     }
-  });
+    return a;
+  }
+});
 
-})(sc);
+/**
+ * Same as `put`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
+ * @arguments _(index, item)_
+ */
+sc.define("wrapPut", {
+  Array: function(index, item) {
+    if (typeof index === "number") {
+      this[index.iwrap(0, this.length-1)] = item;
+    } else if (Array.isArray(index)) {
+      index.forEach(function(index) {
+        this.wrapPut(index, item);
+      }, this);
+    }
+    return this;
+  }
+});
+
+sc.define("wrapSwap", {
+  Array: function(i, j) {
+    i = (i|0).iwrap(0, this.length-1);
+    j = (j|0).iwrap(0, this.length-1);
+    var t = this[i];
+    this[i] = this[j];
+    this[j] = t;
+    return this;
+  }
+});
+
+/**
+ * a random value from zero to this, excluding the value exclude.
+ * @arguments _(exclude)_
+ */
+sc.define("xrand", {
+  Number: function(exclude) {
+    exclude = exclude === void 0 ? 0 : exclude;
+    return (exclude + (this - 1).rand() + 1) % this;
+  }
+});
+
+/**
+ * a random value from this.neg to this, excluding the value exclude.
+ * @arguments _(exclude)_
+ */
+sc.define("xrand2", {
+  Number: function(exclude) {
+    exclude = exclude === void 0 ? 0 : exclude;
+    var res = (2 * this).rand() - this;
+    return (res === exclude) ? this : res;
+  }
+});
 
 (function(sc) {
   "use strict";
@@ -7156,31 +6495,31 @@
   // ### MORE THAN TWELVE-TONE ET
   sc.TuningInfo.register(
     "et19",
-    new Tuning(Array.range(0, 19).opMul(12/19), 2, "ET19")
+    new Tuning(Array.range("0..18").opMul(12/19), 2, "ET19")
   );
 
   sc.TuningInfo.register(
     "et22",
-    new Tuning(Array.range(0, 22).opMul(12/22), 2, "ET22")
+    new Tuning(Array.range("0..21").opMul(12/22), 2, "ET22")
   );
 
   sc.TuningInfo.register(
     "et24",
-    new Tuning(Array.range(0, 24).opMul(12/24), 2, "ET24")
+    new Tuning(Array.range("0..23").opMul(12/24), 2, "ET24")
   );
 
   sc.TuningInfo.register(
     "et31",
-    new Tuning(Array.range(0, 31).opMul(12/31), 2, "ET31")
+    new Tuning(Array.range("0..30").opMul(12/31), 2, "ET31")
   );
 
   sc.TuningInfo.register(
     "et41",
-    new Tuning(Array.range(0, 41).opMul(12/41), 2, "ET41")
+    new Tuning(Array.range("0..40").opMul(12/41), 2, "ET41")
   );
   sc.TuningInfo.register(
     "et53",
-    new Tuning(Array.range(0, 53).opMul(12/53), 2, "ET53")
+    new Tuning(Array.range("0..53").opMul(12/53), 2, "ET53")
   );
   // ### NON-TWELVE-TONE JI
   sc.TuningInfo.register(
@@ -7210,25 +6549,25 @@
   // ### HARMONIC SERIES -- length arbitary
   sc.TuningInfo.register(
     "harmonic",
-    new Tuning(Array.range(1,25).ratiomidi(), 2, "Harmonic Series 24")
+    new Tuning(Array.range("1..24").ratiomidi(), 2, "Harmonic Series 24")
   );
   // ### STRETCHED/SHRUNK OCTAVE
   // ### Bohlen-Pierce
   sc.TuningInfo.register(
     "bp",
-    new Tuning(Array.range(13).opMul((3).ratiomidi() / 13), 3.0, "Bohlen-Pierce")
+    new Tuning(Array.range("0..12").opMul((3).ratiomidi() / 13), 3.0, "Bohlen-Pierce")
   );
   sc.TuningInfo.register(
     "wcAlpha",
-    new Tuning(Array.range(15).opMul(0.78), (15 * 0.78).midiratio(), "Wendy Carlos Alpha")
+    new Tuning(Array.range("0..14").opMul(0.78), (15 * 0.78).midiratio(), "Wendy Carlos Alpha")
   );
   sc.TuningInfo.register(
     "wcBeta",
-    new Tuning(Array.range(19).opMul(0.638), (19 * 0.638).midiratio(), "Wendy Carlos Beta")
+    new Tuning(Array.range("0..18").opMul(0.638), (19 * 0.638).midiratio(), "Wendy Carlos Beta")
   );
   sc.TuningInfo.register(
     "wcGamma",
-    new Tuning(Array.range(34).opMul(0.351), (34 * 0.351).midiratio(), "Wendy Carlos Gamma")
+    new Tuning(Array.range("0..33").opMul(0.351), (34 * 0.351).midiratio(), "Wendy Carlos Gamma")
   );
 
   sc.Tuning = Tuning;
@@ -7924,3 +7263,5 @@
   sc.Scale = Scale;
 
 })(sc);
+
+})(this.self||global);

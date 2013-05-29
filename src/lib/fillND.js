@@ -1,6 +1,10 @@
-(function(sc) {
-  "use strict";
-
+/**
+ * Creates a N dimensional Array where N is the size of the array *dimensions*. The items are determined by evaluation of the supplied function. The function is passed N number of indexes as arguments.
+ * @arguments _(dimensions [, function])_
+ * @example
+ *   Array.fillND([1, 2, 3, 4], function(a, b, c, d) { return a+b+c+d; }); // => 4D
+ */
+sc.define("*fillND", function() {
   var fillND = function(dimensions, func, args) {
     var n, a, argIndex, i;
     n = dimensions[0];
@@ -21,11 +25,9 @@
     }
     return a;
   };
-
-  sc.register("*fillND", {
+  return {
     Array: function(dimensions, func) {
       return fillND(dimensions, sc.func(func), []);
     }
-  });
-
-})(sc);
+  };
+});

@@ -1,10 +1,9 @@
-(function(sc) {
-  "use strict";
-
-  sc.register("*with", {
-    Array: function() {
-      return Array.apply(null, arguments);
-    }
-  });
-
-})(sc);
+/**
+ * Create a new Array whose slots are filled with the given arguments.
+ * @arguments _(... args)_
+ */
+sc.define("*with", {
+  Array: function() {
+    return Array.apply(null, arguments);
+  }
+});

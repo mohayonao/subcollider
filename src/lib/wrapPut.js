@@ -1,17 +1,16 @@
-(function(sc) {
-  "use strict";
-
-  sc.register("wrapPut", {
-    Array: function(index, item) {
-      if (typeof index === "number") {
-        this[index.iwrap(0, this.length-1)] = item;
-      } else if (Array.isArray(index)) {
-        index.forEach(function(index) {
-          this.wrapPut(index, item);
-        }, this);
-      }
-      return this;
+/**
+ * Same as `put`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
+ * @arguments _(index, item)_
+ */
+sc.define("wrapPut", {
+  Array: function(index, item) {
+    if (typeof index === "number") {
+      this[index.iwrap(0, this.length-1)] = item;
+    } else if (Array.isArray(index)) {
+      index.forEach(function(index) {
+        this.wrapPut(index, item);
+      }, this);
     }
-  });
-
-})(sc);
+    return this;
+  }
+});

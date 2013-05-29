@@ -1,10 +1,5 @@
-(function(sc) {
-  "use strict";
-
-  sc.register("performNearestInList", {
-    Array: function(degree) {
-      return this[this.indexIn(degree)];
-    }
-  });
-
-})(sc);
+sc.define("performNearestInList", {
+  Array: function(degree) {
+    return this[this.indexIn(degree)];
+  }
+});

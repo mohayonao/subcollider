@@ -40,7 +40,7 @@ module.exports = (grunt)->
         quotmark: 'double'
         undef   : true
         unused  : true
-        strict  : true
+        # strict  : true
         trailing: true
         newcap  : false
         browser : true
@@ -48,7 +48,7 @@ module.exports = (grunt)->
         predef  : ['sc']
     concat:
       src:
-        src : ['src/sc.js', 'src/lib/*.js', 'src/tuning.js', 'src/scale.js']
+        src : ['src/_header.txt', 'src/sc.js', 'src/lib/*.js', 'src/tuning.js', 'src/scale.js', 'src/_footer.txt' ]
         dest: 'build/subcollider.js'
     uglify:
       prototype:
@@ -147,7 +147,7 @@ module.exports = (grunt)->
               [_, key, line] = m
             (obj[key] ? obj[key]=[]).push line
           else
-            if (m = /sc\.register\((.+?),\s*{$/.exec line)
+            if (m = /sc\.define\((.+?),\s*[{\[f]/.exec line)
               x = JSON.parse m[1]
               [name, aliases] = if Array.isArray x
                 [x[0], x.slice(1).join ", "]
@@ -170,6 +170,6 @@ module.exports = (grunt)->
         obj.tag ?= obj.name
         obj
     marked = (text)->
-      text = text.replace /\*(.*?)\*/g, '<b>$1</b>'
+      text = text.replace /\*([^ ].*?)\*/g, '<b>$1</b>'
       text = text.replace /\_(.*?)\_/g, '<i>$1</i>'
       text = text.replace /\`(.*?)\`/g, '<code>$1</code>'

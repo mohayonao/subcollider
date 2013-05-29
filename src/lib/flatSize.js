@@ -1,6 +1,4 @@
-(function(sc) {
-  "use strict";
-
+sc.define("flatSize", function() {
   var flatSize = function(list) {
     if (!Array.isArray(list)) {
       return 1;
@@ -11,11 +9,9 @@
     }
     return size;
   };
-
-  sc.register("flatSize", {
+  return {
     Array: function() {
       return flatSize(this);
     }
-  });
-
-})(sc);
+  };
+});

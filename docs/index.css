@@ -7,8 +7,8 @@ h4 { font-weight:normal; color: #667; letter-spacing:1px; margin-top:10px; }
 #doc-index { width:220px; position:fixed; top:55px; left:0; bottom:0; overflow-y:auto; overflow-x:hidden; padding:15px; font-family:'Consolas','Courier New',monospace}
 #doc-index ul { margin-left: 40px; }
 #doc-body  { position:fixed; top:55px; left:0; bottom:0; right:0; overflow-y:auto; overflow-x:hidden; margin-left:250px; padding:15px; }
-.doc-block { border:solid 1px #e5e4e6; border-radius:5px; background:#f8fbf8; margin-bottom:15px; padding:5px; }
-.doc-head { padding:5px; height:25px; border:dashed 0px #e5e4e6; border-bottom-width:1px; }
+.doc-block { border:solid 1px #f3f3f2; border-radius:5px; background:#f8fbf8; margin-bottom:15px; padding:5px; }
+.doc-head { padding:5px; height:25px; border:dashed 0px #667; border-bottom-width:1px; }
 .doc-head h3 { float:left; display:inline; }
 .doc-head .category li { float:right; list-style:none; background:#667; color:#fff; margin:0 5px; padding:2px 5px; font-size:11px; font-weight:normal; border-radius:5px; }
 .doc-body { padding:10px; clear:both; }
@@ -21,117 +21,3 @@ h4 { font-weight:normal; color: #667; letter-spacing:1px; margin-top:10px; }
 .prettyprint { border:0px !important; font-family:'Consolas','Courier New',monospace; }
 
 .arguments i { font-family:'Consolas','Courier New',monospace; }
-
-.str
-{
-    color: #61ce3c;
-}
-.kwd
-{
-    color: #fbde2d;
-}
-.com
-{
-    color: #aeaeae;
-}
-.typ
-{
-    color: #ddd;
-}
-.lit
-{
-    color: #fbde2d;
-}
-.pun
-{
-    color: #ddd;;
-}
-.pln
-{
-    color: #8da6ce;
-}
-.tag
-{
-    color: #8AC763;
-}
-.atn
-{
-    color: #E0E2E4;
-}
-.atv
-{
-    color: #EC7600;
-}
-.dec
-{
-    color: purple;
-}
-pre.prettyprint
-{
-    border-radius: 5px;
-    margin: 2px;
-    padding: 3px;
-}
-ol.linenums
-{
-    margin-top: 0;
-    margin-bottom: 0;
-}
-.prettyprint {
-    background: #0d152a;
-}
-li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9
-{
-    color: #555;
-    list-style-type: decimal;
-}
-li.L1, li.L3, li.L5, li.L7, li.L9 {
-    background: #111;
-}
-@media print
-{
-    .str
-    {
-        color: #060;
-    }
-    .kwd
-    {
-        color: #006;
-        font-weight: bold;
-    }
-    .com
-    {
-        color: #600;
-        font-style: italic;
-    }
-    .typ
-    {
-        color: #404;
-        font-weight: bold;
-    }
-    .lit
-    {
-        color: #044;
-    }
-    .pun
-    {
-        color: #440;
-    }
-    .pln
-    {
-        color: #000;
-    }
-    .tag
-    {
-        color: #006;
-        font-weight: bold;
-    }
-    .atn
-    {
-        color: #404;
-    }
-    .atv
-    {
-        color: #060;
-    }
-}

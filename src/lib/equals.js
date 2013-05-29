@@ -1,11 +1,8 @@
-(function(sc) {
-  "use strict";
-
+sc.define(["equals", "=="], function() {
   var equals = function(arg) {
     return this === arg;
   };
-
-  sc.register(["equals", "=="], {
+  return {
     Number : equals,
     Boolean: equals,
     Array: function(arg) {
@@ -21,6 +18,5 @@
     },
     String  : equals,
     Function: equals
-  });
-
-})(sc);
+  };
+});
