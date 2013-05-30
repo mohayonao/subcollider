@@ -41,6 +41,21 @@ testcase["usage"] = (test)->
   test.equal 10.sc("madd", 2, 5)()      , 10 * 2 + 5
   do test.done
 
+testcase["range"] = (test)->
+  test.expect 5
+  test.deepEqual sc.Range("1"), [0, 1]
+  test.deepEqual sc.Range("1..5"), [1,2,3,4,5]
+  test.deepEqual sc.Range("1...5"), [1,2,3,4]
+  test.deepEqual sc.Range("1,3..5"), [1,3,5]
+  test.deepEqual sc.R("0, 0.1..1"), [0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999]
+  do test.done  
+
+testcase["RGen"] = (test)->
+  test.expect 1
+  r = sc.RGen()
+  test.ok [0....100000].every -> 0 <= r.next() < 1
+  do test.done
+
 testcase["abs"] = (test)->
   test.expect 1
   a = Array.series(10, -2, 0.4).abs()

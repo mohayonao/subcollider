@@ -3,6 +3,12 @@
   <head>
     <meta charset="utf-8">
     <title>subcollider.js</title>
+    <meta property="og:title" content="subcollider.js">
+    <meta property="og:description" content="SubCollider.js is a JavaScript library that provides like SuperCollider functions.">
+    <meta property="og:url" content="http://mohayonao.github.io/subcollider.js">
+    <meta property="og:image" content="http://mohayonao.github.io/subcollider.js/docs/logo.png">
+    <meta name="description" content="SubCollider.js is a JavaScript library that provides like SuperCollider functions.">
+    <meta name="keywords" content="JavaScript,SuperCollider,timbre.js">
     <link rel="shortcut icon" href="favicon.ico" id="favicon">
     <link rel="stylesheet" href="./docs/index.css">
     <link rel="stylesheet" href="./docs/prettify.css">
@@ -31,7 +37,7 @@
     </div>
     <div id="doc-body">
       <div style="padding:15px;letter-spacing:0.1em">
-        SubCollider.js is a JavaScript library that provides like SuperCollider functions to the extends built-in prototype and <b>sc</b> namespace. It is the recommended base library for <a href="//mohayonao.github.io/timbre.js" target="timbre.js">timbre.js</a>.
+        SubCollider.js is a JavaScript library that provides like SuperCollider functions to built-in prototypes and <b>sc</b> namespace. It is the recommended base library for <a href="http://mohayonao.github.io/timbre.js" target="timbre.js">timbre.js</a>.
       </div>
       <pre class="prettyprint lang-js">
  sc.midicps(69);
@@ -49,7 +55,7 @@
  sc.Range("0..5");
  // [ 0, 1, 2, 3, 4, 5 ]
 
- sc.Range("0..100").select("isPrime");
+ sc.Range("1...50").select("isPrime");
  // => [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ]
 
  sc.Scale.major().degreeToFreq(sc.Range(7), 440).asInteger();

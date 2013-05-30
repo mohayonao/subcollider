@@ -103,7 +103,11 @@ module.exports = (grunt)->
       docs = docs.concat parse2 './src/class/rgen.js'
       docs = docs.concat parse2 './src/class/scale.js'
       docs = docs.concat parse2 './src/class/tuning.js'
+      docs = docs.concat parse2 './src/sc.js'
+      docs.forEach (x)->
+        x.category[0] = 'sc' if x.category[0] is 'Sc'
       index = [
+        {category:"sc"     , data:sortIndex docs, "sc"     }
         {category:"Array"  , data:sortIndex docs, "Array"  }
         {category:"Number" , data:sortIndex docs, "Number" }
         {category:"Pattern", data:sortIndex docs, "Pattern"}

@@ -86,6 +86,14 @@
     }
     return function() { return arg; };
   };
+
+  /**
+   * @name use
+   * @arguments _(type)_
+   * @example
+   *  sc.use("global"); // install sc.functions to global namespace
+   *  midicps(69); // => 40
+   */
   sc.use = function(type) {
     if (type === "global") {
       Object.keys(sc).forEach(function(key) {
@@ -106,6 +114,20 @@
     }
     return false;
   };
+
+  /**
+   * @name Range
+   * @description
+   * Creates an array of numbers (positive and/or negative) progressing from *first* up to *last*.
+   * @arguments _("[first[,second]]...?last")_
+   * @aliases R
+   * @example
+   *  sc.Range(5); // => [ 0, 1, 2, 3, 4, 5 ]
+   *  sc.Range("1..5"); // => [ 1, 2, 3, 4, 5 ]
+   *  sc.Range("5..1"); // => [ 5, 4, 3, 2, 1 ]
+   *  sc.Range("0, 2.5..10"); // => [ 0, 2.5, 5, 7.5, 10 ]
+   *  sc.Range("0...10") // => [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+   */
   sc.Range = sc.R = (function() {
     var re = /^\s*(?:([-+]?(?:\d+|\d+\.\d+))\s*,\s*)?([-+]?(?:\d+|\d+\.\d+))(?:\s*\.\.(\.?)\s*([-+]?(?:\d+|\d+\.\d+)))?\s*$/;
     return function() {
@@ -128,14 +150,16 @@
           i = 0;
           x = first;
           if (m[3]) {
-            while (x < last) {
-              a[i++] = x;
-              x += step;
+            if (step > 0) {
+              while (x < last) { a[i++] = x; x += step; }
+            } else {
+              while (x > last) { a[i++] = x; x += step; }
             }
           } else {
-            while (x <= last) {
-              a[i++] = x;
-              x += step;
+            if (step > 0) {
+              while (x <= last) { a[i++] = x; x += step; }
+            } else {
+              while (x >= last) { a[i++] = x; x += step; }
             }
           }
         }
