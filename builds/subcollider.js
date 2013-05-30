@@ -89,9 +89,21 @@
     }
     return function() { return arg; };
   };
+
+  /**
+   * @name use
+   * @arguments _(type)_
+   * @example
+   *  sc.use("global"); // install sc.functions to global namespace
+   *  midicps(69); // => 40
+   */
   sc.use = function(type) {
     if (type === "global") {
-      Object.keys(sc).forEach(function(key) { global[key] = sc[key]; });
+      Object.keys(sc).forEach(function(key) {
+        if (!global[key]) {
+          global[key] = sc[key];
+        }
+      });
     }
     return sc;
   };
@@ -99,6 +111,75 @@
     function(key) {
       return this[key].bind.apply(this[key], [this].concat(slice.call(arguments, 1)));
     };
+  sc.isArrayArgs = function(list, len) {
+    for (var i = 0, imax = Math.max(list.length, len|0); i < imax; ++i) {
+      if (Array.isArray(list[i])) { return true; }
+    }
+    return false;
+  };
+
+  /**
+   * @name Range
+   * @description
+   * Creates an array of numbers (positive and/or negative) progressing from *first* up to *last*.
+   * @arguments _("[first[,second]]...?last")_
+   * @aliases R
+   * @example
+   *  sc.Range(5); // => [ 0, 1, 2, 3, 4, 5 ]
+   *  sc.Range("1..5"); // => [ 1, 2, 3, 4, 5 ]
+   *  sc.Range("5..1"); // => [ 5, 4, 3, 2, 1 ]
+   *  sc.Range("0, 2.5..10"); // => [ 0, 2.5, 5, 7.5, 10 ]
+   *  sc.Range("0...10") // => [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+   */
+  sc.Range = sc.R = (function() {
+    var re = /^\s*(?:([-+]?(?:\d+|\d+\.\d+))\s*,\s*)?([-+]?(?:\d+|\d+\.\d+))(?:\s*\.\.(\.?)\s*([-+]?(?:\d+|\d+\.\d+)))?\s*$/;
+    return function() {
+      var a = [], m, i, x, first, last, step;
+      if (typeof arguments[0] === "string") {
+        if ((m = re.exec(arguments[0])) !== null) {
+          if (m[4] === void 0) {
+            first = 0;
+            last  = +m[2];
+            step  = (0 < last) ? +1 : -1;
+          } else if (m[1] === void 0) {
+            first = +m[2];
+            last  = +m[4];
+            step  = (first < last) ? +1 : -1;
+          } else {
+            first = +m[1];
+            last  = +m[4];
+            step  = +m[2] - first;
+          }
+          i = 0;
+          x = first;
+          if (m[3]) {
+            if (step > 0) {
+              while (x < last) { a[i++] = x; x += step; }
+            } else {
+              while (x > last) { a[i++] = x; x += step; }
+            }
+          } else {
+            if (step > 0) {
+              while (x <= last) { a[i++] = x; x += step; }
+            } else {
+              while (x >= last) { a[i++] = x; x += step; }
+            }
+          }
+        }
+      } else if (typeof arguments[0] === "number") {
+        first = 0;
+        last  = arguments[0];
+        step  = (first < last) ? +1 : -1;
+        i = 0;
+        x = first;
+        while (x <= last) {
+          a[i++] = x;
+          x += step;
+        }
+      }
+      return a;
+    };
+  })();
 
   var exports = sc;
 
@@ -139,7 +220,7 @@ sc.define("abs", {
  * (a - b).abs()
  * @arguments _(number)_
  * @example
- *  (10).absdif(15); // => 5
+ *  sc.absdif(10, 15); // => 5
  */
 sc.define("absdif", {
   Number: function(num) {
@@ -185,7 +266,7 @@ sc.define("add", {
 });
 
 /**
- * Adds all the elements of aCollection to the contents of the receiver. This method may return a new Array.
+ * Adds all the elements of *items* to the contents of the receiver. This method may return a new Array.
  * @arguments _(items)_
  * @example
  *  [1, 2, 3, 4].addAll([7, 8, 9]); // => [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
@@ -273,8 +354,8 @@ sc.define("any", {
  * Returns a new Array base upon *this*
  * @arguments _none_
  * @example
- *   (1).asArray(); // => [ 1 ]
- *   [1, 2, 3].asArray(); // => [ 1, 2, 3 ]
+ *  (1).asArray(); // => [ 1 ]
+ *  [1, 2, 3].asArray(); // => [ 1, 2, 3 ]
  */
 sc.define("asArray", function() {
   var asArray = function() {
@@ -295,10 +376,10 @@ sc.define("asArray", function() {
  * Returns a new Boolean based upon *this*
  * @arguments _none_
  * @example
- *   (0).asBoolean(); // false
- *   (1).asBoolean(); // true
- *   [ ].asBoolean(); // false
- *   [0].asBoolean(); // true
+ *  (0).asBoolean(); // false
+ *  (1).asBoolean(); // true
+ *  [ ].asBoolean(); // false
+ *  [0].asBoolean(); // true
  */
 sc.define("asBoolean", {
   Number: function() {
@@ -321,8 +402,8 @@ sc.define("asBoolean", {
 /**
  * @arguments _none_
  * @example
- *   "0.5".asFloat(); // => 0.5
- *   [1, 2, 3.14].asFloat(); // => [1, 2, 3.14]
+ *  "0.5".asFloat(); // => 0.5
+ *  [1, 2, 3.14].asFloat(); // => [1, 2, 3.14]
  */
 sc.define("asFloat", {
   Number: function() {
@@ -358,7 +439,7 @@ sc.define("asFloat64Array", {
  * Returns a new Function based upon *this*
  * @arguments _none_
  * @example
- *   (1).asFunction()(); // => 1
+ *  (1).asFunction()(); // => 1
  */
 sc.define("asFunction", function() {
   var asFunction = function() {
@@ -405,8 +486,8 @@ sc.define("asInt8Array", {
 /**
  * @arguments _none_
  * @example
- *   "0.5".asInteger(); // => 0
- *   [1, 2, 3.14].asInteger(); // => [1, 2, 3]
+ *  "0.5".asInteger(); // => 0
+ *  [1, 2, 3.14].asInteger(); // => [1, 2, 3]
  */
 sc.define("asInteger", {
   Number: function() {
@@ -418,6 +499,22 @@ sc.define("asInteger", {
   String: function() {
     return this|0;
   }
+});
+
+/**
+ * Returns new a JSON string based upon *this*
+ * @arguments _none_
+ */
+sc.define("asJSON", function() {
+  var asJSON = function() {
+    return JSON.stringify(this);
+  };
+  return {
+    Number : asJSON,
+    Boolean: asJSON,
+    Array  : asJSON,
+    String : asJSON
+  };
 });
 
 /**
@@ -578,8 +675,7 @@ sc.define("atan2", {
 
 sc.define("biexp", {
   Number: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
-    if (Array.isArray(inCenter) || Array.isArray(inMin) ||Array.isArray(inMax) ||
-        Array.isArray(outCenter) || Array.isArray(outMin) || Array.isArray(outMax)) {
+    if (sc.isArrayArgs(arguments, 6)) {
       return [this,inCenter,inMin,inMax,outCenter,outMin,outMax].flop().map(function(items) {
         return items[0].biexp(items[1],items[2],items[3],items[4],items[5],items[6],clip);
       });
@@ -611,8 +707,7 @@ sc.define("biexp", {
 
 sc.define("bilin", {
   Number: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
-    if (Array.isArray(inCenter) || Array.isArray(inMin) ||Array.isArray(inMax) ||
-        Array.isArray(outCenter) || Array.isArray(outMin) || Array.isArray(outMax)) {
+    if (sc.isArrayArgs(arguments, 6)) {
       return [this,inCenter,inMin,inMax,outCenter,outMin,outMax].flop().map(function(items) {
         return items[0].bilin(items[1],items[2],items[3],items[4],items[5],items[6],clip);
       });
@@ -642,6 +737,10 @@ sc.define("bilin", {
   }
 });
 
+/**
+ * Bilateral linearly distributed random number from *-this* to *+this*.
+ * @arguments _none_
+ */
 sc.define("bilinrand", {
   Number: function() {
     return (Math.random() - Math.random()) * this;
@@ -657,9 +756,16 @@ sc.define("binaryValue", {
   },
   Array: function() {
     return this.map(function(x) { return x.binaryValue(); });
+  },
+  Boolean: function() {
+    return this ? 1 : 0;
   }
 });
 
+/**
+ * performs a bitwise and with aNumber
+ * @arguments _(number)_
+ */
 sc.define(["bitAnd", "&"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -676,6 +782,10 @@ sc.define(["bitAnd", "&"], {
   }
 });
 
+/**
+ * ones complement
+ * @arguments _none_
+ */
 sc.define(["bitNot", "~"], {
   Number: function() {
     return ~this;
@@ -685,6 +795,10 @@ sc.define(["bitNot", "~"], {
   }
 });
 
+/**
+ * performs a bitwise or with aNumber
+ * @arguments _(number)_
+ */
 sc.define(["bitOr", "|"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -701,6 +815,10 @@ sc.define(["bitOr", "|"], {
   }
 });
 
+/**
+ * true if bit at index aNumber is set.
+ * @arguments _(bit)_
+ */
 sc.define("bitTest", {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -717,6 +835,10 @@ sc.define("bitTest", {
   }
 });
 
+/**
+ * Bitwise Exclusive Or
+ * @arguments _(number)_
+ */
 sc.define(["bitXor", "^"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -807,7 +929,7 @@ sc.define("choose", {
  */
 sc.define("clip", {
   Number: function(lo, hi) {
-    if (Array.isArray(lo) || Array.isArray(hi)) {
+    if (sc.isArrayArgs(arguments)) {
       return [this,lo,hi].flop().map(function(items) {
         return items[0].clip(items[1], items[2]);
       });
@@ -887,7 +1009,7 @@ sc.define("clipExtend", {
 });
 
 /**
- * Same as `put`, but values for index greater than the size of the ArrayedCollection will be clipped to the last index.
+ * Same as `put`, but values for index greater than the size of the Array will be clipped to the last index.
  * @arguments _(index, item)_
  */
 sc.define("clipPut", {
@@ -903,6 +1025,10 @@ sc.define("clipPut", {
   }
 });
 
+/**
+ * Same as `swap`, but values for index greater than the size of the Array will be clipped to the last index.
+ * @arguments _(i, j)_
+ */
 sc.define("clipSwap", {
   Array: function(i, j) {
     i = (i|0).clip(0, this.length-1);
@@ -1053,7 +1179,7 @@ sc.define("copyFromStart", function() {
  */
 sc.define("copyRange", function() {
   var copyRange = function(start, end) {
-    if (Array.isArray(start) || Array.isArray(end)) {
+    if (sc.isArrayArgs(arguments)) {
       return [start, end].flop().map(function(items) {
         return this.copyRange(items[0], items[1]);
       }, this);
@@ -1149,7 +1275,7 @@ sc.define("count", {
  * @returns midi note
  * @example
  *  (440).cpsmidi(); // => 69
- *  Array.range("440, 550..880").cpsmidi(); // => [69, 72.8631, 76.0195, 78.6882, 81 ]
+ *  sc.Range("440, 550..880").cpsmidi(); // => [69, 72.8631, 76.0195, 78.6882, 81 ]
  */
 sc.define("cpsmidi", {
   Number: function() {
@@ -1165,7 +1291,7 @@ sc.define("cpsmidi", {
  * @arguments _none_
  * @example
  *   (440).cpsoct(); // => 4.75
- *   Array.range("440, 550..880").cpsoct(); // => [ 4.75, 5.0719, 5.3349, 5.5573, 5.75 ]
+ *   sc.Range("440, 550..880").cpsoct(); // => [ 4.75, 5.0719, 5.3349, 5.5573, 5.75 ]
  */
 sc.define("cpsoct", {
   Number: function() {
@@ -1211,8 +1337,7 @@ sc.define("curdle", {
  */
 sc.define("curvelin", {
   Number: function(inMin, inMax, outMin, outMax, curve, clip) {
-    if (Array.isArray(inMin) || Array.isArray(inMax) ||
-        Array.isArray(outMin) || Array.isArray(outMax)) {
+    if (sc.isArrayArgs(arguments, 4)) {
       return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
         return items[0].curvelin(items[1],items[2],items[3],items[4],curve,clip);
       });
@@ -1455,7 +1580,7 @@ sc.define("do", {
 });
 
 /**
- * Calls function for every adjacent pair of elements in the SequentialCollection. The function is passed the two adjacent elements and an index.
+ * Calls function for every adjacent pair of elements in the Array. The function is passed the two adjacent elements and an index.
  * @arguments _(function)_
  */
 sc.define("doAdjacentPairs", {
@@ -1705,7 +1830,7 @@ sc.define("explin", {
 });
 
 /**
- * Fill a SequenceableCollection with random values in the range minVal to maxVal with exponential distribution.
+ * Fill an Array with random values in the range *minVal* to *maxVal* with exponential distribution.
  * @arguments _(size [, minVal=0, maxVal=1])_
  * @example
  *  Array.exprand(8, 1, 100);
@@ -1820,10 +1945,11 @@ sc.define("fib", {
 
 /**
  * Creates an Array of the given size, the elements of which are determined by evaluation the given function.
- * @arguments _(size [, function])_
+ * @arguments _(size [, function=nil])_
  * @example
  *  Array.fill(3, 5); // => [ 5, 5, 5 ]
- *  Array.fill(3, function(i) { return i * 2; }) // => [ 0, 2, 4 ]
+ *  Array.fill(3, function(i) { return (i * 2 + 60).midicps(); });
+ *  // => [ 440, 493.8833, 554.3652 ]
  */
 sc.define("*fill", {
   Array: function(size, func) {
@@ -1841,7 +1967,7 @@ sc.define("*fill", {
  * Inserts the item into the contents of the receiver.
  * @arguments _(item)_
  * @example
- *  [1,2,3,4].fill(4); // [ 4, 4, 4, 4 ]
+ *  [1, 2, 3, 4].fill(4); // [ 4, 4, 4, 4 ]
  */
 sc.define("fill", {
   Array: function(item) {
@@ -1853,10 +1979,13 @@ sc.define("fill", {
 });
 
 /**
- * Creates a 2 dimensional Collection of the given sizes. The items are determined by evaluation of the supplied function. The function is passed row and column indexes as arguments.
- * @arguments _(rows, cols [, function])_
+ * Creates a 2 dimensional Array of the given sizes. The items are determined by evaluation of the supplied function. The function is passed row and column indexes as arguments.
+ * @arguments _(rows, cols [, function=nil])_
  * @example
- *   Array.fill2D(2, 4, 1); // => [ [ 1, 1, 1, 1], [ 1, 1, 1, 1 ] ]
+ *  Array.fill2D(3, 3, 1);
+ *  // => [ [ 1, 1, 1 ],
+ *  //      [ 1, 1, 1 ],
+ *  //      [ 1, 1, 1 ] ]
  */
 sc.define("*fill2D", {
   Array: function(rows, cols, func) {
@@ -1876,8 +2005,13 @@ sc.define("*fill2D", {
 });
 
 /**
- * Creates a 3 dimensional Collection of the given sizes. The items are determined by evaluation of the supplied function. The function is passed plane, row and column indexes as arguments.
- * @arguments _(planes, rows, cols [, function])_
+ * Creates a 3 dimensional Array of the given sizes. The items are determined by evaluation of the supplied function. The function is passed plane, row and column indexes as arguments.
+ * @arguments _(planes, rows, cols [, function=nil])_
+ * @example
+ *  Array.fill3D(3, 3, 3, 1);
+ *  // => [ [ [ 1, 1, 1 ],[ 1, 1, 1 ],[ 1, 1, 1 ] ],
+ *  //      [ [ 1, 1, 1 ],[ 1, 1, 1 ],[ 1, 1, 1 ] ],
+ *  //      [ [ 1, 1, 1 ],[ 1, 1, 1 ],[ 1, 1, 1 ] ] ]
  */
 sc.define("*fill3D", {
   Array: function(planes, rows, cols, func) {
@@ -1902,7 +2036,7 @@ sc.define("*fill3D", {
 
 /**
  * Creates a N dimensional Array where N is the size of the array *dimensions*. The items are determined by evaluation of the supplied function. The function is passed N number of indexes as arguments.
- * @arguments _(dimensions [, function])_
+ * @arguments _(dimensions [, function=nil])_
  * @example
  *   Array.fillND([1, 2, 3, 4], function(a, b, c, d) { return a+b+c+d; }); // => 4D
  */
@@ -1991,7 +2125,7 @@ sc.define("findAll", {
  * Return the first element of the collection.
  * @arguments _none_
  * @example
- *  [3, 4, 5].first() # => 3
+ *  [3, 4, 5].first(); // => 3
  */
 sc.define("first", {
   Array: function() {
@@ -2231,6 +2365,10 @@ sc.define("foldPut", {
   }
 });
 
+/**
+ * Same as `swap`, but the sequences fold back on the list elements.
+ * @arguments _(i, j)_
+ */
 sc.define("foldSwap", {
   Array: function(i, j) {
     i = (i|0).fold(0, this.length-1);
@@ -2389,6 +2527,10 @@ sc.define("geom", {
   }
 });
 
+/**
+ * greater than
+ * @arguments _(number)_
+ */
 sc.define(["greater", ">"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -2405,6 +2547,10 @@ sc.define(["greater", ">"], {
   }
 });
 
+/**
+ * greater or equal than
+ * @arguments _(number)_
+ */
 sc.define(["greaterThan", ">="], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -2524,7 +2670,7 @@ sc.define("includes", {
 });
 
 /**
- * Answer whether all items in aCollection are contained in the receiver.
+ * Answer whether all items in *list* are contained in the receiver.
  * @arguments _(list)_
  * @example
  *  [1, 2, 3, 4].includesAll([2, 4]); // => true
@@ -2540,7 +2686,7 @@ sc.define("includesAll", {
 });
 
 /**
- * Answer whether any item in aCollection is contained in the receiver.
+ * Answer whether any item in *list* is contained in the receiver.
  * @arguments _(list)_
  * @example
  *  [1, 2, 3, 4].includesAny([4, 5]); // => true
@@ -3011,7 +3157,7 @@ sc.define("keep", {
  * @arguments _(scale [, stepsPerOctave=12])_
  * @example
  *  l = [0, 1, 5, 9, 11]; // pentatonic scale
- *  Array.range("60..73").collect(function(i) { return i.keyToDegree(l); });
+ *  sc.Range("60..73").collect(function(i) { return i.keyToDegree(l); });
  *  // => [ 25, 26, 26.25, 26.5, 26.75, 27, 27.25, 27.5, 27.75, 28, 28.5, 29, 30, 31 ]
  */
 sc.define("keyToDegree", {
@@ -3139,6 +3285,10 @@ sc.define("lcurve", {
   }
 });
 
+/**
+ * performs a binary left shift
+ * @arguments _(number)_
+ */
 sc.define(["leftShift", "<<"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -3155,6 +3305,10 @@ sc.define(["leftShift", "<<"], {
   }
 });
 
+/**
+ * less than
+ * @arguments _(number)_
+ */
 sc.define(["less", "<"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -3171,6 +3325,10 @@ sc.define(["less", "<"], {
   }
 });
 
+/**
+ * smaller or equal than
+ * @arguments _(number)_
+ */
 sc.define(["lessThan", "<="], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -3299,7 +3457,7 @@ sc.define("linlin", {
 });
 
 /**
- * Fill a SequenceableCollection with random values in the range *minVal* to *maxVal* with a linear distribution.
+ * Fill an Array with random values in the range *minVal* to *maxVal* with a linear distribution.
  * @arguments _(size [, minVal=0, maxVal=1])_
  * @example
  *  Array.linrand(8, 1, 100);
@@ -3563,7 +3721,7 @@ sc.define("middleIndex", {
  * @returns cycles per second
  * @example
  *  (69).midicps(); // => 440
- *  Array.range("69..81").midicps(); // => [ 440, 466.1637, ... , 830.6093, 880 ]
+ *  sc.Range("69..81").midicps(); // => [ 440, 466.1637, ... , 830.6093, 880 ]
  */
 sc.define("midicps", {
   Number: function() {
@@ -3571,12 +3729,6 @@ sc.define("midicps", {
   },
   Array: function() {
     return this.map(function(x) { return x.midicps(); });
-  },
-  Function: function() {
-    var func = this;
-    return function() {
-      return func.apply(func, arguments).midicps();
-    };
   }
 });
 
@@ -3585,7 +3737,7 @@ sc.define("midicps", {
  * @arguments _none_
  * @returns a ratio
  * @example
- *  Array.range("0..12").midiratio(); // => [1, 1.0594, ... , 1.8877, 2]
+ *  sc.Range("0..12").midiratio(); // => [1, 1.0594, ... , 1.8877, 2]
  */
 sc.define("midiratio", {
   Number: function() {
@@ -3797,7 +3949,7 @@ sc.define("mode", {
  * @arguments _(list)_
  * @example
  *  l = [0, 0.5, 0.9, 1];
- *  Array.range("0, 0.1..1").collect(function(i) { return i.nearestInList(l); });
+ *  sc.Range("0, 0.1..1").collect(function(i) { return i.nearestInList(l); });
  *  // => [ 0, 0, 0, 0.5, 0.5, 0.5, 0.5, 0.9, 0.9, 0.9, 1 ]
  */
 sc.define("nearestInList", {
@@ -3817,7 +3969,7 @@ sc.define("nearestInList", {
  * @arguments _(scale [, stepsPerOctave=12])_
  * @example
  *  l = [0, 1, 5, 9, 11]; // pentatonic scale
- *  Array.range("60, 61..76").collect(function(i) { return i.nearestInScale(l, 12); });
+ *  sc.Range("60, 61..76").collect(function(i) { return i.nearestInScale(l, 12); });
  *  // => [ 60, 61, 61, 65, 65, 65, 65, 69, 69, 69, 71, 71, 72, 73, 73, 77, 77 ]
  */
 sc.define("nearestInScale", {
@@ -3844,36 +3996,6 @@ sc.define("neg", {
   },
   Array: function() {
     return this.map(function(x) { return x.neg(); });
-  }
-});
-
-sc.define("*new", {
-  Array: function(size) {
-    return new Array(size|0);
-  }
-});
-
-/**
- * Creates a new instance with indexedSize indexable slots.
- * @arguments _(size)_
- */
-sc.define("*newClear", {
-  Array: function(size) {
-    var a = new Array(size|0);
-    for (var i = 0, imax = a.length; i < imax; i++) {
-      a[i] = 0;
-    }
-    return a;
-  }
-});
-
-/**
- * Creates a new Collection from another collection.
- * @arguments _(array)_
- */
-sc.define("*newFrom", {
-  Array: function(item) {
-    return item.slice();
   }
 });
 
@@ -4166,7 +4288,7 @@ sc.define(["opSub", "-"], {
 });
 
 /**
- * Calls function for each subsequent pair of elements in the SequentialCollection. The function is passed the two elements and an index.
+ * Calls function for each subsequent pair of elements in the Array. The function is passed the two elements and an index.
  * @arguments _(function)_
  */
 sc.define(["pairsDo", "keyValuesDo"], {
@@ -4790,7 +4912,7 @@ sc.define("pyramidg", {
  * round the receiver to the quantum.
  * @arguments _([quantum=1, tolerance=0.05, strength=1])_
  * @example
- *  Array.range("0,0.1..1").quantize(1, 0.3, 0.5)
+ *  sc.Range("0,0.1..1").quantize(1, 0.3, 0.5)
  *  // => [ 0, 0.05, 0.1, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 0.95, 1 ]
  */
 sc.define("quantize", {
@@ -4904,43 +5026,11 @@ sc.define("rand2", {
 });
 
 /**
- * @example
- *  Array.r(5); // => [ 0, 1, 2, 3, 4, 5 ]
- *  Array.r("2..5"); // => [ 2, 3, 4, 5 ]
- *  Array.r("1, 3..5"); // => [ 1, 3, 5 ]
- */
-sc.define(["*range", "*r"], {
-  Array: function(cmd) {
-    if (typeof cmd === "string") {
-      var items = cmd.split(/(?:\.\.|,)/);
-      var first, second, last;
-      if (items.length === 3) {
-        first  = +items[0];
-        second = +items[1];
-        last   = +items[2];
-        return (first).series(second, last);
-      } else if (items.length === 2) {
-        first  = +items[0];
-        last   = +items[1];
-        second = first + ((first < +last) ? 1 : -1);
-        return (first).series(second, last);
-      } else if (items.length === 1) {
-        return Array.series((+items[0]) + 1);
-      } else {
-        return [];
-      }
-    } else if (typeof cmd === "number") {
-      return Array.series(cmd + 1);
-    }
-  }
-});
-
-/**
  * Convert a ratio to an interval in semitones.
  * @arguments _none_
  * @returns an interval in semitones
  * @example
- *  Array.range("1, 1.2..2").ratiomidi();
+ *  sc.Range("1, 1.2..2").ratiomidi();
  *  // => [ 0, 3.1564, 5.8251, 8.1368, 10.1759, 11.9999 ]
  */
 sc.define("ratiomidi", {
@@ -5116,7 +5206,7 @@ sc.define("resamp0", {
 });
 
 /**
- * Returns a new Collection of the desired length, with values resampled evenly-spaced from the receiver with linear interpolation.
+ * Returns a new Array of the desired length, with values resampled evenly-spaced from the receiver with linear interpolation.
  * @arguments _(newSize)_
  * @example
  *  [1, 2, 3, 4].resamp1(12); // => [ 1, 1.2727, 1.5454, ... , 3.7272, 4 ]
@@ -5158,6 +5248,10 @@ sc.define("reverseDo", {
   }
 });
 
+/**
+ * performs a binary right shift
+ * @arguments _(number)_
+ */
 sc.define(["rightShift", ">>"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -5424,7 +5518,7 @@ sc.define("select", {
  * Separates the collection into sub-collections by calling the function for each adjacent pair of elements. If the function returns true, then a separation is made between the elements.
  * @arguments _(function)_
  * @example
- *  Array.range("0..10").separate("isPrime");
+ *  sc.Range("0..10").separate("isPrime");
  *  // => [ [0,1,2] , [3], [4,5], [6,7], [8,9,10] ]
  */
 sc.define("separate", {
@@ -5545,7 +5639,7 @@ sc.define("sinh", {
 });
 
 /**
- * Return the number of elements the ArrayedCollection.
+ * Return the number of elements the receiver.
  * @arguments _none_
  */
 sc.define("size", {
@@ -5714,7 +5808,7 @@ sc.define("stutter", {
  * Answer the sum of the results of function evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index.
  * @arguments _(function)_
  * @example
- *  Array.range("0..10").sum(); // => 55
+ *  sc.Range("0..10").sum(); // => 55
  */
 sc.define("sum", {
   Array: function(func) {
@@ -6019,6 +6113,10 @@ sc.define("uniq", {
   }
 });
 
+/**
+ * performs an unsigned right shift
+ * @arguments _(number)_
+ */
 sc.define(["unsignedRightShift", ">>>"], {
   Number: function(num) {
     if (Array.isArray(num)) {
@@ -6179,7 +6277,7 @@ sc.define("wrap2", {
 });
 
 /**
- * Same as `at`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
+ * Same as `at`, but values for index greater than the size of the Array will be wrapped around to 0.
  * @example
  *  [ 1, 2, 3 ].wrapAt(13); // => 2
  *  [ 1, 2, 3 ].wrapAt([ 0, 1, 2, 3 ]); // => [ 1, 2, 3, 1 ]
@@ -6196,7 +6294,7 @@ sc.define(["wrapAt", "@@"], {
 });
 
 /**
- * Returns a new Array whose elements are repeated sequences of the receiver, up to size length. The receiver is unchanged.
+ * Returns a new Array whose elements are repeated sequences of the receiver, up to size length.
  * @arguments _(size)_
  * @example
  *  [ 1, 2, 3 ].wrapExtend(9); // => [ 1, 2, 3, 1, 2, 3, 1, 2, 3 ]
@@ -6213,7 +6311,7 @@ sc.define("wrapExtend", {
 });
 
 /**
- * Same as `put`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
+ * Same as `put`, but values for index greater than the size of the Array will be wrapped around to 0.
  * @arguments _(index, item)_
  */
 sc.define("wrapPut", {
@@ -6229,6 +6327,10 @@ sc.define("wrapPut", {
   }
 });
 
+/**
+ * Same as `swap`, but values for index greater than the size of the Array will be wrapped around to 0.
+ * @arguments _(i, j)_
+ */
 sc.define("wrapSwap", {
   Array: function(i, j) {
     i = (i|0).iwrap(0, this.length-1);
@@ -6266,7 +6368,19 @@ sc.define("xrand2", {
 (function(sc) {
   "use strict";
 
+  /**
+   * @name *Tuning
+   * @description
+   * Represents a musical tuning (e.g. equal temperament, just intonation, etc.). Used in conjunction with `Scale` to generate pitch information.
+   * @example
+   *  sc.Tuning.et12(); // => equal temperament
+   *  sc.TuningInfo.names(); // => list of tuning name
+   *  sc.TuningInfo.at("just"); // => Limit Just Intonation
+   */
   function Tuning(tuning, octaveRatio, name) {
+    if (!(this instanceof Tuning)) {
+      return new Tuning(tuning, octaveRatio, name);
+    }
     if (!Array.isArray(tuning)) {
       tuning = [0,1,2,3,4,5,6,7,8,9,10,11];
     }
@@ -6280,73 +6394,18 @@ sc.define("xrand2", {
     this._octaveRatio = octaveRatio;
     this.name = name;
   }
-
-  // ## semitones ()
-  // Returns an array of semitone values for the pitch set
-  Tuning.prototype.semitones = function() {
-    return this._tuning.slice(0);
-  };
-  // ## cents ()
-  // Returns a array of cent values for the pitch set
-  Tuning.prototype.cents = function() {
-    return this._tuning.slice(0).map(function(x) {
-      return x * 100;
-    });
-  };
-  // ## ratios ()
-  // Returns a tuned array of ratios for the pitch set
-  Tuning.prototype.ratios = function() {
-    return this._tuning.midiratio();
-  };
-  // ## at (index:int)
-  Tuning.prototype.at = function(index) {
-    return this._tuning[index|0];
-  };
-  // ## wrapAt (index:int)
-  Tuning.prototype.wrapAt = function(index) {
-    return this._tuning.wrapAt(index|0);
-  };
-  // ## octaveRatio ()
-  Tuning.prototype.octaveRatio = function() {
-    return this._octaveRatio;
-  };
-  // ## size ()
-  Tuning.prototype.size = function() {
-    return this._tuning.length;
-  };
-  // ## stepsPerOctave ()
-  Tuning.prototype.stepsPerOctave = function() {
-    return Math.log(this._octaveRatio) * Math.LOG2E * 12;
-  };
-  // ## tuning ()
-  Tuning.prototype.tuning = function() {
-    return this._tuning;
-  };
-  // ## equals (argTuning)
-  Tuning.prototype.equals = function(argTuning) {
-    return this._octaveRatio === argTuning._octaveRatio &&
-      this._tuning.equals(argTuning._tuning);
-  };
-  // ## deepCopy ()
-  Tuning.prototype.deepCopy = function() {
-    return new Tuning(this._tuning.slice(0),
-                      this._octaveRatio,
-                      this.name);
-  };
-
-  // ## Tuning.et (pitchesPerOctave:12)
-  // Creates an equal-tempered scale based on pitchesPerOctave
-  Tuning.et = function(pitchesPerOctave) {
-    if (typeof pitchesPerOctave !== "number") {
-      pitchesPerOctave = 12;
-    }
-    return new Tuning(Tuning.calcET(pitchesPerOctave),
-                      2,
-                      Tuning.etName(pitchesPerOctave));
-  };
-  // ## Tuning.choose (size:12)
-  // Creates a random tuning from the library, constrained by size (which defaults to 12)
+  /**
+   * @name *choose
+   * @description
+   * Creates a random tuning from the library, constrained by size (which defaults to 12)
+   * @arguments _([size=12])_
+   */
   Tuning.choose = function(size) {
+    if (Array.isArray(size)) {
+      return size.map(function(size) {
+        return Tuning.choose(size);
+      });
+    }
     if (typeof size !== "number") {
       size = 12;
     }
@@ -6354,11 +6413,17 @@ sc.define("xrand2", {
       function(x) { return x.size() === size; }
     );
   };
-  // ## Tuning.default (pitchesPerOctave)
+  Tuning.et = function(pitchesPerOctave) {
+    if (typeof pitchesPerOctave !== "number") {
+      pitchesPerOctave = 12;
+    }
+    return Tuning(Tuning.calcET(pitchesPerOctave),
+                  2,
+                  Tuning.etName(pitchesPerOctave));
+  };
   Tuning["default"] = function(pitchesPerOctave) {
     return Tuning.et(pitchesPerOctave);
   };
-  // ## Tuning.calcET (pitchesPerOctave)
   Tuning.calcET = function(pitchesPerOctave) {
     var a = new Array(pitchesPerOctave);
     for (var i = a.length; i--; ) {
@@ -6366,9 +6431,93 @@ sc.define("xrand2", {
     }
     return a;
   };
-  // ## Tuning.etName (pitchesPerOctave)
   Tuning.etName = function(pitchesPerOctave) {
     return "ET" + pitchesPerOctave;
+  };
+  /**
+   * @name semitones
+   * @description
+   * Returns an array of semitone values for the pitch set
+   * @arguments _none_
+   */
+  Tuning.prototype.semitones = function() {
+    return this._tuning.slice();
+  };
+  /**
+   * @name cents
+   * @description
+   * Returns a array of cent values for the pitch set
+   * @arguments _none_
+   */
+  Tuning.prototype.cents = function() {
+    return this._tuning.slice().map(function(x) {
+      return x * 100;
+    });
+  };
+  /**
+   * @name ratios
+   * @description
+   * Returns a tuned array of ratios for the pitch set
+   * @arguments _none_
+   */
+  Tuning.prototype.ratios = function() {
+    return this._tuning.midiratio();
+  };
+  /**
+   * @name at
+   * @arguments _(index)_
+   */
+  Tuning.prototype.at = function(index) {
+    return this._tuning.at(index);
+  };
+  /**
+   * @name wrapAt
+   * @arguments _(index)_
+   */
+  Tuning.prototype.wrapAt = function(index) {
+    return this._tuning.wrapAt(index);
+  };
+  /**
+   * @name octaveRatio
+   * @arguments _none_
+   */
+  Tuning.prototype.octaveRatio = function() {
+    return this._octaveRatio;
+  };
+  /**
+   * @name size
+   * @arguments _none_
+   */
+  Tuning.prototype.size = function() {
+    return this._tuning.length;
+  };
+  /**
+   * @name stepsPerOctave
+   * @arguments _none_
+   */
+  Tuning.prototype.stepsPerOctave = function() {
+    return Math.log(this._octaveRatio) * Math.LOG2E * 12;
+  };
+  /**
+   * @name tuning
+   * @arguments _none_
+   */
+  Tuning.prototype.tuning = function() {
+    return this._tuning;
+  };
+  /**
+   * @name equals
+   * @arguments _(that)_
+   */
+  Tuning.prototype.equals = function(that) {
+    return this._octaveRatio === that._octaveRatio &&
+      this._tuning.equals(that._tuning);
+  };
+  // ## deepCopy ()
+  Tuning.prototype.deepCopy = function() {
+    return Tuning(this._tuning.slice(0),
+                  this._octaveRatio,
+                  this.name);
   };
 
   // # TuningInfo
@@ -6417,157 +6566,157 @@ sc.define("xrand2", {
   };
 
   TuningInfo.register(
-    "et12", new Tuning(([
+    "et12", Tuning(([
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
     ]), 2, "ET12")
   );
   TuningInfo.register(
-    "just", new Tuning([
+    "just", Tuning([
       1, 16/15, 9/8, 6/5, 5/4, 4/3, 45/32, 3/2, 8/5, 5/3, 9/5, 15/8
     ].ratiomidi(), 2, "Limit Just Intonation")
   );
   // ### TWELVE-TONE TUNINGS
   sc.TuningInfo.register(
     "pythagorean",
-    new Tuning([ 1, 256/243, 9/8, 32/27, 81/64, 4/3, 729/512, 3/2, 128/81, 27/16, 16/9, 243/128 ].ratiomidi(), 2, "Pythagorean")
+    Tuning([ 1, 256/243, 9/8, 32/27, 81/64, 4/3, 729/512, 3/2, 128/81, 27/16, 16/9, 243/128 ].ratiomidi(), 2, "Pythagorean")
   );
 
   sc.TuningInfo.register(
     "sept1",
-    new Tuning([ 1, 16/15, 9/8, 6/5, 5/4, 4/3, 7/5, 3/2, 8/5, 5/3, 9/5, 15/8 ].ratiomidi(), 2, "Septimal Tritone Just Intonation")
+    Tuning([ 1, 16/15, 9/8, 6/5, 5/4, 4/3, 7/5, 3/2, 8/5, 5/3, 9/5, 15/8 ].ratiomidi(), 2, "Septimal Tritone Just Intonation")
   );
 
   sc.TuningInfo.register(
     "sept2",
-    new Tuning([ 1, 16/15, 9/8, 6/5, 5/4, 4/3, 7/5, 3/2, 8/5, 5/3, 7/4, 15/8 ].ratiomidi(), 2, "7-Limit Just Intonation")
+    Tuning([ 1, 16/15, 9/8, 6/5, 5/4, 4/3, 7/5, 3/2, 8/5, 5/3, 7/4, 15/8 ].ratiomidi(), 2, "7-Limit Just Intonation")
   );
 
   sc.TuningInfo.register(
     "mean4",
-    new Tuning([ 0, 0.755, 1.93, 3.105, 3.86, 5.035, 5.79, 6.965, 7.72, 8.895, 10.07, 10.82 ], 2, "Meantone, 1/4 Syntonic Comma")
+    Tuning([ 0, 0.755, 1.93, 3.105, 3.86, 5.035, 5.79, 6.965, 7.72, 8.895, 10.07, 10.82 ], 2, "Meantone, 1/4 Syntonic Comma")
   );
 
   sc.TuningInfo.register(
     "mean5",
-    new Tuning([ 0, 0.804, 1.944, 3.084, 3.888, 5.028, 5.832, 6.972, 7.776, 8.916, 10.056, 10.86 ], 2, "Meantone, 1/5 Pythagorean Comma")
+    Tuning([ 0, 0.804, 1.944, 3.084, 3.888, 5.028, 5.832, 6.972, 7.776, 8.916, 10.056, 10.86 ], 2, "Meantone, 1/5 Pythagorean Comma")
   );
 
   sc.TuningInfo.register(
     "mean6",
-    new Tuning([ 0, 0.86, 1.96, 3.06, 3.92, 5.02, 5.88, 6.98, 7.84, 8.94, 10.04, 10.9 ], 2, "Meantone, 1/6 Pythagorean Comma")
+    Tuning([ 0, 0.86, 1.96, 3.06, 3.92, 5.02, 5.88, 6.98, 7.84, 8.94, 10.04, 10.9 ], 2, "Meantone, 1/6 Pythagorean Comma")
   );
 
   sc.TuningInfo.register(
     "kirnberger",
-    new Tuning([ 1, 256/243, Math.sqrt(5)/2, 32/27, 5/4, 4/3, 45/32, Math.pow(5, 0.25), 128/81, Math.pow(5, 0.75)/2, 16/9, 15/8 ].ratiomidi(), 2, "Kirnberger III")
+    Tuning([ 1, 256/243, Math.sqrt(5)/2, 32/27, 5/4, 4/3, 45/32, Math.pow(5, 0.25), 128/81, Math.pow(5, 0.75)/2, 16/9, 15/8 ].ratiomidi(), 2, "Kirnberger III")
   );
 
   sc.TuningInfo.register(
     "werckmeister",
-    new Tuning([ 0, 0.92, 1.93, 2.94, 3.915, 4.98, 5.9, 6.965, 7.93, 8.895, 9.96, 10.935 ], 2, "Werckmeister III")
+    Tuning([ 0, 0.92, 1.93, 2.94, 3.915, 4.98, 5.9, 6.965, 7.93, 8.895, 9.96, 10.935 ], 2, "Werckmeister III")
   );
 
   sc.TuningInfo.register(
     "vallotti",
-    new Tuning([ 0, 0.94135, 1.9609, 2.98045, 3.92180, 5.01955, 5.9218, 6.98045, 7.9609, 8.94135, 10, 10.90225 ], 2, "Vallotti")
+    Tuning([ 0, 0.94135, 1.9609, 2.98045, 3.92180, 5.01955, 5.9218, 6.98045, 7.9609, 8.94135, 10, 10.90225 ], 2, "Vallotti")
   );
 
   sc.TuningInfo.register(
     "young",
-    new Tuning([ 0, 0.9, 1.96, 2.94, 3.92, 4.98, 5.88, 6.98, 7.92, 8.94, 9.96, 10.9 ], 2, "Young")
+    Tuning([ 0, 0.9, 1.96, 2.94, 3.92, 4.98, 5.88, 6.98, 7.92, 8.94, 9.96, 10.9 ], 2, "Young")
   );
 
   sc.TuningInfo.register(
     "reinhard",
-    new Tuning([ 1, 14/13, 13/12, 16/13, 13/10, 18/13, 13/9, 20/13, 13/8, 22/13, 13/7, 208/105 ].ratiomidi(), 2, "Mayumi Reinhard")
+    Tuning([ 1, 14/13, 13/12, 16/13, 13/10, 18/13, 13/9, 20/13, 13/8, 22/13, 13/7, 208/105 ].ratiomidi(), 2, "Mayumi Reinhard")
   );
 
   sc.TuningInfo.register(
     "wcHarm",
-    new Tuning([ 1, 17/16, 9/8, 19/16, 5/4, 21/16, 11/8, 3/2, 13/8, 27/16, 7/4, 15/8 ].ratiomidi(), 2, "Wendy Carlos Harmonic")
+    Tuning([ 1, 17/16, 9/8, 19/16, 5/4, 21/16, 11/8, 3/2, 13/8, 27/16, 7/4, 15/8 ].ratiomidi(), 2, "Wendy Carlos Harmonic")
   );
 
   sc.TuningInfo.register(
     "wcSJ",
-    new Tuning([ 1, 17/16, 9/8, 6/5, 5/4, 4/3, 11/8, 3/2, 13/8, 5/3, 7/4, 15/8 ].ratiomidi(), 2, "Wendy Carlos Super Just")
+    Tuning([ 1, 17/16, 9/8, 6/5, 5/4, 4/3, 11/8, 3/2, 13/8, 5/3, 7/4, 15/8 ].ratiomidi(), 2, "Wendy Carlos Super Just")
   );
 
   // ### MORE THAN TWELVE-TONE ET
   sc.TuningInfo.register(
     "et19",
-    new Tuning(Array.range("0..18").opMul(12/19), 2, "ET19")
+    Tuning(sc.Range("0..18").opMul(12/19), 2, "ET19")
   );
 
   sc.TuningInfo.register(
     "et22",
-    new Tuning(Array.range("0..21").opMul(12/22), 2, "ET22")
+    Tuning(sc.Range("0..21").opMul(12/22), 2, "ET22")
   );
 
   sc.TuningInfo.register(
     "et24",
-    new Tuning(Array.range("0..23").opMul(12/24), 2, "ET24")
+    Tuning(sc.Range("0..23").opMul(12/24), 2, "ET24")
   );
 
   sc.TuningInfo.register(
     "et31",
-    new Tuning(Array.range("0..30").opMul(12/31), 2, "ET31")
+    Tuning(sc.Range("0..30").opMul(12/31), 2, "ET31")
   );
 
   sc.TuningInfo.register(
     "et41",
-    new Tuning(Array.range("0..40").opMul(12/41), 2, "ET41")
+    Tuning(sc.Range("0..40").opMul(12/41), 2, "ET41")
   );
   sc.TuningInfo.register(
     "et53",
-    new Tuning(Array.range("0..53").opMul(12/53), 2, "ET53")
+    Tuning(sc.Range("0..53").opMul(12/53), 2, "ET53")
   );
   // ### NON-TWELVE-TONE JI
   sc.TuningInfo.register(
     "johnston",
-    new Tuning([ 1, 25/24, 135/128, 16/15, 10/9, 9/8, 75/64, 6/5, 5/4, 81/64, 32/25, 4/3, 27/20, 45/32, 36/25, 3/2, 25/16, 8/5, 5/3, 27/16, 225/128, 16/9, 9/5, 15/8, 48/25 ].ratiomidi(), 2, "Ben Johnston")
+    Tuning([ 1, 25/24, 135/128, 16/15, 10/9, 9/8, 75/64, 6/5, 5/4, 81/64, 32/25, 4/3, 27/20, 45/32, 36/25, 3/2, 25/16, 8/5, 5/3, 27/16, 225/128, 16/9, 9/5, 15/8, 48/25 ].ratiomidi(), 2, "Ben Johnston")
   );
   sc.TuningInfo.register(
     "partch",
-    new Tuning([ 1, 81/80, 33/32, 21/20, 16/15, 12/11, 11/10, 10/9, 9/8, 8/7, 7/6, 32/27, 6/5, 11/9, 5/4, 14/11, 9/7, 21/16, 4/3, 27/20, 11/8, 7/5, 10/7, 16/11, 40/27, 3/2, 32/21, 14/9, 11/7, 8/5, 18/11, 5/3, 27/16, 12/7, 7/4, 16/9, 9/5, 20/11, 11/6, 15/8, 40/21, 64/33, 160/81 ].ratiomidi(), 2, "Harry Partch")
+    Tuning([ 1, 81/80, 33/32, 21/20, 16/15, 12/11, 11/10, 10/9, 9/8, 8/7, 7/6, 32/27, 6/5, 11/9, 5/4, 14/11, 9/7, 21/16, 4/3, 27/20, 11/8, 7/5, 10/7, 16/11, 40/27, 3/2, 32/21, 14/9, 11/7, 8/5, 18/11, 5/3, 27/16, 12/7, 7/4, 16/9, 9/5, 20/11, 11/6, 15/8, 40/21, 64/33, 160/81 ].ratiomidi(), 2, "Harry Partch")
   );
   sc.TuningInfo.register(
     "catler",
-    new Tuning([ 1, 33/32, 16/15, 9/8, 8/7, 7/6, 6/5, 128/105, 16/13, 5/4, 21/16, 4/3, 11/8, 45/32, 16/11, 3/2, 8/5, 13/8, 5/3, 27/16, 7/4, 16/9, 24/13, 15/8 ].ratiomidi(), 2, "Jon Catler")
+    Tuning([ 1, 33/32, 16/15, 9/8, 8/7, 7/6, 6/5, 128/105, 16/13, 5/4, 21/16, 4/3, 11/8, 45/32, 16/11, 3/2, 8/5, 13/8, 5/3, 27/16, 7/4, 16/9, 24/13, 15/8 ].ratiomidi(), 2, "Jon Catler")
   );
   sc.TuningInfo.register(
     "chalmers",
-    new Tuning([ 1, 21/20, 16/15, 9/8, 7/6, 6/5, 5/4, 21/16, 4/3, 7/5, 35/24, 3/2, 63/40, 8/5, 5/3, 7/4, 9/5, 28/15, 63/32 ].ratiomidi(), 2, "John Chalmers")
+    Tuning([ 1, 21/20, 16/15, 9/8, 7/6, 6/5, 5/4, 21/16, 4/3, 7/5, 35/24, 3/2, 63/40, 8/5, 5/3, 7/4, 9/5, 28/15, 63/32 ].ratiomidi(), 2, "John Chalmers")
   );
   sc.TuningInfo.register(
     "harrison",
-    new Tuning([ 1, 16/15, 10/9, 8/7, 7/6, 6/5, 5/4, 4/3, 17/12, 3/2, 8/5, 5/3, 12/7, 7/4, 9/5, 15/8 ].ratiomidi(), 2, "Lou Harrison")
+    Tuning([ 1, 16/15, 10/9, 8/7, 7/6, 6/5, 5/4, 4/3, 17/12, 3/2, 8/5, 5/3, 12/7, 7/4, 9/5, 15/8 ].ratiomidi(), 2, "Lou Harrison")
   );
   sc.TuningInfo.register(
     "sruti",
-    new Tuning([ 1, 256/243, 16/15, 10/9, 9/8, 32/27, 6/5, 5/4, 81/64, 4/3, 27/20, 45/32, 729/512, 3/2, 128/81, 8/5, 5/3, 27/16, 16/9, 9/5, 15/8, 243/128 ].ratiomidi(), 2, "Sruti")
+    Tuning([ 1, 256/243, 16/15, 10/9, 9/8, 32/27, 6/5, 5/4, 81/64, 4/3, 27/20, 45/32, 729/512, 3/2, 128/81, 8/5, 5/3, 27/16, 16/9, 9/5, 15/8, 243/128 ].ratiomidi(), 2, "Sruti")
   );
   // ### HARMONIC SERIES -- length arbitary
   sc.TuningInfo.register(
     "harmonic",
-    new Tuning(Array.range("1..24").ratiomidi(), 2, "Harmonic Series 24")
+    Tuning(sc.Range("1..24").ratiomidi(), 2, "Harmonic Series 24")
   );
   // ### STRETCHED/SHRUNK OCTAVE
   // ### Bohlen-Pierce
   sc.TuningInfo.register(
     "bp",
-    new Tuning(Array.range("0..12").opMul((3).ratiomidi() / 13), 3.0, "Bohlen-Pierce")
+    Tuning(sc.Range("0..12").opMul((3).ratiomidi() / 13), 3.0, "Bohlen-Pierce")
   );
   sc.TuningInfo.register(
     "wcAlpha",
-    new Tuning(Array.range("0..14").opMul(0.78), (15 * 0.78).midiratio(), "Wendy Carlos Alpha")
+    Tuning(sc.Range("0..14").opMul(0.78), (15 * 0.78).midiratio(), "Wendy Carlos Alpha")
   );
   sc.TuningInfo.register(
     "wcBeta",
-    new Tuning(Array.range("0..18").opMul(0.638), (19 * 0.638).midiratio(), "Wendy Carlos Beta")
+    Tuning(sc.Range("0..18").opMul(0.638), (19 * 0.638).midiratio(), "Wendy Carlos Beta")
   );
   sc.TuningInfo.register(
     "wcGamma",
-    new Tuning(Array.range("0..33").opMul(0.351), (34 * 0.351).midiratio(), "Wendy Carlos Gamma")
+    Tuning(sc.Range("0..33").opMul(0.351), (34 * 0.351).midiratio(), "Wendy Carlos Gamma")
   );
 
   sc.Tuning = Tuning;
@@ -6577,7 +6726,20 @@ sc.define("xrand2", {
 (function(sc) {
   "use strict";
 
+  /**
+   * @name *Scale
+   * @description
+   * Scale supports arbitrary octave divisions and ratios, and (in conjunction with Tuning) can generate pitch information in various ways.
+   * @example
+   *  sc.Scale.major(); // => Major Scale
+   *  sc.Scale.dorian("Pythagorean"); // => Dorian Scale with Pythagorean Tuning
+   *  sc.ScaleInfo.names(); // list of scale name
+   *  sc.ScaleInfo.at("minor"); // => Minor Scale
+   */
   function Scale(degrees, pitchesPerOctave, tuning, name) {
+    if (!(this instanceof Scale)) {
+      return new Scale(degrees, pitchesPerOctave, tuning, name);
+    }
     if (!Array.isArray(degrees)) {
       degrees = [0,2,4,5,7,9,11]; // ionian
     }
@@ -6603,9 +6765,54 @@ sc.define("xrand2", {
     this._pitchesPerOctave = pitchesPerOctave;
     this.tuning(tuning);
   }
-
-  // ## tuning (inTuning:Tuning)
-  // Sets or gets the tuning of the Scale.
+  /**
+   * @name *choose
+   * @description
+   * Creates a random scale from the library, constrained by size and pitchesPerOctave if desired
+   * @arguments _([size=7, pitchesPerOctave=12])_
+   * @example
+   *  sc.Scale.choose(7);
+   */
+  Scale.choose = function(size, pitchesPerOctave) {
+    if (sc.isArrayArgs(arguments)) {
+      return [size, pitchesPerOctave].flop().map(function(items) {
+        return Scale.choose(items[0], items[1]);
+      });
+    }
+    if (typeof size !== "number") { size = 7; }
+    if (typeof pitchesPerOctave !== "number") { pitchesPerOctave = 12; }
+    return ScaleInfo.choose(function(x) {
+      return x._degrees.length === size &&
+        x._pitchesPerOctave === pitchesPerOctave;
+    });
+  };
+  Scale.guessPPO = function(degrees) {
+    if (!Array.isArray(degrees)) {
+      return 128;
+    }
+    var i, max = degrees[0] || 0;
+    for (i = degrees.length; i--; ) {
+      if (degrees[i] > max) {
+        max = degrees[i];
+      }
+    }
+    var etTypes = [53,24,19,12];
+    for (i = etTypes.length; i--; ) {
+      if (max < etTypes[i]) {
+        return etTypes[i];
+      }
+    }
+    return 128;
+  };
+  /**
+   * @name tuning
+   * @description
+   * Sets or gets the tuning of the Scale.
+   * @arguments _([inTuning])_
+   * @example
+   *  sc.Scale.major().tuning("just"); // set tuning
+   *  sc.Scale.major().tuning(); // get tuning
+   */
   Scale.prototype.tuning = function(inTuning) {
     if (inTuning === undefined) {
       return this._tuning;
@@ -6625,74 +6832,149 @@ sc.define("xrand2", {
     this._ratios = this.semitones().midiratio();
     return inTuning;
   };
-  // ## semitones ()
-  // Returns a tuned array of semitone values
+  /**
+   * @name semitone
+   * @description
+   * Returns a tuned array of semitone values
+   * @arguments _none_
+   */
   Scale.prototype.semitones = function() {
     return this._degrees.map(this._tuning.wrapAt.bind(this._tuning));
   };
-  // ## cents ()
-  // Returns a turned array of cent values
+  /**
+   * @name cents
+   * @description
+   * Returns a turned array of cent values
+   * @arguments _none_
+   */
   Scale.prototype.cents = function() {
     return this.semitones().map(function(x) {
       return x * 100;
     });
   };
-  // ## ratios ()
-  // Return a turned array of ratios
+  /**
+   * @name ratios
+   * @description
+   * Return a turned array of ratios
+   * @arguments _none_
+   */
   Scale.prototype.ratios = function() {
     return this._ratios;
   };
-  // ## size ()
-  // Returns the length of the scale
+  /**
+   * @name size
+   * @description
+   * Returns the length of the scale.
+   * @arguments _none_
+   * @example
+   *  sc.Scale.ionian().size(); // 7
+   *  sc.Scale.minorPentatonic().size(); // 5
+   */
   Scale.prototype.size = function() {
     return this._degrees.length;
   };
-  // ## pitchesPerOctave ()
-  // Returns the size of the pitch class set from which the tuning is drawn
+  /**
+   * @name pitchesPerOctave
+   * @description
+   * Returns the size of the pitch class set from which the tuning is drawn
+   * @arguments _none_
+   * @example
+   *  sc.Scale.aeolian().pitchesPerOctave(); // 12
+   *  sc.Scale.ajam().pitchesPerOctave(); // 24 (this is a quarter-tone scale)
+   */
   Scale.prototype.pitchesPerOctave = function() {
     return this._pitchesPerOctave;
   };
-  // ## stepsPerOctave ()
-  // Usually 12, but may be different if the current tuning has a stretched or compressed octave. Needed for degreeToKey
+  /**
+   * @name stepsPerOctave
+   * @description
+   * Usually 12, but may be different if the current tuning has a stretched or compressed octave. Needed for degreeToKey
+   * @arguments _none_
+   */
   Scale.prototype.stepsPerOctave = function() {
     return Math.log(this.octaveRatio()) * Math.LOG2E * 12;
   };
-  // ## at (index:int)
+  /**
+   * @name at
+   * @arguments _(index)_
+   */
   Scale.prototype.at = function(index) {
     return this._tuning.at(this._degrees.wrapAt(index));
   };
-  // ## wrapAt (index:int)
+  /**
+   * @name wrapAt
+   * @description
+   * These access the array generated by semitones.
+   * @arguments _(index)_
+   * @example
+   *  a = sc.Scale.major();
+   *  a.wrapAt(4); // =>  7
+   *  a.wrapAt([5, 6, 7]); // => [ 9, 11, 0 ]
+   */
   Scale.prototype.wrapAt = function(index) {
     return this._tuning.wrapAt(this._degrees.wrapAt(index));
   };
-  // ## degreeToFreq (degree, rootFreq, octave)
+  /**
+   * @name degreeToFreq
+   * @description
+   * Returns a frequency based on current tuning and rootFreq argument.
+   * @argument _(degree, rootFreq, octave)_
+   * @example
+   *  sc.Scale.major().degreeToFreq(2, (60).midicps(), 1); // => 659.25511...
+   *  sc.Scale.major("just").degreeToFreq(2, (60).midicps(), 1); // => 654.06391...
+   */
   Scale.prototype.degreeToFreq = function(degree, rootFreq, octave) {
-    return this.degreeToRatio(degree, octave) * rootFreq;
+    return this.degreeToRatio(degree, octave).opMul(rootFreq);
   };
-  // ## degreeToRatio (degree, octave=0)
+  /**
+   * @name degreeToRatio
+   * @description
+   * Returns a ratio based on current tuning.
+   * @arguments _(degree [, octave=0])_
+   * @example
+   *  sc.Scale.major().degreeToRatio(2, 1).round(0.001); // => 2.52
+   *  sc.Scale.major("just").degreeToRatio(2, 1).round(0.001); // => 2.5
+   */
   Scale.prototype.degreeToRatio = function(degree, octave) {
-    if (typeof octave !== "number") { octave = 0; }
+    if (sc.isArrayArgs(arguments)) {
+      return [degree, octave].flop().map(function(items) {
+        return this.degreeToRatio(items[0], items[1]);
+      }, this);
+    }
+    octave = octave === void 0 ? 0 : octave;
     octave += (degree / this._degrees.length)|0;
     return this.ratios().wrapAt(degree) * Math.pow(this.octaveRatio(), octave);
   };
-  // ## checkTuningForMismatch (aTuning)
   Scale.prototype.checkTuningForMismatch = function(aTuning) {
     return this._pitchesPerOctave === aTuning.size();
   };
-  // ## degrees ()
+  /**
+   * @name degrees
+   * @arguments _none_
+   */
   Scale.prototype.degrees = function() {
     return this._degrees;
   };
-  // ## guessPPO ()
   Scale.prototype.guessPPO = function() {
     return Scale.guessPPO(this._degrees);
   };
-  // ## octaveRatio ()
+  /**
+   * @name octaveRatio
+   * @arguments _none_
+   */
   Scale.prototype.octaveRatio = function() {
     return this._tuning.octaveRatio();
   };
-  // ## performDegreeToKey (scaleDegree, stepsPerOctave, accidental=0)
+  /**
+   * @name performDegreeToKey
+   * @arguments _(scaleDegree, stepsPerOctave [, accidental=0])_
+   */
   Scale.prototype.performDegreeToKey = function(scaleDegree, stepsPerOctave, accidental) {
+    if (sc.isArrayArgs(arguments)) {
+      return [scaleDegree, stepsPerOctave, accidental].flop().map(function(items) {
+        return this.performDegreeToKey(items[0], items[1], items[2]);
+      }, this);
+    }
     if (typeof stepsPerOctave !== "number") { stepsPerOctave = this.stepsPerOctave(); }
     if (typeof accidental     !== "number") { accidental     = 0; }
     var basekey = this.wrapAt(scaleDegree);
@@ -6703,60 +6985,47 @@ sc.define("xrand2", {
       return basekey + (accidental * (stepsPerOctave / 12));
     }
   };
-  // ## performKeyToDegree (degree, stepsPerOctave=12)
+  /**
+   * @name performKeyToDegree
+   * @arguments _(degree [, stepsPerOctave=12])_
+   */
   Scale.prototype.performKeyToDegree = function(degree, stepsPerOctave) {
+    if (sc.isArrayArgs(arguments)) {
+      return [degree, stepsPerOctave].flop().map(function(items) {
+        return this.performKeyToDegree(items[0], items[1]);
+      }, this);
+    }
     if (typeof stepsPerOctave !== "number") { stepsPerOctave = 12; }
     return this._degrees.performKeyToDegree(degree, stepsPerOctave);
   };
-  // ## performNearestInList (degree)
+  /**
+   * @name performNearestInList
+   * @arguments _(degree)_
+   */
   Scale.prototype.performNearestInList = function(degree) {
     return this._degrees.performNearestInList(degree);
   };
-  // ## performNearestInScale (degree, stepsPerOctave=12)
+  /**
+   * @name performNearestInScale
+   * @arguments _(degree [, stepsPerOctave=12])_
+   */
   Scale.prototype.performNearestInScale = function(degree, stepsPerOctave) {
+    if (sc.isArrayArgs(arguments)) {
+      return [degree, stepsPerOctave].flop().map(function(items) {
+        return this.performNearestInScale(items[0], items[1]);
+      }, this);
+    }
     if (typeof stepsPerOctave !== "number") { stepsPerOctave = 12; }
     return this._degrees.performNearestInScale(degree, stepsPerOctave);
   };
-  // ## equals (argScale)
   Scale.prototype.equals = function(argScale) {
     return this.degrees().equals(argScale.degrees()) && this._tuning.equals(argScale._tuning);
   };
-  // ## deepCopy ()
   Scale.prototype.deepCopy = function() {
-    return new Scale(this._degrees.slice(),
-                     this._pitchesPerOctave,
-                     this._tuning.deepCopy(),
-                     this.name);
-  };
-
-  // ## Scale.choose (size=7, pitchesPerOctave=12)
-  // Creates a random scale from the library, constrained by size and pitchesPerOctave if desired
-  Scale.choose = function(size, pitchesPerOctave) {
-    if (typeof size !== "number") { size = 7; }
-    if (typeof pitchesPerOctave !== "number") { pitchesPerOctave = 12; }
-    return ScaleInfo.choose(function(x) {
-      return x._degrees.length === size &&
-        x._pitchesPerOctave === pitchesPerOctave;
-    });
-  };
-  // ## Scale.guessPPO (degrees:Array)
-  Scale.guessPPO = function(degrees) {
-    if (!Array.isArray(degrees)) {
-      return 128;
-    }
-    var i, max = degrees[0] || 0;
-    for (i = degrees.length; i--; ) {
-      if (degrees[i] > max) {
-        max = degrees[i];
-      }
-    }
-    var etTypes = [53,24,19,12];
-    for (i = etTypes.length; i--; ) {
-      if (max < etTypes[i]) {
-        return etTypes[i];
-      }
-    }
-    return 128;
+    return Scale(this._degrees.slice(),
+                 this._pitchesPerOctave,
+                 this._tuning.deepCopy(),
+                 this.name);
   };
 
   // # ScaleInfo
@@ -6810,457 +7079,797 @@ sc.define("xrand2", {
   };
 
   ScaleInfo.register(
-    "major", new Scale([0,2,4,5,7,9,11], 12, null, "Major")
+    "major", Scale([0,2,4,5,7,9,11], 12, null, "Major")
   );
   ScaleInfo.register(
-    "minor", new Scale([0,2,3,5,7,8,10], 12, null, "Natural Minor")
+    "minor", Scale([0,2,3,5,7,8,10], 12, null, "Natural Minor")
   );
   // ### TWELVE-TONES PER OCTAVE
 
   // ### 5 note scales
   sc.ScaleInfo.register(
     "minorPentatonic",
-    new Scale([0,3,5,7,10], 12, "Minor Pentatonic")
+    Scale([0,3,5,7,10], 12, "Minor Pentatonic")
   );
   sc.ScaleInfo.register(
     "majorPentatonic",
-    new Scale([0,2,4,7,9], 12, "Major Pentatonic")
+    Scale([0,2,4,7,9], 12, "Major Pentatonic")
   );
   // ### another mode of major pentatonic
   sc.ScaleInfo.register(
     "ritusen",
-    new Scale([0,2,5,7,9], 12, "Ritusen")
+    Scale([0,2,5,7,9], 12, "Ritusen")
   );
   // ### another mode of major pentatonic
   sc.ScaleInfo.register(
     "egyptian",
-    new Scale([0,2,5,7,10], 12, "Egyptian")
+    Scale([0,2,5,7,10], 12, "Egyptian")
   );
   sc.ScaleInfo.register(
 	"kumoi",
-    new Scale([0,2,3,7,9], 12, "Kumoi")
+    Scale([0,2,3,7,9], 12, "Kumoi")
   );
   sc.ScaleInfo.register(
 	"hirajoshi",
-    new Scale([0,2,3,7,8], 12, "Hirajoshi")
+    Scale([0,2,3,7,8], 12, "Hirajoshi")
   );
   sc.ScaleInfo.register(
 	"iwato",
-    new Scale([0,1,5,6,10], 12, "Iwato")
+    Scale([0,1,5,6,10], 12, "Iwato")
+  );
+  sc.ScaleInfo.register(
+	"ryukyu",
+    Scale([0,4,5,7,11], 12, "Ryukyu")
   );
   sc.ScaleInfo.register(
 	"chinese",
-    new Scale([0,4,6,7,11], 12, "Chinese")
+    Scale([0,4,6,7,11], 12, "Chinese")
   );
   sc.ScaleInfo.register(
 	"indian",
-    new Scale([0,4,5,7,10], 12, "Indian")
+    Scale([0,4,5,7,10], 12, "Indian")
   );
   sc.ScaleInfo.register(
 	"pelog",
-    new Scale([0,1,3,7,8], 12, "Pelog")
+    Scale([0,1,3,7,8], 12, "Pelog")
   );
   sc.ScaleInfo.register(
 	"prometheus",
-    new Scale([0,2,4,6,11], 12, "Prometheus")
+    Scale([0,2,4,6,11], 12, "Prometheus")
   );
   sc.ScaleInfo.register(
 	"scriabin",
-    new Scale([0,1,4,7,9], 12, "Scriabin")
+    Scale([0,1,4,7,9], 12, "Scriabin")
   );
   // ### han chinese pentatonic scales
   sc.ScaleInfo.register(
 	"gong",
-    new Scale([0,2,4,7,9], 12, "Gong")
+    Scale([0,2,4,7,9], 12, "Gong")
   );
   sc.ScaleInfo.register(
 	"shang",
-    new Scale([0,2,5,7,10], 12, "Shang")
+    Scale([0,2,5,7,10], 12, "Shang")
   );
   sc.ScaleInfo.register(
     "jiao",
-    new Scale([0,3,5,8,10], 12, "Jiao")
+    Scale([0,3,5,8,10], 12, "Jiao")
   );
   sc.ScaleInfo.register(
     "zhi",
-    new Scale([0,2,5,7,9], 12, "Zhi")
+    Scale([0,2,5,7,9], 12, "Zhi")
   );
   sc.ScaleInfo.register(
     "yu",
-    new Scale([0,3,5,7,10], 12, "Yu")
+    Scale([0,3,5,7,10], 12, "Yu")
   );
   // ### 6 note scales
   sc.ScaleInfo.register(
     "whole",
-    new Scale([0,2,4,6,8,10], 12, "Whole Tone")
+    Scale([0,2,4,6,8,10], 12, "Whole Tone")
   );
   sc.ScaleInfo.register(
 	"augmented",
-    new Scale([0,3,4,7,8,11], 12, "Augmented")
+    Scale([0,3,4,7,8,11], 12, "Augmented")
   );
   sc.ScaleInfo.register(
 	"augmented2",
-    new Scale([0,1,4,5,8,9], 12, "Augmented 2")
+    Scale([0,1,4,5,8,9], 12, "Augmented 2")
   );
   // ### Partch's Otonalities and Utonalities
   sc.ScaleInfo.register(
     "partch_o1",
-    new Scale([0,8,14,20,25,34], 43, "partch", "Partch Otonality 1")
+    Scale([0,8,14,20,25,34], 43, "partch", "Partch Otonality 1")
   );
   sc.ScaleInfo.register(
 	"partch_o2",
-    new Scale([0,7,13,18,27,35], 43, "partch", "Partch Otonality 2")
+    Scale([0,7,13,18,27,35], 43, "partch", "Partch Otonality 2")
   );
   sc.ScaleInfo.register(
     "partch_o3",
-    new Scale([0,6,12,21,29,36], 43, "partch", "Partch Otonality 3")
+    Scale([0,6,12,21,29,36], 43, "partch", "Partch Otonality 3")
   );
   sc.ScaleInfo.register(
     "partch_o4",
-    new Scale([0,5,15,23,30,37], 43, "partch", "Partch Otonality 4")
+    Scale([0,5,15,23,30,37], 43, "partch", "Partch Otonality 4")
   );
   sc.ScaleInfo.register(
     "partch_o5",
-    new Scale([0,10,18,25,31,38], 43, "partch", "Partch Otonality 5")
+    Scale([0,10,18,25,31,38], 43, "partch", "Partch Otonality 5")
   );
   sc.ScaleInfo.register(
     "partch_o6",
-    new Scale([0,9,16,22,28,33], 43, "partch", "Partch Otonality 6")
+    Scale([0,9,16,22,28,33], 43, "partch", "Partch Otonality 6")
   );
   sc.ScaleInfo.register(
     "partch_u1",
-    new Scale([0,9,18,23,29,35], 43, "partch", "Partch Utonality 1")
+    Scale([0,9,18,23,29,35], 43, "partch", "Partch Utonality 1")
   );
   sc.ScaleInfo.register(
     "partch_u2",
-    new Scale([0,8,16,25,30,36], 43, "partch", "Partch Utonality 2")
+    Scale([0,8,16,25,30,36], 43, "partch", "Partch Utonality 2")
   );
   sc.ScaleInfo.register(
     "partch_u3",
-    new Scale([0,7,14,22,31,37], 43, "partch", "Partch Utonality 3")
+    Scale([0,7,14,22,31,37], 43, "partch", "Partch Utonality 3")
   );
   sc.ScaleInfo.register(
     "partch_u4",
-    new Scale([0,6,13,20,28,38], 43, "partch", "Partch Utonality 4")
+    Scale([0,6,13,20,28,38], 43, "partch", "Partch Utonality 4")
   );
   sc.ScaleInfo.register(
     "partch_u5",
-    new Scale([0,5,12,18,25,33], 43, "partch", "Partch Utonality 5")
+    Scale([0,5,12,18,25,33], 43, "partch", "Partch Utonality 5")
   );
   sc.ScaleInfo.register(
     "partch_u6",
-    new Scale([0,10,15,21,27,34], 43, "partch", "Partch Utonality 6")
+    Scale([0,10,15,21,27,34], 43, "partch", "Partch Utonality 6")
   );
   // ### hexatonic modes with no tritone
   sc.ScaleInfo.register(
 	"hexMajor7",
-    new Scale([0,2,4,7,9,11], 12, "Hex Major 7")
+    Scale([0,2,4,7,9,11], 12, "Hex Major 7")
   );
   sc.ScaleInfo.register(
     "hexDorian",
-    new Scale([0,2,3,5,7,10], 12, "Hex Dorian")
+    Scale([0,2,3,5,7,10], 12, "Hex Dorian")
   );
   sc.ScaleInfo.register(
     "hexPhrygian",
-    new Scale([0,1,3,5,8,10], 12, "Hex Phrygian")
+    Scale([0,1,3,5,8,10], 12, "Hex Phrygian")
   );
   sc.ScaleInfo.register(
     "hexSus",
-    new Scale([0,2,5,7,9,10], 12, "Hex Sus")
+    Scale([0,2,5,7,9,10], 12, "Hex Sus")
   );
   sc.ScaleInfo.register(
     "hexMajor6",
-    new Scale([0,2,4,5,7,9], 12, "Hex Major 6")
+    Scale([0,2,4,5,7,9], 12, "Hex Major 6")
   );
   sc.ScaleInfo.register(
     "hexAeolian",
-    new Scale([0,3,5,7,8,10], 12, "Hex Aeolian")
+    Scale([0,3,5,7,8,10], 12, "Hex Aeolian")
   );
   // ### 7 note scales
   sc.ScaleInfo.register(
 	"ionian",
-    new Scale([0,2,4,5,7,9,11], 12, "Ionian")
+    Scale([0,2,4,5,7,9,11], 12, "Ionian")
   );
   sc.ScaleInfo.register(
 	"dorian",
-    new Scale([0,2,3,5,7,9,10], 12, "Dorian")
+    Scale([0,2,3,5,7,9,10], 12, "Dorian")
   );
   sc.ScaleInfo.register(
 	"phrygian",
-    new Scale([0,1,3,5,7,8,10], 12, "Phrygian")
+    Scale([0,1,3,5,7,8,10], 12, "Phrygian")
   );
   sc.ScaleInfo.register(
 	"lydian",
-    new Scale([0,2,4,6,7,9,11], 12, "Lydian")
+    Scale([0,2,4,6,7,9,11], 12, "Lydian")
   );
   sc.ScaleInfo.register(
 	"mixolydian",
-    new Scale([0,2,4,5,7,9,10], 12, "Mixolydian")
+    Scale([0,2,4,5,7,9,10], 12, "Mixolydian")
   );
   sc.ScaleInfo.register(
 	"aeolian",
-    new Scale([0,2,3,5,7,8,10], 12, "Aeolian")
+    Scale([0,2,3,5,7,8,10], 12, "Aeolian")
   );
   sc.ScaleInfo.register(
     "locrian",
-    new Scale([0,1,3,5,6,8,10], 12, "Locrian")
+    Scale([0,1,3,5,6,8,10], 12, "Locrian")
   );
   sc.ScaleInfo.register(
 	"harmonicMinor",
-    new Scale([0,2,3,5,7,8,11], 12, "Harmonic Minor")
+    Scale([0,2,3,5,7,8,11], 12, "Harmonic Minor")
   );
   sc.ScaleInfo.register(
 	"harmonicMajor",
-    new Scale([0,2,4,5,7,8,11], 12, "Harmonic Major")
+    Scale([0,2,4,5,7,8,11], 12, "Harmonic Major")
   );
   sc.ScaleInfo.register(
 	"melodicMinor",
-    new Scale([0,2,3,5,7,9,11], 12, "Melodic Minor")
+    Scale([0,2,3,5,7,9,11], 12, "Melodic Minor")
   );
   sc.ScaleInfo.register(
     "melodicMinorDesc",
-    new Scale([0,2,3,5,7,8,10], 12, "Melodic Minor Descending")
+    Scale([0,2,3,5,7,8,10], 12, "Melodic Minor Descending")
   );
   sc.ScaleInfo.register(
     "melodicMajor",
-    new Scale([0,2,4,5,7,8,10], 12, "Melodic Major")
+    Scale([0,2,4,5,7,8,10], 12, "Melodic Major")
   );
   sc.ScaleInfo.register(
 	"bartok",
-    new Scale([0,2,4,5,7,8,10], 12, "Bartok")
+    Scale([0,2,4,5,7,8,10], 12, "Bartok")
   );
   sc.ScaleInfo.register(
 	"hindu",
-    new Scale([0,2,4,5,7,8,10], 12, "Hindu")
+    Scale([0,2,4,5,7,8,10], 12, "Hindu")
   );
   // ### raga modes
   sc.ScaleInfo.register(
     "todi",
-    new Scale([0,1,3,6,7,8,11], 12, "Todi")
+    Scale([0,1,3,6,7,8,11], 12, "Todi")
   );
   sc.ScaleInfo.register(
     "purvi",
-    new Scale([0,1,4,6,7,8,11], 12, "Purvi")
+    Scale([0,1,4,6,7,8,11], 12, "Purvi")
   );
   sc.ScaleInfo.register(
     "marva",
-    new Scale([0,1,4,6,7,9,11], 12, "Marva")
+    Scale([0,1,4,6,7,9,11], 12, "Marva")
   );
   sc.ScaleInfo.register(
     "bhairav",
-    new Scale([0,1,4,5,7,8,11], 12, "Bhairav")
+    Scale([0,1,4,5,7,8,11], 12, "Bhairav")
   );
   sc.ScaleInfo.register(
     "ahirbhairav",
-    new Scale([0,1,4,5,7,9,10], 12, "Ahirbhairav")
+    Scale([0,1,4,5,7,9,10], 12, "Ahirbhairav")
   );
   sc.ScaleInfo.register(
 	"superLocrian",
-    new Scale([0,1,3,4,6,8,10], 12, "Super Locrian")
+    Scale([0,1,3,4,6,8,10], 12, "Super Locrian")
   );
   sc.ScaleInfo.register(
     "romanianMinor",
-    new Scale([0,2,3,6,7,9,10], 12, "Romanian Minor")
+    Scale([0,2,3,6,7,9,10], 12, "Romanian Minor")
   );
   sc.ScaleInfo.register(
     "hungarianMinor",
-    new Scale([0,2,3,6,7,8,11], 12, "Hungarian Minor")
+    Scale([0,2,3,6,7,8,11], 12, "Hungarian Minor")
   );
   sc.ScaleInfo.register(
     "neapolitanMinor",
-    new Scale([0,1,3,5,7,8,11], 12, "Neapolitan Minor")
+    Scale([0,1,3,5,7,8,11], 12, "Neapolitan Minor")
   );
   sc.ScaleInfo.register(
     "enigmatic",
-    new Scale([0,1,4,6,8,10,11], 12, "Enigmatic")
+    Scale([0,1,4,6,8,10,11], 12, "Enigmatic")
   );
   sc.ScaleInfo.register(
     "spanish",
-    new Scale([0,1,4,5,7,8,10], 12, "Spanish")
+    Scale([0,1,4,5,7,8,10], 12, "Spanish")
   );
   // ### modes of whole tones with added note ->
   sc.ScaleInfo.register(
 	"leadingWhole",
-    new Scale([0,2,4,6,8,10,11], 12, "Leading Whole Tone")
+    Scale([0,2,4,6,8,10,11], 12, "Leading Whole Tone")
   );
   sc.ScaleInfo.register(
     "lydianMinor",
-    new Scale([0,2,4,6,7,8,10], 12, "Lydian Minor")
+    Scale([0,2,4,6,7,8,10], 12, "Lydian Minor")
   );
   sc.ScaleInfo.register(
     "neapolitanMajor",
-    new Scale([0,1,3,5,7,9,11], 12, "Neapolitan Major")
+    Scale([0,1,3,5,7,9,11], 12, "Neapolitan Major")
   );
   sc.ScaleInfo.register(
     "locrianMajor",
-    new Scale([0,2,4,5,6,8,10], 12, "Locrian Major")
+    Scale([0,2,4,5,6,8,10], 12, "Locrian Major")
   );
   // ### 8 note scales
   sc.ScaleInfo.register(
     "diminished",
-    new Scale([0,1,3,4,6,7,9,10], 12, "Diminished")
+    Scale([0,1,3,4,6,7,9,10], 12, "Diminished")
   );
   sc.ScaleInfo.register(
     "diminished2",
-    new Scale([0,2,3,5,6,8,9,11], 12, "Diminished 2")
+    Scale([0,2,3,5,6,8,9,11], 12, "Diminished 2")
   );
   // ### 12 note scales
   sc.ScaleInfo.register(
     "chromatic",
-    new Scale([0,1,2,3,4,5,6,7,8,9,10,11], 12, "Chromatic")
+    Scale([0,1,2,3,4,5,6,7,8,9,10,11], 12, "Chromatic")
   );
   // ### TWENTY-FOUR TONES PER OCTAVE
   sc.ScaleInfo.register(
     "chromatic24",
-    new Scale([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23], 24, "Chromatic 24")
+    Scale([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23], 24, "Chromatic 24")
   );
   // ### maqam ajam
   sc.ScaleInfo.register(
     "ajam",
-    new Scale([0,4,8,10,14,18,22], 24, "Ajam")
+    Scale([0,4,8,10,14,18,22], 24, "Ajam")
   );
   sc.ScaleInfo.register(
     "jiharkah",
-    new Scale([0,4,8,10,14,18,21], 24, "Jiharkah")
+    Scale([0,4,8,10,14,18,21], 24, "Jiharkah")
   );
   sc.ScaleInfo.register(
     "shawqAfza",
-    new Scale([0,4,8,10,14,16,22], 24, "Shawq Afza")
+    Scale([0,4,8,10,14,16,22], 24, "Shawq Afza")
   );
   // ### maqam sikah
   sc.ScaleInfo.register(
     "sikah",
-    new Scale([0,3,7,11,14,17,21], 24, "Sikah")
+    Scale([0,3,7,11,14,17,21], 24, "Sikah")
   );
   sc.ScaleInfo.register(
     "sikahDesc",
-    new Scale([0,3,7,11,13,17,21], 24, "Sikah Descending")
+    Scale([0,3,7,11,13,17,21], 24, "Sikah Descending")
   );
   sc.ScaleInfo.register(
     "huzam",
-    new Scale([0,3,7,9,15,17,21], 24, "Huzam")
+    Scale([0,3,7,9,15,17,21], 24, "Huzam")
   );
   sc.ScaleInfo.register(
     "iraq",
-    new Scale([0,3,7,10,13,17,21], 24, "Iraq")
+    Scale([0,3,7,10,13,17,21], 24, "Iraq")
   );
   sc.ScaleInfo.register(
     "bastanikar",
-    new Scale([0,3,7,10,13,15,21], 24, "Bastanikar")
+    Scale([0,3,7,10,13,15,21], 24, "Bastanikar")
   );
   sc.ScaleInfo.register(
     "mustar",
-    new Scale([0,5,7,11,13,17,21], 24, "Mustar")
+    Scale([0,5,7,11,13,17,21], 24, "Mustar")
   );
   // ### maqam bayati
   sc.ScaleInfo.register(
     "bayati",
-    new Scale([0,3,6,10,14,16,20], 24, "Bayati")
+    Scale([0,3,6,10,14,16,20], 24, "Bayati")
   );
   sc.ScaleInfo.register(
     "karjighar",
-    new Scale([0,3,6,10,12,18,20], 24, "Karjighar")
+    Scale([0,3,6,10,12,18,20], 24, "Karjighar")
   );
   sc.ScaleInfo.register(
     "husseini",
-    new Scale([0,3,6,10,14,17,21], 24, "Husseini")
+    Scale([0,3,6,10,14,17,21], 24, "Husseini")
   );
   // ### maqam nahawand
   sc.ScaleInfo.register(
     "nahawand",
-    new Scale([0,4,6,10,14,16,22], 24, "Nahawand")
+    Scale([0,4,6,10,14,16,22], 24, "Nahawand")
   );
   sc.ScaleInfo.register(
     "nahawandDesc",
-    new Scale([0,4,6,10,14,16,20], 24, "Nahawand Descending")
+    Scale([0,4,6,10,14,16,20], 24, "Nahawand Descending")
   );
   sc.ScaleInfo.register(
     "farahfaza",
-    new Scale([0,4,6,10,14,16,20], 24, "Farahfaza")
+    Scale([0,4,6,10,14,16,20], 24, "Farahfaza")
   );
   sc.ScaleInfo.register(
     "murassah",
-    new Scale([0,4,6,10,12,18,20], 24, "Murassah")
+    Scale([0,4,6,10,12,18,20], 24, "Murassah")
   );
   sc.ScaleInfo.register(
     "ushaqMashri",
-    new Scale([0,4,6,10,14,17,21], 24, "Ushaq Mashri")
+    Scale([0,4,6,10,14,17,21], 24, "Ushaq Mashri")
   );
   // ### maqam rast
   sc.ScaleInfo.register(
     "rast",
-    new Scale([0,4,7,10,14,18,21], 24, "Rast")
+    Scale([0,4,7,10,14,18,21], 24, "Rast")
   );
   sc.ScaleInfo.register(
     "rastDesc",
-    new Scale([0,4,7,10,14,18,20], 24, "Rast Descending")
+    Scale([0,4,7,10,14,18,20], 24, "Rast Descending")
   );
   sc.ScaleInfo.register(
     "suznak",
-    new Scale([0,4,7,10,14,16,22], 24, "Suznak")
+    Scale([0,4,7,10,14,16,22], 24, "Suznak")
   );
   sc.ScaleInfo.register(
     "nairuz",
-    new Scale([0,4,7,10,14,17,20], 24, "Nairuz")
+    Scale([0,4,7,10,14,17,20], 24, "Nairuz")
   );
   sc.ScaleInfo.register(
     "yakah",
-    new Scale([0,4,7,10,14,18,21], 24, "Yakah")
+    Scale([0,4,7,10,14,18,21], 24, "Yakah")
   );
   sc.ScaleInfo.register(
     "yakahDesc",
-    new Scale([0,4,7,10,14,18,20], 24, "Yakah Descending")
+    Scale([0,4,7,10,14,18,20], 24, "Yakah Descending")
   );
   sc.ScaleInfo.register(
     "mahur",
-    new Scale([0,4,7,10,14,18,22], 24, "Mahur")
+    Scale([0,4,7,10,14,18,22], 24, "Mahur")
   );
   // ### maqam hijaz
   sc.ScaleInfo.register(
     "hijaz",
-    new Scale([0,2,8,10,14,17,20], 24, "Hijaz")
+    Scale([0,2,8,10,14,17,20], 24, "Hijaz")
   );
   sc.ScaleInfo.register(
     "hijazDesc",
-    new Scale([0,2,8,10,14,16,20], 24, "Hijaz Descending")
+    Scale([0,2,8,10,14,16,20], 24, "Hijaz Descending")
   );
   sc.ScaleInfo.register(
     "zanjaran",
-    new Scale([0,2,8,10,14,18,20], 24, "Zanjaran")
+    Scale([0,2,8,10,14,18,20], 24, "Zanjaran")
   );
   // ### maqam saba
   sc.ScaleInfo.register(
 	"saba",
-    new Scale([0,3,6,8,12,16,20], 24, "Saba")
+    Scale([0,3,6,8,12,16,20], 24, "Saba")
   );
   sc.ScaleInfo.register(
     "zamzam",
-    new Scale([0,2,6,8,14,16,20], 24, "Zamzam")
+    Scale([0,2,6,8,14,16,20], 24, "Zamzam")
   );
   // ### maqam kurd
   sc.ScaleInfo.register(
     "kurd",
-    new Scale([0,2,6,10,14,16,20], 24, "Kurd")
+    Scale([0,2,6,10,14,16,20], 24, "Kurd")
   );
   sc.ScaleInfo.register(
     "kijazKarKurd",
-    new Scale([0,2,8,10,14,16,22], 24, "Kijaz Kar Kurd")
+    Scale([0,2,8,10,14,16,22], 24, "Kijaz Kar Kurd")
   );
   // ### maqam nawa Athar
   sc.ScaleInfo.register(
     "nawaAthar",
-    new Scale([0,4,6,12,14,16,22], 24, "Nawa Athar")
+    Scale([0,4,6,12,14,16,22], 24, "Nawa Athar")
   );
   sc.ScaleInfo.register(
     "nikriz",
-    new Scale([0,4,6,12,14,18,20], 24, "Nikriz")
+    Scale([0,4,6,12,14,18,20], 24, "Nikriz")
   );
   sc.ScaleInfo.register(
     "atharKurd",
-    new Scale([0,2,6,12,14,16,22], 24, "Athar Kurd")
+    Scale([0,2,6,12,14,16,22], 24, "Athar Kurd")
   );
 
   sc.Scale = Scale;
+
+})(sc);
+
+(function(sc) {
+  "use strict";
+
+  /**
+   * @name *RGen
+   * @description
+   * Random Generator
+   * @arguments _([seed])_
+   * @example
+   *  r = sc.RGen();
+   *  r.next();
+   */
+  function RGen(seed) {
+    if (!(this instanceof RGen)) {
+      return new RGen(seed);
+    }
+    if (typeof seed !== "number") {
+      seed = Date.now();
+    }
+    var hash = seed;
+    hash += ~(hash <<  15);
+    hash ^=   hash >>> 10;
+    hash +=   hash <<  3;
+    hash ^=   hash >>> 6;
+    hash += ~(hash <<  11);
+    hash ^=   hash >>> 16;
+
+    this.s1 = 1243598713 ^ seed;
+    this.s2 = 3093459404 ^ seed;
+    this.s3 = 1821928721 ^ seed;
+    if (this.s1 <  2) { this.s1 = 1243598713; }
+    if (this.s2 <  8) { this.s2 = 3093459404; }
+    if (this.s3 < 16) { this.s3 = 1821928721; }
+  }
+
+  RGen.prototype.trand = function() {
+    this.s1 = ((this.s1 & 4294967294) << 12) ^ (((this.s1 << 13) ^  this.s1) >>> 19);
+    this.s2 = ((this.s2 & 4294967288) <<  4) ^ (((this.s2 <<  2) ^  this.s2) >>> 25);
+    this.s3 = ((this.s3 & 4294967280) << 17) ^ (((this.s3 <<  3) ^  this.s3) >>> 11);
+    return this.s1 ^ this.s2 ^ this.s3;
+  };
+
+  var _i = new Uint32Array(1);
+  var _f = new Float32Array(_i.buffer);
+
+  /**
+   * @name next
+   * @description
+   * return a number from 0.0 to 0.999...
+   * @arguments _none_
+   * @example
+   *  r = sc.RGen(100);
+   *  r.next(); // => 0.6258506774902344
+   *  r.next(); // => 0.4134453535079956
+   *  r.next(); // => 0.13581514358520508
+   */
+  RGen.prototype.next = function() {
+    _i[0] = 0x3F800000 | (this.trand() >>> 9);
+    return _f[0] - 1;
+  };
+
+  sc.RGen = RGen;
+
+})(sc);
+
+(function(sc) {
+  "use strict";
+
+  function extend(child, parent) {
+    for (var key in parent) {
+      if (parent.hasOwnProperty(key)) {
+        child[key] = parent[key];
+      }
+    }
+    function Ctor() {
+      this.constructor = child;
+    }
+    Ctor.prototype  = parent.prototype;
+    child.prototype = new Ctor();
+    child.__super__ = parent.prototype;
+    return child;
+  }
+
+  // # Pattern
+  function Pattern() {
+    if (!(this instanceof Pattern)) {
+      return new Pattern();
+    }
+    this.count = 0;
+  }
+  Pattern.prototype.next = function() {
+    return null;
+  };
+  Pattern.prototype.valueOf = function(item) {
+    return (typeof item.next === "function") ? item.next() : item;
+  };
+  Pattern.prototype.reset = function() {
+    this.count = 0;
+  };
+  sc.Pattern = Pattern;
+
+  /**
+   * @name *Pser
+   * @description
+   * is like `Pseq`, however the repeats variable gives *the number of items* returned instead of the number of complete cycles
+   * @arguments _(list [, repeat=1, offset=0])_
+   * @example
+   *  p = sc.Pser([1,2,3], 4);
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 3
+   *  p.next(); // => 1
+   *  p.next(); // => null
+   */
+  function Pser(list, repeats, offset) {
+    if (!(this instanceof Pser)) {
+      return new Pser(list, repeats, offset);
+    }
+    Pattern.call(this);
+    repeats = (typeof repeats === "number") ? repeats : 1;
+    offset  = (typeof offset  === "number") ? offset  : 0;
+
+    this.list = list;
+    this.repeats = repeats !== Infinity ? Math.max(0, repeats)|0 : Infinity;
+    this.offset  = Math.max(0, offset )|0;
+  }
+  extend(Pser, Pattern);
+
+  Pser.prototype.next = function() {
+    if (this.count >= this.repeats) {
+      return null;
+    }
+    var index = (this.count + this.offset) % this.list.length;
+    var item  = this.list[index];
+    var value = this.valueOf(item);
+    if (value !== null) {
+      if (typeof item.next !== "function") {
+        this.count += 1;
+      }
+      return value;
+    } else {
+      if (typeof item.reset === "function") {
+        item.reset();
+      }
+      this.count += 1;
+      return this.next();
+    }
+  };
+  sc.Pser = Pser;
+
+  /**
+   * @name *Pseq
+   * @description
+   * Cycles over a list of values. The repeats variable gives the number of times to repeat the entire list.
+   * @arguments _(list [, repeat=1, offset=0])_
+   * @example
+   *  p = sc.Pseq([1,2,3], 2);
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 3
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 3
+   *  p.next(); // => null
+   */
+  function Pseq(list, repeats, offset) {
+    if (!(this instanceof Pseq)) {
+      return new Pseq(list, repeats, offset);
+    }
+    Pser.call(this, list, repeats, offset);
+    this.repeats *= list.length;
+  }
+  extend(Pseq, Pser);
+  sc.Pseq = Pseq;
+
+  /**
+   * @name *Pshuf
+   * @description
+   * Returns a shuffled version of the *list* item by item, with n *repeats*.
+   * @arguments _(list [, repeats=1, seed=nil])_
+   * @example
+   *  p = sc.Pshuf([1,2,3], 5, 12345);
+   *  p.next(); // => 2
+   *  p.next(); // => 1
+   *  p.next(); // => 3
+   *  p.next(); // => 2
+   *  p.next(); // => 1
+   *  p.next(); // => null
+   */
+  function Pshuf(list, repeats, seed) {
+    if (!(this instanceof Pshuf)) {
+      return new Pshuf(list, repeats, seed);
+    }
+    Pser.call(this, list, repeats, 0);
+    var rand = new sc.RGen(seed);
+    this.list.sort(function() {
+      return rand.next() - 0.5;
+    });
+  }
+  extend(Pshuf, Pser);
+  sc.Pshuf = Pshuf;
+
+  /**
+   * @name *Prand
+   * @description
+   * Embed one item from the list at random for each repeat.
+   * @arguments _(list [, repeats=1, seed=nil])_
+   * @example
+   *  p = sc.Prand([1,2,3], 5, 12345);
+   *  p.next(); // => 3
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 1
+   *  p.next(); // => 3
+   *  p.next(); // => null
+   */
+  function Prand(list, repeats, seed) {
+    if (!(this instanceof Prand)) {
+      return new Prand(list, repeats, seed);
+    }
+    Pser.call(this, list, repeats, 0);
+    var rand = new sc.RGen(seed);
+    this._rand = rand.next.bind(rand);
+  }
+  extend(Prand, Pser);
+
+  Prand.prototype.next = function() {
+    if (this.count >= this.repeats) {
+      return null;
+    }
+    var index = (this._rand() * this.list.length)|0;
+    var item  = this.list[index];
+    var value = this.valueOf(item);
+    if (value !== null) {
+      if (typeof item.next !== "function") {
+        this.count += 1;
+      }
+      return value;
+    } else {
+      if (typeof item.reset === "function") {
+        item.reset();
+      }
+      this.count += 1;
+      return this.next();
+    }
+  };
+  sc.Prand = Prand;
+
+  /**
+   * @name *Pseries
+   * @description
+   * Returns a stream that behaves like an arithmetric series.
+   * @arguments _([start=0, step=1, length=inf])_
+   * @example
+   *  p = sc.Pseries(0, 2, 5);
+   *  p.next(); // => 0
+   *  p.next(); // => 2
+   *  p.next(); // => 4
+   *  p.next(); // => 6
+   *  p.next(); // => 8
+   *  p.next(); // => null
+   */
+  function Pseries(start, step, length) {
+    if (!(this instanceof Pseries)) {
+      return new Pseries(start, step, length);
+    }
+    Pattern.call(this);
+    start  = (typeof start  === "number") ? start  : 0;
+    length = (typeof length === "number") ? length : Infinity;
+
+    this.start  = start;
+    this.value  = this.start;
+    this.step   = step || 1;
+    this.length = length !== Infinity ? Math.max(0, length)|0 : Infinity;
+  }
+  extend(Pseries, Pattern);
+
+  Pseries.prototype.next = function() {
+    if (this.count < this.length) {
+      var step = this.valueOf(this.step);
+      if (step !== null) {
+        var outval = this.value;
+        this.value += step;
+        this.count += 1;
+        return outval;
+      }
+    }
+    return null;
+  };
+  sc.Pseries = Pseries;
+
+  /**
+   * @name *Pgeom
+   * @description
+   * Returns a stream that behaves like a geometric series.
+   * @arguments _([start=0, grow=1, length=inf])_
+   * @example
+   *  p = sc.Pgeom(1, 2, 5);
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 4
+   *  p.next(); // => 8
+   *  p.next(); // => 16
+   *  p.next(); // => null
+   */
+  function Pgeom(start, grow, length) {
+    if (!(this instanceof Pgeom)) {
+      return new Pgeom(start, grow, length);
+    }
+    Pattern.call(this);
+    start  = (typeof start  === "number") ? start  : 0;
+    length = (typeof length === "number") ? length : Infinity;
+
+    this.start  = start;
+    this.value  = this.start;
+    this.grow   = grow || 1;
+    this.length = length !== Infinity ? Math.max(0, length)|0 : Infinity;
+  }
+  extend(Pgeom, Pattern);
+
+  Pgeom.prototype.next = function() {
+    if (this.count < this.length) {
+      var grow = this.valueOf(this.grow);
+      if (grow !== null) {
+        var outval = this.value;
+        this.value *= grow;
+        this.count += 1;
+        return outval;
+      }
+    }
+    return null;
+  };
+  sc.Pgeom = Pgeom;
 
 })(sc);
 
