@@ -2,6 +2,7 @@
 a { color: #727171 }
 body { font: 1em/1.5 'Helvetica Neue',Helvetica,Arial,sans-serif }
 h1 { height:55px;padding:0 0.5em; font-weight:normal; letter-spacing:2px; }
+h1 a { color:#000; text-decoration:none; }
 h2 { font-weight:normal; }
 #doc-index { width:220px; position:fixed; top:55px; left:0; bottom:0; overflow-y:auto; overflow-x:hidden; padding:15px; font-family:'Consolas','Courier New',monospace}
 #doc-index ul { margin-left: 40px; }

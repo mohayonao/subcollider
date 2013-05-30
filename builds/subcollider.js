@@ -4,6 +4,8 @@
 (function(global) {
   "use strict";
 
+  var VERSION = "0.1.0";
+
   var slice = [].slice;
   var conflicts = {
     Number  : [],
@@ -38,6 +40,18 @@
         return null;
       };
     }
+  };
+  sc.version = function() {
+    return VERSION;
+  };
+  sc.version.major = function() {
+    return +VERSION.split(".")[0];
+  };
+  sc.version.minor = function() {
+    return +VERSION.split(".")[1];
+  };
+  sc.version.revision = function() {
+    return +VERSION.split(".")[2];
   };
   sc.define = function(name, deps, payload) {
     if (arguments.length === 2) {
@@ -6943,7 +6957,39 @@ sc.define("xrand2", {
     }
     octave = octave === void 0 ? 0 : octave;
     octave += (degree / this._degrees.length)|0;
-    return this.ratios().wrapAt(degree) * Math.pow(this.octaveRatio(), octave);
+    return this.ratios().wrapAt(degree).opMul(this.octaveRatio().pow(octave));
+  };
+  /**
+   * @name degreeToFreq2
+   * @description
+   * Same `degreeToFreq`, but use `blendAt`.
+   * @argument _(degree, rootFreq, octave)_
+   * @example
+   *  sc.Scale.major().degreeToFreq2(2.5, (60).midicps(), 1); // => 678.8557...
+   *  sc.Scale.major("just").degreeToFreq2(2.5, (60).midicps(), 1); // => 675.8660...
+   */
+  Scale.prototype.degreeToFreq2 = function(degree, rootFreq, octave) {
+    return this.degreeToRatio2(degree, octave).opMul(rootFreq);
+  };
+  /**
+   * @name degreeToRatio2
+   * @description
+   * Same as `degreeToRatio`, but use `blendAt`.
+   * @arguments _(degree [, octave=0])_
+   * @example
+   *  sc.Scale.major().degreeToRatio2(2.5, 1).round(0.001); // => 2.595
+   *  sc.Scale.major("just").degreeToRatio2(2.5, 1).round(0.001); // => 2.583
+   */
+  Scale.prototype.degreeToRatio2 = function(degree, octave) {
+    if (sc.isArrayArgs(arguments)) {
+      return [degree, octave].flop().map(function(items) {
+        return this.degreeToRatio2(items[0], items[1]);
+      }, this);
+    }
+    octave = octave === void 0 ? 0 : octave;
+    octave += (degree / this._degrees.length)|0;
+    var _index = degree.opMod(this._degrees.length);
+    return this.ratios().blendAt(_index).opMul(this.octaveRatio().pow(octave));
   };
   Scale.prototype.checkTuningForMismatch = function(aTuning) {
     return this._pitchesPerOctave === aTuning.size();

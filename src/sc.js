@@ -1,6 +1,8 @@
 (function(global) {
   "use strict";
 
+  var VERSION = "0.1.0";
+
   var slice = [].slice;
   var conflicts = {
     Number  : [],
@@ -35,6 +37,18 @@
         return null;
       };
     }
+  };
+  sc.version = function() {
+    return VERSION;
+  };
+  sc.version.major = function() {
+    return +VERSION.split(".")[0];
+  };
+  sc.version.minor = function() {
+    return +VERSION.split(".")[1];
+  };
+  sc.version.revision = function() {
+    return +VERSION.split(".")[2];
   };
   sc.define = function(name, deps, payload) {
     if (arguments.length === 2) {
