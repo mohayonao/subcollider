@@ -1,7 +1,6 @@
 (function(sc) {
   "use strict";
 
-  // ##### utility functions
   function extend(child, parent) {
     for (var key in parent) {
       if (parent.hasOwnProperty(key)) {
@@ -19,6 +18,9 @@
 
   // # Pattern
   function Pattern() {
+    if (!(this instanceof Pattern)) {
+      return new Pattern();
+    }
     this.count = 0;
   }
   Pattern.prototype.next = function() {
@@ -32,8 +34,23 @@
   };
   sc.Pattern = Pattern;
 
-  // ## Pser : Pattern
+  /**
+   * @name *Pser
+   * @description
+   * is like `Pseq`, however the repeats variable gives *the number of items* returned instead of the number of complete cycles
+   * @arguments _(list [, repeat=1, offset=0])_
+   * @example
+   *  p = sc.Pser([1,2,3], 4);
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 3
+   *  p.next(); // => 1
+   *  p.next(); // => null
+   */
   function Pser(list, repeats, offset) {
+    if (!(this instanceof Pser)) {
+      return new Pser(list, repeats, offset);
+    }
     Pattern.call(this);
     repeats = (typeof repeats === "number") ? repeats : 1;
     offset  = (typeof offset  === "number") ? offset  : 0;
@@ -66,16 +83,49 @@
   };
   sc.Pser = Pser;
 
-  // ## Pseq : Pser
+  /**
+   * @name *Pseq
+   * @description
+   * Cycles over a list of values. The repeats variable gives the number of times to repeat the entire list.
+   * @arguments _(list [, repeat=1, offset=0])_
+   * @example
+   *  p = sc.Pseq([1,2,3], 2);
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 3
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 3
+   *  p.next(); // => null
+   */
   function Pseq(list, repeats, offset) {
+    if (!(this instanceof Pseq)) {
+      return new Pseq(list, repeats, offset);
+    }
     Pser.call(this, list, repeats, offset);
     this.repeats *= list.length;
   }
   extend(Pseq, Pser);
   sc.Pseq = Pseq;
 
-  // ## Pshuf : Pser
+  /**
+   * @name *Pshuf
+   * @description
+   * Returns a shuffled version of the *list* item by item, with n *repeats*.
+   * @arguments _(list [, repeats=1, seed=nil])_
+   * @example
+   *  p = sc.Pshuf([1,2,3], 5, 12345);
+   *  p.next(); // => 2
+   *  p.next(); // => 1
+   *  p.next(); // => 3
+   *  p.next(); // => 2
+   *  p.next(); // => 1
+   *  p.next(); // => null
+   */
   function Pshuf(list, repeats, seed) {
+    if (!(this instanceof Pshuf)) {
+      return new Pshuf(list, repeats, seed);
+    }
     Pser.call(this, list, repeats, 0);
     var rand = new sc.RGen(seed);
     this.list.sort(function() {
@@ -85,13 +135,29 @@
   extend(Pshuf, Pser);
   sc.Pshuf = Pshuf;
 
-  // ## Prand : Pattern
+  /**
+   * @name *Prand
+   * @description
+   * Embed one item from the list at random for each repeat.
+   * @arguments _(list [, repeats=1, seed=nil])_
+   * @example
+   *  p = sc.Prand([1,2,3], 5, 12345);
+   *  p.next(); // => 3
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 1
+   *  p.next(); // => 3
+   *  p.next(); // => null
+   */
   function Prand(list, repeats, seed) {
+    if (!(this instanceof Prand)) {
+      return new Prand(list, repeats, seed);
+    }
     Pser.call(this, list, repeats, 0);
     var rand = new sc.RGen(seed);
     this._rand = rand.next.bind(rand);
   }
-  extend(Prand, Pattern);
+  extend(Prand, Pser);
 
   Prand.prototype.next = function() {
     if (this.count >= this.repeats) {
@@ -115,8 +181,24 @@
   };
   sc.Prand = Prand;
 
-  // ## Pseries : Pattern
+  /**
+   * @name *Pseries
+   * @description
+   * Returns a stream that behaves like an arithmetric series.
+   * @arguments _([start=0, step=1, length=inf])_
+   * @example
+   *  p = sc.Pseries(0, 2, 5);
+   *  p.next(); // => 0
+   *  p.next(); // => 2
+   *  p.next(); // => 4
+   *  p.next(); // => 6
+   *  p.next(); // => 8
+   *  p.next(); // => null
+   */
   function Pseries(start, step, length) {
+    if (!(this instanceof Pseries)) {
+      return new Pseries(start, step, length);
+    }
     Pattern.call(this);
     start  = (typeof start  === "number") ? start  : 0;
     length = (typeof length === "number") ? length : Infinity;
@@ -142,8 +224,24 @@
   };
   sc.Pseries = Pseries;
 
-  // ## Pgeom : Pattern
+  /**
+   * @name *Pgeom
+   * @description
+   * Returns a stream that behaves like a geometric series.
+   * @arguments _([start=0, grow=1, length=inf])_
+   * @example
+   *  p = sc.Pgeom(1, 2, 5);
+   *  p.next(); // => 1
+   *  p.next(); // => 2
+   *  p.next(); // => 4
+   *  p.next(); // => 8
+   *  p.next(); // => 16
+   *  p.next(); // => null
+   */
   function Pgeom(start, grow, length) {
+    if (!(this instanceof Pgeom)) {
+      return new Pgeom(start, grow, length);
+    }
     Pattern.call(this);
     start  = (typeof start  === "number") ? start  : 0;
     length = (typeof length === "number") ? length : Infinity;

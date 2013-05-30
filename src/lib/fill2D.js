@@ -1,8 +1,11 @@
 /**
- * Creates a 2 dimensional Collection of the given sizes. The items are determined by evaluation of the supplied function. The function is passed row and column indexes as arguments.
- * @arguments _(rows, cols [, function])_
+ * Creates a 2 dimensional Array of the given sizes. The items are determined by evaluation of the supplied function. The function is passed row and column indexes as arguments.
+ * @arguments _(rows, cols [, function=nil])_
  * @example
- *   Array.fill2D(2, 4, 1); // => [ [ 1, 1, 1, 1], [ 1, 1, 1, 1 ] ]
+ *  Array.fill2D(3, 3, 1);
+ *  // => [ [ 1, 1, 1 ],
+ *  //      [ 1, 1, 1 ],
+ *  //      [ 1, 1, 1 ] ]
  */
 sc.define("*fill2D", {
   Array: function(rows, cols, func) {

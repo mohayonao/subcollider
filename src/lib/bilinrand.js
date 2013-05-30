@@ -1,3 +1,7 @@
+/**
+ * Bilateral linearly distributed random number from *-this* to *+this*.
+ * @arguments _none_
+ */
 sc.define("bilinrand", {
   Number: function() {
     return (Math.random() - Math.random()) * this;

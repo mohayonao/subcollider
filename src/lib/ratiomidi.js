@@ -3,7 +3,7 @@
  * @arguments _none_
  * @returns an interval in semitones
  * @example
- *  Array.range("1, 1.2..2").ratiomidi();
+ *  sc.Range("1, 1.2..2").ratiomidi();
  *  // => [ 0, 3.1564, 5.8251, 8.1368, 10.1759, 11.9999 ]
  */
 sc.define("ratiomidi", {

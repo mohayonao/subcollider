@@ -1,5 +1,5 @@
 /**
- * Returns a new Collection of the desired length, with values resampled evenly-spaced from the receiver with linear interpolation.
+ * Returns a new Array of the desired length, with values resampled evenly-spaced from the receiver with linear interpolation.
  * @arguments _(newSize)_
  * @example
  *  [1, 2, 3, 4].resamp1(12); // => [ 1, 1.2727, 1.5454, ... , 3.7272, 4 ]

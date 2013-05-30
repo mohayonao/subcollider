@@ -2,10 +2,10 @@
  * Returns a new Boolean based upon *this*
  * @arguments _none_
  * @example
- *   (0).asBoolean(); // false
- *   (1).asBoolean(); // true
- *   [ ].asBoolean(); // false
- *   [0].asBoolean(); // true
+ *  (0).asBoolean(); // false
+ *  (1).asBoolean(); // true
+ *  [ ].asBoolean(); // false
+ *  [0].asBoolean(); // true
  */
 sc.define("asBoolean", {
   Number: function() {

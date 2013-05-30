@@ -1,3 +1,7 @@
+/**
+ * performs a bitwise and with aNumber
+ * @arguments _(number)_
+ */
 sc.define(["bitAnd", "&"], {
   Number: function(num) {
     if (Array.isArray(num)) {

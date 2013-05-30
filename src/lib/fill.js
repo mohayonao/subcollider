@@ -1,9 +1,10 @@
 /**
  * Creates an Array of the given size, the elements of which are determined by evaluation the given function.
- * @arguments _(size [, function])_
+ * @arguments _(size [, function=nil])_
  * @example
  *  Array.fill(3, 5); // => [ 5, 5, 5 ]
- *  Array.fill(3, function(i) { return i * 2; }) // => [ 0, 2, 4 ]
+ *  Array.fill(3, function(i) { return (i * 2 + 60).midicps(); });
+ *  // => [ 440, 493.8833, 554.3652 ]
  */
 sc.define("*fill", {
   Array: function(size, func) {
@@ -21,7 +22,7 @@ sc.define("*fill", {
  * Inserts the item into the contents of the receiver.
  * @arguments _(item)_
  * @example
- *  [1,2,3,4].fill(4); // [ 4, 4, 4, 4 ]
+ *  [1, 2, 3, 4].fill(4); // [ 4, 4, 4, 4 ]
  */
 sc.define("fill", {
   Array: function(item) {

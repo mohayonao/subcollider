@@ -1,5 +1,5 @@
 /**
- * Same as `put`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
+ * Same as `put`, but values for index greater than the size of the Array will be wrapped around to 0.
  * @arguments _(index, item)_
  */
 sc.define("wrapPut", {

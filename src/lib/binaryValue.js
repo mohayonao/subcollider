@@ -4,5 +4,8 @@ sc.define("binaryValue", {
   },
   Array: function() {
     return this.map(function(x) { return x.binaryValue(); });
+  },
+  Boolean: function() {
+    return this ? 1 : 0;
   }
 });

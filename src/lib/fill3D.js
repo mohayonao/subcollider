@@ -1,6 +1,11 @@
 /**
- * Creates a 3 dimensional Collection of the given sizes. The items are determined by evaluation of the supplied function. The function is passed plane, row and column indexes as arguments.
- * @arguments _(planes, rows, cols [, function])_
+ * Creates a 3 dimensional Array of the given sizes. The items are determined by evaluation of the supplied function. The function is passed plane, row and column indexes as arguments.
+ * @arguments _(planes, rows, cols [, function=nil])_
+ * @example
+ *  Array.fill3D(3, 3, 3, 1);
+ *  // => [ [ [ 1, 1, 1 ],[ 1, 1, 1 ],[ 1, 1, 1 ] ],
+ *  //      [ [ 1, 1, 1 ],[ 1, 1, 1 ],[ 1, 1, 1 ] ],
+ *  //      [ [ 1, 1, 1 ],[ 1, 1, 1 ],[ 1, 1, 1 ] ] ]
  */
 sc.define("*fill3D", {
   Array: function(planes, rows, cols, func) {

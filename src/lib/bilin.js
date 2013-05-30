@@ -1,7 +1,6 @@
 sc.define("bilin", {
   Number: function(inCenter, inMin, inMax, outCenter, outMin, outMax, clip) {
-    if (Array.isArray(inCenter) || Array.isArray(inMin) ||Array.isArray(inMax) ||
-        Array.isArray(outCenter) || Array.isArray(outMin) || Array.isArray(outMax)) {
+    if (sc.isArrayArgs(arguments, 6)) {
       return [this,inCenter,inMin,inMax,outCenter,outMin,outMax].flop().map(function(items) {
         return items[0].bilin(items[1],items[2],items[3],items[4],items[5],items[6],clip);
       });

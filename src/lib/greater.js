@@ -1,3 +1,7 @@
+/**
+ * greater than
+ * @arguments _(number)_
+ */
 sc.define(["greater", ">"], {
   Number: function(num) {
     if (Array.isArray(num)) {

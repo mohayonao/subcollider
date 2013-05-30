@@ -1,5 +1,5 @@
 /**
- * Same as `put`, but values for index greater than the size of the ArrayedCollection will be clipped to the last index.
+ * Same as `put`, but values for index greater than the size of the Array will be clipped to the last index.
  * @arguments _(index, item)_
  */
 sc.define("clipPut", {

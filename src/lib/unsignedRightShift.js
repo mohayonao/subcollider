@@ -1,3 +1,7 @@
+/**
+ * performs an unsigned right shift
+ * @arguments _(number)_
+ */
 sc.define(["unsignedRightShift", ">>>"], {
   Number: function(num) {
     if (Array.isArray(num)) {

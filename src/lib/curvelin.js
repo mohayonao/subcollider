@@ -7,8 +7,7 @@
  */
 sc.define("curvelin", {
   Number: function(inMin, inMax, outMin, outMax, curve, clip) {
-    if (Array.isArray(inMin) || Array.isArray(inMax) ||
-        Array.isArray(outMin) || Array.isArray(outMax)) {
+    if (sc.isArrayArgs(arguments, 4)) {
       return [this,inMin,inMax,outMin,outMax].flop().map(function(items) {
         return items[0].curvelin(items[1],items[2],items[3],items[4],curve,clip);
       });

@@ -48,14 +48,23 @@ module.exports = (grunt)->
         predef  : ['sc']
     concat:
       src:
-        src : ['src/_header.txt', 'src/sc.js', 'src/lib/*.js', 'src/tuning.js', 'src/scale.js', 'src/_footer.txt' ]
-        dest: 'build/subcollider.js'
+        src : [
+          'src/_header.txt'
+          'src/sc.js'
+          'src/lib/*.js'
+          'src/class/tuning.js'
+          'src/class/scale.js'
+          'src/class/rgen.js'
+          'src/class/pattern.js'
+          'src/_footer.txt'
+        ]
+        dest: 'builds/subcollider.js'
     uglify:
       prototype:
-        src : 'build/subcollider.js'
-        dest: 'build/subcollider-min.js'
+        src : 'builds/subcollider.js'
+        dest: 'builds/subcollider-min.js'
         options:
-          sourceMap: 'build/subcollider-min.map'
+          sourceMap: 'builds/subcollider-min.map'
     nodeunit:
       prototype:
         src: 'test/*.coffee'
@@ -90,18 +99,31 @@ module.exports = (grunt)->
       docs = []
       for filepath in grunt.file.expand './src/lib/*.js'
         docs = docs.concat parse(filepath)
-
+      docs = docs.concat parse2 './src/class/pattern.js'
+      docs = docs.concat parse2 './src/class/rgen.js'
+      docs = docs.concat parse2 './src/class/scale.js'
+      docs = docs.concat parse2 './src/class/tuning.js'
       index = [
-        {category:"Array"   , data:sortIndex docs, "Array"   }
-        {category:"Number"  , data:sortIndex docs, "Number"  }
-        {category:"Function", data:sortIndex docs, "Function"}
-        {category:"String"  , data:sortIndex docs, "String"  }
+        {category:"Array"  , data:sortIndex docs, "Array"  }
+        {category:"Number" , data:sortIndex docs, "Number" }
+        {category:"Pattern", data:sortIndex docs, "Pattern"}
+        {category:"RGen"   , data:sortIndex docs, "Rgen"   }        
+        {category:"Scale"  , data:sortIndex docs, "Scale"  }
+        {category:"Tuning" , data:sortIndex docs, "Tuning" }
       ]
       body = sortBody docs
+      
       index:index, body:body
     
     parse = (filepath)->
       getDocs filepath
+
+    parse2 = (filepath)->
+      name = /\/(\w+)\.js/.exec(filepath)[1]
+      getDocs(filepath).map (x)->
+        x.category = [name.charAt(0).toUpperCase() + name.substr(1)]
+        x.tag = "#{name}.#{x.tag}"
+        x
 
     sortIndex = (docs, key)->
       docs = docs.filter (doc)->
@@ -116,6 +138,17 @@ module.exports = (grunt)->
         if not tag[docs[key].tag]
           tag[docs[key].tag] = true
           ret.push docs[key]
+      ret.sort (a, b)->
+        atag = a.tag.replace /^\*/, ''
+        btag = b.tag.replace /^\*/, ''
+        atagdot = atag.indexOf('.') != -1
+        btagdot = btag.indexOf('.') != -1
+        switch
+          when btagdot and not atagdot then -1
+          when atagdot and not btagdot then 1
+          when atag is btag then 0
+          when atag <  btag then -1
+          else 1
       ret
 
     compareKeys = (a, b)->

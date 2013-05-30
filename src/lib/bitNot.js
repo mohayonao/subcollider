@@ -1,3 +1,7 @@
+/**
+ * ones complement
+ * @arguments _none_
+ */
 sc.define(["bitNot", "~"], {
   Number: function() {
     return ~this;

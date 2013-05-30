@@ -3,7 +3,7 @@
  * @arguments _(scale [, stepsPerOctave=12])_
  * @example
  *  l = [0, 1, 5, 9, 11]; // pentatonic scale
- *  Array.range("60..73").collect(function(i) { return i.keyToDegree(l); });
+ *  sc.Range("60..73").collect(function(i) { return i.keyToDegree(l); });
  *  // => [ 25, 26, 26.25, 26.5, 26.75, 27, 27.25, 27.5, 27.75, 28, 28.5, 29, 30, 31 ]
  */
 sc.define("keyToDegree", {

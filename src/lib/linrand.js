@@ -1,5 +1,5 @@
 /**
- * Fill a SequenceableCollection with random values in the range *minVal* to *maxVal* with a linear distribution.
+ * Fill an Array with random values in the range *minVal* to *maxVal* with a linear distribution.
  * @arguments _(size [, minVal=0, maxVal=1])_
  * @example
  *  Array.linrand(8, 1, 100);

@@ -2,7 +2,7 @@
  * Answer the sum of the results of function evaluated for each item in the receiver. The function is passed two arguments, the item and an integer index.
  * @arguments _(function)_
  * @example
- *  Array.range("0..10").sum(); // => 55
+ *  sc.Range("0..10").sum(); // => 55
  */
 sc.define("sum", {
   Array: function(func) {

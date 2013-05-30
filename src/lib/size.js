@@ -1,5 +1,5 @@
 /**
- * Return the number of elements the ArrayedCollection.
+ * Return the number of elements the receiver.
  * @arguments _none_
  */
 sc.define("size", {

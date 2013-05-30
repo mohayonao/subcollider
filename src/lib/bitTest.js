@@ -1,3 +1,7 @@
+/**
+ * true if bit at index aNumber is set.
+ * @arguments _(bit)_
+ */
 sc.define("bitTest", {
   Number: function(num) {
     if (Array.isArray(num)) {

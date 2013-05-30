@@ -6,7 +6,7 @@
  */
 sc.define("copyRange", function() {
   var copyRange = function(start, end) {
-    if (Array.isArray(start) || Array.isArray(end)) {
+    if (sc.isArrayArgs(arguments)) {
       return [start, end].flop().map(function(items) {
         return this.copyRange(items[0], items[1]);
       }, this);

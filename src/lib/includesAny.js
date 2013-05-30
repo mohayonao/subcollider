@@ -1,5 +1,5 @@
 /**
- * Answer whether any item in aCollection is contained in the receiver.
+ * Answer whether any item in *list* is contained in the receiver.
  * @arguments _(list)_
  * @example
  *  [1, 2, 3, 4].includesAny([4, 5]); // => true

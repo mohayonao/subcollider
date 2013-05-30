@@ -1,3 +1,7 @@
+/**
+ * performs a binary left shift
+ * @arguments _(number)_
+ */
 sc.define(["leftShift", "<<"], {
   Number: function(num) {
     if (Array.isArray(num)) {

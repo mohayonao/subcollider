@@ -1,9 +1,21 @@
 (function(sc) {
   "use strict";
 
+  /**
+   * @name *RGen
+   * @description
+   * Random Generator
+   * @arguments _([seed])_
+   * @example
+   *  r = sc.RGen();
+   *  r.next();
+   */
   function RGen(seed) {
+    if (!(this instanceof RGen)) {
+      return new RGen(seed);
+    }
     if (typeof seed !== "number") {
-      seed = +new Date();
+      seed = Date.now();
     }
     var hash = seed;
     hash += ~(hash <<  15);
@@ -31,8 +43,17 @@
   var _i = new Uint32Array(1);
   var _f = new Float32Array(_i.buffer);
 
-  // ## frand ()
-  // return a number from 0.0 to 0.999...
+  /**
+   * @name next
+   * @description
+   * return a number from 0.0 to 0.999...
+   * @arguments _none_
+   * @example
+   *  r = sc.RGen(100);
+   *  r.next(); // => 0.6258506774902344
+   *  r.next(); // => 0.4134453535079956
+   *  r.next(); // => 0.13581514358520508
+   */
   RGen.prototype.next = function() {
     _i[0] = 0x3F800000 | (this.trand() >>> 9);
     return _f[0] - 1;

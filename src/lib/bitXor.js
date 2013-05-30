@@ -1,3 +1,7 @@
+/**
+ * Bitwise Exclusive Or
+ * @arguments _(number)_
+ */
 sc.define(["bitXor", "^"], {
   Number: function(num) {
     if (Array.isArray(num)) {

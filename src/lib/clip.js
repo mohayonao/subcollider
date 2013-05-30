@@ -6,7 +6,7 @@
  */
 sc.define("clip", {
   Number: function(lo, hi) {
-    if (Array.isArray(lo) || Array.isArray(hi)) {
+    if (sc.isArrayArgs(arguments)) {
       return [this,lo,hi].flop().map(function(items) {
         return items[0].clip(items[1], items[2]);
       });

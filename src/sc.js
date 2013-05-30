@@ -88,7 +88,11 @@
   };
   sc.use = function(type) {
     if (type === "global") {
-      Object.keys(sc).forEach(function(key) { global[key] = sc[key]; });
+      Object.keys(sc).forEach(function(key) {
+        if (!global[key]) {
+          global[key] = sc[key];
+        }
+      });
     }
     return sc;
   };
@@ -96,6 +100,59 @@
     function(key) {
       return this[key].bind.apply(this[key], [this].concat(slice.call(arguments, 1)));
     };
+  sc.isArrayArgs = function(list, len) {
+    for (var i = 0, imax = Math.max(list.length, len|0); i < imax; ++i) {
+      if (Array.isArray(list[i])) { return true; }
+    }
+    return false;
+  };
+  sc.Range = sc.R = (function() {
+    var re = /^\s*(?:([-+]?(?:\d+|\d+\.\d+))\s*,\s*)?([-+]?(?:\d+|\d+\.\d+))(?:\s*\.\.(\.?)\s*([-+]?(?:\d+|\d+\.\d+)))?\s*$/;
+    return function() {
+      var a = [], m, i, x, first, last, step;
+      if (typeof arguments[0] === "string") {
+        if ((m = re.exec(arguments[0])) !== null) {
+          if (m[4] === void 0) {
+            first = 0;
+            last  = +m[2];
+            step  = (0 < last) ? +1 : -1;
+          } else if (m[1] === void 0) {
+            first = +m[2];
+            last  = +m[4];
+            step  = (first < last) ? +1 : -1;
+          } else {
+            first = +m[1];
+            last  = +m[4];
+            step  = +m[2] - first;
+          }
+          i = 0;
+          x = first;
+          if (m[3]) {
+            while (x < last) {
+              a[i++] = x;
+              x += step;
+            }
+          } else {
+            while (x <= last) {
+              a[i++] = x;
+              x += step;
+            }
+          }
+        }
+      } else if (typeof arguments[0] === "number") {
+        first = 0;
+        last  = arguments[0];
+        step  = (first < last) ? +1 : -1;
+        i = 0;
+        x = first;
+        while (x <= last) {
+          a[i++] = x;
+          x += step;
+        }
+      }
+      return a;
+    };
+  })();
 
   var exports = sc;
 

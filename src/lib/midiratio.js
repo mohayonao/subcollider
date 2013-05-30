@@ -3,7 +3,7 @@
  * @arguments _none_
  * @returns a ratio
  * @example
- *  Array.range("0..12").midiratio(); // => [1, 1.0594, ... , 1.8877, 2]
+ *  sc.Range("0..12").midiratio(); // => [1, 1.0594, ... , 1.8877, 2]
  */
 sc.define("midiratio", {
   Number: function() {

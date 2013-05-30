@@ -4,7 +4,7 @@
  * @returns midi note
  * @example
  *  (440).cpsmidi(); // => 69
- *  Array.range("440, 550..880").cpsmidi(); // => [69, 72.8631, 76.0195, 78.6882, 81 ]
+ *  sc.Range("440, 550..880").cpsmidi(); // => [69, 72.8631, 76.0195, 78.6882, 81 ]
  */
 sc.define("cpsmidi", {
   Number: function() {

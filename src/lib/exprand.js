@@ -1,5 +1,5 @@
 /**
- * Fill a SequenceableCollection with random values in the range minVal to maxVal with exponential distribution.
+ * Fill an Array with random values in the range *minVal* to *maxVal* with exponential distribution.
  * @arguments _(size [, minVal=0, maxVal=1])_
  * @example
  *  Array.exprand(8, 1, 100);

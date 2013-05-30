@@ -1,5 +1,5 @@
 /**
- * Calls function for every adjacent pair of elements in the SequentialCollection. The function is passed the two adjacent elements and an index.
+ * Calls function for every adjacent pair of elements in the Array. The function is passed the two adjacent elements and an index.
  * @arguments _(function)_
  */
 sc.define("doAdjacentPairs", {

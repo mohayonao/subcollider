@@ -1,3 +1,7 @@
+/**
+ * performs a binary right shift
+ * @arguments _(number)_
+ */
 sc.define(["rightShift", ">>"], {
   Number: function(num) {
     if (Array.isArray(num)) {

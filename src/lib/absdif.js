@@ -2,7 +2,7 @@
  * (a - b).abs()
  * @arguments _(number)_
  * @example
- *  (10).absdif(15); // => 5
+ *  sc.absdif(10, 15); // => 5
  */
 sc.define("absdif", {
   Number: function(num) {

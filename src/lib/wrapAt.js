@@ -1,5 +1,5 @@
 /**
- * Same as `at`, but values for index greater than the size of the ArrayedCollection will be wrapped around to 0.
+ * Same as `at`, but values for index greater than the size of the Array will be wrapped around to 0.
  * @example
  *  [ 1, 2, 3 ].wrapAt(13); // => 2
  *  [ 1, 2, 3 ].wrapAt([ 0, 1, 2, 3 ]); // => [ 1, 2, 3, 1 ]

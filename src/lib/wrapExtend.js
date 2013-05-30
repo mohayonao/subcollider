@@ -1,5 +1,5 @@
 /**
- * Returns a new Array whose elements are repeated sequences of the receiver, up to size length. The receiver is unchanged.
+ * Returns a new Array whose elements are repeated sequences of the receiver, up to size length.
  * @arguments _(size)_
  * @example
  *  [ 1, 2, 3 ].wrapExtend(9); // => [ 1, 2, 3, 1, 2, 3, 1, 2, 3 ]

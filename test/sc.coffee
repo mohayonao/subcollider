@@ -1,4 +1,4 @@
-require "../build/subcollider.js"
+require "../builds/subcollider.js"
 
 nan = NaN
 inf = Infinity
@@ -1345,21 +1345,6 @@ testcase["neg"] = (test)->
   a = Array.series(10, -4, 1.15).neg()
   b = [ 4, 2.85, 1.7, 0.55, -0.6, -1.75, -2.9, -4.05, -5.2, -6.35 ]
   test.ok approximate a, b
-  do test.done
-
-testcase["*new"] = (test)->
-  test.expect 1
-  test.equal Array.new(10).length, 10
-  do test.done
-
-testcase["*newClear"] = (test)->
-  test.expect 1
-  test.deepEqual Array.newClear(10), [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-  do test.done
-
-testcase["*newForm"] = (test)->
-  test.expect 1
-  test.deepEqual Array.newFrom([0,1,2,3]), [ 0, 1, 2, 3 ]
   do test.done
 
 testcase["nextPowerOfThree"] = (test)->

@@ -3,7 +3,7 @@
  * @arguments _(scale [, stepsPerOctave=12])_
  * @example
  *  l = [0, 1, 5, 9, 11]; // pentatonic scale
- *  Array.range("60, 61..76").collect(function(i) { return i.nearestInScale(l, 12); });
+ *  sc.Range("60, 61..76").collect(function(i) { return i.nearestInScale(l, 12); });
  *  // => [ 60, 61, 61, 65, 65, 65, 65, 69, 69, 69, 71, 71, 72, 73, 73, 77, 77 ]
  */
 sc.define("nearestInScale", {
