@@ -8,6 +8,10 @@ SubCollider.js is a JavaScript library that provides like SuperCollider function
 * [subcollider-min.js](https://raw.github.com/mohayonao/subcollider.js/master/builds/subcollider-min.js)
 * [soucemap](https://raw.github.com/mohayonao/subcollider.js/master/builds/subcollider-min.map)
 
+## Documents
+
+[documents](http://mohayonao.github.com/subcollider.js/docs/)
+
 ## Installation
 
 In browsers:
@@ -22,6 +26,33 @@ Using [npm](http://npmjs.org/):
 npm install subcollider.js
 ```
 
-## Documents
+## Examples
 
-[documents](http://mohayonao.github.com/subcollider.js/docs/)
+```js
+ sc.midicps(69);
+ // => 440
+
+ sc.midicps([69, 71]);
+ // => [ 440, 493.8833012561241 ]
+
+ (4).ampdb();
+ // => 12.041199826559248
+
+ [4, 16].ampdb();
+ // => [ 12.041199826559248, 24.082399653118497 ]
+
+ sc.Range("0..5");
+ // [ 0, 1, 2, 3, 4, 5 ]
+
+ sc.Range("1...50").select("isPrime");
+ // => [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ]
+
+ sc.Scale.major().degreeToFreq(sc.Range(7), 440).asInteger();
+ // => [ 440, 493, 554, 587, 659, 739, 830, 880 ]
+
+ sc.Scale.major("just").degreeToFreq(sc.Range(7), 440).asInteger();
+ // => [ 440, 495, 550, 586, 660, 733, 824, 880 ]
+
+ sc.Scale.minor("just").degreeToFreq(sc.Range(7), 440).asInteger();
+ // => [ 440, 495, 528, 586, 660, 704, 792, 880 ]
+```
