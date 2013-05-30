@@ -16,10 +16,10 @@ In browsers:
 <script src="subcollider.js"></script>
 ```
 
-Using [`npm`](http://npmjs.org/):
+Using [npm](http://npmjs.org/):
 
 ```bash
-npm install subcollider
+npm install subcollider.js
 ```
 
 ## Documents
