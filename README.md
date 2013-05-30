@@ -8,7 +8,7 @@ SubCollider.js is a JavaScript library that provides like SuperCollider function
 * [subcollider-min.js](https://raw.github.com/mohayonao/subcollider.js/master/builds/subcollider-min.js)
 * [soucemap](https://raw.github.com/mohayonao/subcollider.js/master/builds/subcollider-min.map)
 
-## installation
+## Installation
 
 In browsers:
 
