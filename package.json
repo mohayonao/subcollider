@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/mohayonao/subcollider.js.git"
   },
-  "main": "subcollider.dev.js",
+  "main": "./builds/subcollider.js",
   "licenses": [
     {
       "type": "MIT",
