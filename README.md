@@ -23,7 +23,7 @@ In browsers:
 Using [npm](http://npmjs.org/):
 
 ```bash
-npm install subcollider.js
+npm install subcollider
 ```
 
 ## Examples
