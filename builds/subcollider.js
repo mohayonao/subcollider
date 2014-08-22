@@ -4,7 +4,7 @@
 (function(global) {
   "use strict";
 
-  var VERSION = "0.1.0";
+  var VERSION = "0.1.1";
 
   var slice = [].slice;
   var conflicts = {
