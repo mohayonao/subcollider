@@ -1,4 +1,4 @@
-# subcollider.js <sup>v0.1.0</sup>
+# subcollider.js <sup>v0.1.1</sup>
 
 SubCollider.js is a JavaScript library that provides like SuperCollider functions to built-in prototypes and **sc** namespace. It is the recommended base library for [timbre.js](http://mohayonao.github.io/timbre.js/).
 
@@ -23,7 +23,7 @@ In browsers:
 Using [npm](http://npmjs.org/):
 
 ```bash
-npm install subcollider.js
+npm install subcollider
 ```
 
 ## Examples

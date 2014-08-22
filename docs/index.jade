@@ -11,8 +11,8 @@ html(lang="en")
     script(src="./index.js")
   body
     h1
-      a(href="..") subcollider.js 
-      sup v0.1.0
+      a(href="..") subcollider.js
+      sup v0.1.1
     #doc-index
       - data.index.forEach(function(obj) {
         h2 #{obj.category}
@@ -35,15 +35,15 @@ html(lang="en")
               .desc !{obj.description}
             - ["arguments", "returns", "aliases"].forEach(function(key) {
             -   if (obj[key]) {
-                  h4 #{key.charAt(0).toUpperCase() + key.substr(1)}: 
+                  h4 #{key.charAt(0).toUpperCase() + key.substr(1)}:
                   div(class="#{key}") !{obj[key]}
             -   }
             - });
             - if (obj.example) {
-              h4 Example: 
+              h4 Example:
               pre(class="prettyprint lang-js") #{obj.example}
             - }
             div.doc-source
               a(href="https://github.com/mohayonao/subcollider.js/blob/master/#{obj.src}") View Source on GitHub
               a(href="##{obj.tag}") #
-      - });  
+      - });
