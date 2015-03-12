@@ -10,7 +10,7 @@ SubCollider.js is a JavaScript library that provides like SuperCollider function
 
 ## Documents
 
-[documents](http://mohayonao.github.com/subcollider.js/docs/)
+[documents](http://mohayonao.github.com/subcollider/docs/)
 
 ## Installation
 
