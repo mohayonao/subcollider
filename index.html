@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>subcollider</title>
+  <link rel="shortcut icon" href="favicon.ico" id="favicon">
+  <style>
+    * { margin: 0; padding: 0; }
+    a { color: #727171; }
+    body { font: 1em/1.5 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    #doc-header h1 { height: 55px; padding: 0 0.5em; font-weight: normal; }
+    #doc-header h1 a { font-size: 1.25em; letter-spacing: 4px; color: #000; text-decoration: none; }
+    #doc-header h1 sup { font-size: 0.5em; }
+    #doc-index { position: fixed; top: 60px; left: 0; bottom: 0; width: 250px; overflow-y: auto; overflow-x: hidden; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; }
+    #doc-index h2 { font-weight: normal; }
+    #doc-index ul { margin-left: 20px; }
+    #doc-index li:last-child { margin-bottom: 20px; }
+    #doc-contents { position: fixed; top: 60px; left: 0; bottom: 0; right: 0; overflow-y: auto; overflow-x: hidden; margin-left: 280px; padding: 15px; }
+    .doc-block { border: solid 1px #f3f3f2; border-radius: 3px; background: #f8fbf8; margin-bottom: 15px; padding: 5px; }
+    .doc-head { padding: 5px; height: 25px; border: dashed 0px #667; border-bottom-width: 1px; }
+    .doc-head .klass li { float:right; list-style:none; background:#667; color: #fff; margin: 0 5px; padding: 2px 5px; font-size: 11px; font-weight: normal; border-radius: 5px; }
+    .doc-body { padding:10px; clear:both; }
+    .doc-body h2 { font-size: 1em; margin-top: 10px; }
+    .doc-body h3 { font-weight: normal; font-size: 0.9em; color: #667; letter-spacing: 1px; margin-top: 10px; }
+    .doc-body p  { padding: 10px; }
+    .doc-body ul { padding-left: 35px; }
+    .doc-body ol { padding-left: 35px; }
+    .doc-body code { font-family: 'Consolas', 'Courier New', monospace; }
+    .doc-source { text-align: right; margin: 5px 5px 0 0; }
+    .doc-source a { font-size: 0.8em; margin: 0 2px; }
+    .str { color: #61ce3c; }
+    .kwd { color: #fbde2d; }
+    .com { color: #aeaeae; }
+    .typ { color: #dddddd; }
+    .lit { color: #fbde2d; }
+    .pun { color: #dddddd; }
+    .pln { color: #8da6ce; }
+    .tag { color: #8AC763; }
+    .atn { color: #E0E2E4; }
+    .atv { color: #EC7600; }
+    .dec { color: purple; }
+    .prettyprint { border: 0px !important; font-family: 'Consolas', 'Courier New', monospace; background: #0d152a; margin: 5px; padding: 10px 15px; }
+  </style>
+  <script src="//cdn.jsdelivr.net/es6-promise/1.0.0/promise.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/3.5.0/lodash.min.js"></script>
+  <script src="build/subcollider.min.js"></script>
+</head>
+<body>
+  <div id="doc-header">
+    <h1><a href="./">subcollider</a> <sup>v <span id="version">0.0.0</span></sup></h1>
+  </div>
+  <div id="doc-index">
+    <div>
+      <h2>Repository</h2>
+      <ul>
+        <li><a href="https://github.com/mohayonao/subcollider/">GitHub</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Downloads</h2>
+      <ul>
+        <li><a href="./build/subcollider.js">subcollider.js</a></li>
+        <li><a href="./build/subcollider.min.js">subcollider.min.js</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="doc-contents"></div>
+  <script id="template" type="text/template">
+    <div id="sc.<%- name %>" class="doc-block">
+      <div class="doc-head">
+        <ul class="klass"><li><%- klass %></li></ul>
+        <h3><%- api %></h3>
+      </div>
+      <div class="doc-body">
+        <%= markdown %>
+        <div class="doc-source">
+          <a href="https://github.com/mohayonao/subcollider/blob/master/src/<%- category.toLowerCase() %>.js#L<%- lineNo %>">View Source on GitHub</a>
+          <a href="#sc.<%- name %>">#</a>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script>
+  window.fetch = window.fetch || function(url) {
+    return new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", url);
+      xhr.onload = function() {
+        resolve({
+          text: function() {
+            return Promise.resolve(xhr.response);
+          },
+          json: function() {
+            return Promise.resolve(JSON.parse(xhr.response));
+          }
+        });
+      };
+      xhr.onerror = reject;
+      xhr.send();
+    });
+  };
+
+  marked.setOptions({
+    renderer: (function() {
+      var renderer = new marked.Renderer();
+
+      renderer.code = function(code) {
+        return "<pre class='prettyprint'>" + code + "</pre>";
+      };
+
+      return renderer;
+    })(),
+  });
+
+  window.onload = function() {
+    "use strict";
+
+    function getText(elem) {
+      return elem.innerText || elem.textContent || "";
+    }
+
+    function pluckDocuments(src) {
+      return src.split("\n").reduce(function(list, line, lineNo) {
+        if (/^\/{3}(?:\s|$)/.test(line)) {
+          line = line.substr(4);
+
+          if (/^#\s/.test(line)) {
+            line = line.substr(2);
+            var matches = /^sc\.(\w+)\(/.exec(line);
+
+            list.push({
+              lineNo: lineNo,
+              name: (matches && matches[1]) || line,
+              api: line,
+              markdown: [],
+            });
+          } else {
+            _.last(list).markdown.push(line);
+          }
+        }
+        return list;
+      }, []);
+    }
+
+    function createIndex(docs) {
+      _.sortByAll(docs, [ "sortIndex", "category", "name" ]).reduce(function(prev, doc) {
+        if (doc.category !== prev.category) {
+          var div = document.createElement("div");
+          var h2 = document.createElement("h2");
+          var ul = document.createElement("ul");
+
+          h2.innerHTML = doc.category;
+
+          div.appendChild(h2);
+          div.appendChild(ul);
+
+          prev.list.push(div);
+          prev.category = doc.category;
+          prev.ul = ul;
+        }
+
+        var li = document.createElement("li");
+        li.innerHTML = "<a href='#sc." + doc.name + "'>" + doc.name + "</a>";
+
+        prev.ul.appendChild(li);
+
+        return prev;
+      }, { list: [], category: null, ul: null }).list.forEach(function(div) {
+        document.getElementById("doc-index").appendChild(div);
+      });
+
+      return docs;
+    }
+
+    function createContents(docs) {
+      _.sortByAll(docs, [ "sortIndex", "name" ]).forEach(function(doc) {
+        doc.markdown = marked(doc.markdown.join("\n"));
+
+        var div = document.createElement("div");
+        div.innerHTML = tmpl(doc);
+        document.getElementById("doc-contents").appendChild(div);
+      });
+
+      return docs;
+    }
+
+    function cap(str) {
+      str = str.replace(/\.\w+$/, "");
+      return (str !== "sc") ? _.capitalize(str) : str;
+    }
+
+    var tmpl = _.template(getText(document.getElementById("template")));
+
+    fetch("package.json").then(function(res) {
+      return res.json();
+    }).then(function(pkg) {
+      document.getElementById("version").innerHTML = pkg.version;
+      return pkg.documentIndex;
+    }).then(function(documentIndex) {
+      return Promise.all(documentIndex.map(function(path, indexNo) {
+        return fetch(path).then(function(res) {
+          return res.text();
+        }).then(function(text) {
+          return pluckDocuments(text).map(function(doc) {
+            doc.sortIndex = indexNo;
+            doc.category  = cap(path.split("/")[1]);
+            doc.klass     = cap(path.split("/").pop());
+            return doc;
+          });
+        });
+      }));
+    }).then(_.flatten).then(createIndex).then(createContents).then(prettyPrint).then(function() {
+      if (location.hash) {
+        location.href = location.hash;
+      }
+    });
+  };
+  </script>
+</body>
+</html>
