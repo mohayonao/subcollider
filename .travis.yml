@@ -1,0 +1,9 @@
+language: node_js
+sudo: false
+node_js:
+  - "0.12"
+env:
+  global:
+    - secure: "Wjs5CgfqewVq2PHd+G12bL9apFkFML/WG+9sY8kAO4LM4y2pfishLBjXfSkAjbg6jz0rqtecV5BJPq5SxWV4YZ2dRIybPwDWmS5XU1xuxGGIUnybNvNRFuLo8VLHNDwVZVnQrC0LN3rW21N1yEADzm0b3RmtyqlDcGosUIliw1c="
+script:
+  - npm run travis

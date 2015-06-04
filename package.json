@@ -37,5 +37,15 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/mohayonao/subcollider.git"
+  },
+  "scripts": {
+    "build": "npm run build-to5 && npm run build-browser && npm run build-minify",
+    "build-browser": "browserify lib/index.js --standalone sc --outfile build/subcollider.js",
+    "build-minify": "uglifyjs build/subcollider.js -o build/subcollider.min.js",
+    "build-to5": "babel src --out-dir lib",
+    "cover": "babel-node $(npm bin)/isparta cover --report text --report html --report lcov _mocha",
+    "lint": "eslint src test",
+    "test": "mocha --compilers js:espower-babel/guess",
+    "travis": "npm run lint && npm run cover"
   }
 }
